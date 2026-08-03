@@ -130,12 +130,15 @@ try {
 
   Assert-FilePresent 'script installed' $completionPath
   Assert-FilePresent 'profile written' $profilePath
-  Assert-Count 'profile dot-sources the script' $profilePath 'Completions' 1
+  # -like is case-insensitive, so a needle of 'Completions' would also count
+  # the two managed-block markers.
+  Assert-Count 'profile dot-sources the script' $profilePath 'quarto.ps1' 1
 
   # The completer the installer just wrote has to load and answer.
   $completions = & pwsh -NoProfile -Command "
     . '$completionPath'
-    (TabExpansion2 'quarto render --to ' 20).CompletionMatches.CompletionText -join ' '
+    \$line = 'quarto render --to '
+    (TabExpansion2 \$line \$line.Length).CompletionMatches.CompletionText -join ' '
   " | Out-String
   if ($completions -match 'revealjs') { Test-Pass 'installed script completes formats' }
   else { Test-Fail 'installed script completes formats' $completions }
