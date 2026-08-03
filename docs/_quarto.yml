@@ -10,8 +10,9 @@ project:
   # Everything below is invisible to that scan: the installers and the generated
   # completions are fetched by URL rather than linked from a page, the manifest
   # names its icons in JSON, and the social card is named in a `<meta>` tag.
-  # The favicon, the touch icon, and the manifest itself are not listed, since
-  # each is reached through an `href` and copied without being asked for.
+  # The favicon and the manifest itself are not listed: each is reached through
+  # an `href` and copied without being asked for. So is the touch icon, which
+  # only appears above because it falls inside the icons glob.
   resources:
     - install.sh
     - install.ps1
