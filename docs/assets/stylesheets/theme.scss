@@ -53,6 +53,13 @@
 // These tables are mostly commands, flags, option names, and installation
 // paths. Keeping the first column monospaced and unwrapped is what makes a
 // column of `quarto render --to <TAB>` scannable rather than reflowed prose.
+// Bootstrap's `.table` has no responsive wrapper of its own, so the unwrapped
+// first column below would widen the page rather than the table on a narrow
+// viewport. Scroll the table instead.
+.completions-shell {
+  overflow-x: auto;
+}
+
 .completions-shell table {
   font-size: 0.9rem;
 
