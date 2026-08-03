@@ -12,6 +12,13 @@ ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Resolved before anything changes directory: the bash harness completes from a
 # fixture directory, so a relative path would no longer point anywhere.
 COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/stable}" && pwd)"
+
+# PowerShell reads native Windows paths, not the MSYS ones Git Bash hands out.
+if command -v cygpath >/dev/null 2>&1; then
+  PS_COMPLETIONS="$(cygpath -w "${COMPLETIONS}")"
+else
+  PS_COMPLETIONS="${COMPLETIONS}"
+fi
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "${SCRATCH}"' EXIT
 
@@ -148,7 +155,7 @@ test_pwsh() {
 
   local output
   output="$(pwsh -NoProfile -Command "
-    . '${COMPLETIONS}/quarto.ps1'
+    . '${PS_COMPLETIONS}/quarto.ps1'
     function Complete-Line { param([string]\$Line)
       (TabExpansion2 \$Line \$Line.Length).CompletionMatches.CompletionText -join ' '
     }

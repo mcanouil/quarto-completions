@@ -70,7 +70,21 @@ expect_count() {
 
 python3 -m http.server "${PORT}" --directory "${SITE}" >/dev/null 2>&1 &
 SERVER_PID=$!
-sleep 1
+
+# Wait for the server to accept connections rather than guessing at a delay,
+# which a loaded runner loses.
+ready=0
+for _ in $(seq 1 60); do
+  if curl -fsS "http://127.0.0.1:${PORT}/completions/stable/manifest.json" >/dev/null 2>&1; then
+    ready=1
+    break
+  fi
+  sleep 1
+done
+if [ "${ready}" != "1" ]; then
+  printf 'error: the local server never answered on port %s\n' "${PORT}" >&2
+  exit 1
+fi
 
 HOME_DIR="${SCRATCH}/home"
 mkdir -p "${HOME_DIR}"
