@@ -17,10 +17,10 @@ import { emitPwsh } from "../src/emit/pwsh.ts";
 import { emitZsh } from "../src/emit/zsh.ts";
 import type { CommandSpec, OptionSpec, Spec } from "../src/spec.ts";
 
-const here = new URL(".", import.meta.url).pathname;
-
 function fixture(name: string): string {
-  return Deno.readTextFileSync(`${here}fixtures/${name}.txt`);
+  // Read through the URL rather than its `pathname`, which on Windows would be
+  // `/C:/...` and reach no file.
+  return Deno.readTextFileSync(new URL(`fixtures/${name}.txt`, import.meta.url));
 }
 
 function option(command: CommandSpec, flag: string): OptionSpec {

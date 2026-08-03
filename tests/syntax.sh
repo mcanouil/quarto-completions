@@ -8,7 +8,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPLETIONS="${1:-${ROOT}/docs/completions/stable}"
+COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/stable}" && pwd)"
 
 PASSED=0
 FAILED=0

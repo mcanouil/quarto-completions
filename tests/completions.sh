@@ -9,7 +9,9 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPLETIONS="${1:-${ROOT}/docs/completions/stable}"
+# Resolved before anything changes directory: the bash harness completes from a
+# fixture directory, so a relative path would no longer point anywhere.
+COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/stable}" && pwd)"
 SCRATCH="$(mktemp -d)"
 trap 'rm -rf "${SCRATCH}"' EXIT
 

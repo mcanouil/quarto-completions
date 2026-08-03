@@ -10,6 +10,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SITE="${1:-${ROOT}/docs/_site}"
+[ -d "${SITE}" ] && SITE="$(cd "${SITE}" && pwd)"
 PORT="${QUARTO_COMPLETIONS_TEST_PORT:-8799}"
 SCRATCH="$(mktemp -d)"
 SERVER_PID=""
