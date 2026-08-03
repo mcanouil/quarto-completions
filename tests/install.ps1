@@ -134,11 +134,12 @@ try {
   # the two managed-block markers.
   Assert-Count 'profile dot-sources the script' $profilePath 'quarto.ps1' 1
 
-  # The completer the installer just wrote has to load and answer.
+  # The completer the installer just wrote has to load and answer. The line and
+  # its length are interpolated here, so the inner session needs no escaping.
+  $line = 'quarto render --to '
   $completions = & pwsh -NoProfile -Command "
     . '$completionPath'
-    \$line = 'quarto render --to '
-    (TabExpansion2 \$line \$line.Length).CompletionMatches.CompletionText -join ' '
+    (TabExpansion2 '$line' $($line.Length)).CompletionMatches.CompletionText -join ' '
   " | Out-String
   if ($completions -match 'revealjs') { Test-Pass 'installed script completes formats' }
   else { Test-Fail 'installed script completes formats' $completions }
