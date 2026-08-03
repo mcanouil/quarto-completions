@@ -38,7 +38,7 @@ Start a new shell afterwards, and the completions are live.
 
 ## What it completes
 
-::: {.completions-shell}
+::: {.completions-shell tabindex="0" role="region" aria-label="What it completes"}
 
 | Where | Candidates |
 | --- | --- |
@@ -57,7 +57,7 @@ Start a new shell afterwards, and the completions are live.
 Both installers accept the same choices.
 The piped form cannot take arguments in PowerShell, so each one also reads an environment variable.
 
-::: {.completions-shell}
+::: {.completions-shell tabindex="0" role="region" aria-label="Installer options"}
 
 | Option | Environment variable | Effect |
 | --- | --- | --- |

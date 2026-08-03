@@ -15,9 +15,9 @@ Re-running the installer replaces that block.
 
 ## bash
 
-::: {.completions-shell}
+::: {.completions-shell tabindex="0" role="region" aria-label="bash installation"}
 
-| | |
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/quarto.bash`](completions/stable/quarto.bash) |
 | Installed to | `$XDG_DATA_HOME/bash-completion/completions/quarto` when that directory exists, otherwise `$XDG_DATA_HOME/quarto-completions/quarto.bash` |
@@ -41,9 +41,9 @@ echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/q
 
 ## zsh
 
-::: {.completions-shell}
+::: {.completions-shell tabindex="0" role="region" aria-label="zsh installation"}
 
-| | |
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/_quarto`](completions/stable/_quarto) |
 | Installed to | `$XDG_DATA_HOME/zsh/site-functions/_quarto` |
@@ -66,9 +66,9 @@ curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/_quarto \
 
 ## fish
 
-::: {.completions-shell}
+::: {.completions-shell tabindex="0" role="region" aria-label="fish installation"}
 
-| | |
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/quarto.fish`](completions/stable/quarto.fish) |
 | Installed to | `$XDG_CONFIG_HOME/fish/completions/quarto.fish` |
@@ -88,9 +88,9 @@ curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.fi
 
 ## PowerShell
 
-::: {.completions-shell}
+::: {.completions-shell tabindex="0" role="region" aria-label="PowerShell installation"}
 
-| | |
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/quarto.ps1`](completions/stable/quarto.ps1) |
 | Installed to | `Completions/quarto.ps1` beside `$PROFILE.CurrentUserAllHosts` |

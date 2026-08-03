@@ -6,19 +6,20 @@ project:
     - troubleshooting.qmd
     - 404.qmd
   # Quarto copies nothing to the output directory by convention: only these
-  # globs, plus files it finds behind an `href` or `src` in the rendered HTML.
-  # Everything below is invisible to that scan: the installers and the generated
-  # completions are fetched by URL rather than linked from a page, the manifest
-  # names its icons in JSON, and the social card is named in a `<meta>` tag.
-  # The favicon and the manifest itself are not listed: each is reached through
-  # an `href` and copied without being asked for. So is the touch icon, which
-  # only appears above because it falls inside the icons glob.
+  # globs, plus files it finds behind an `href` or `src` in the rendered HTML,
+  # and the ones a website key names outright.
+  #
+  # The installers and the generated completions are fetched by URL rather than
+  # linked from a page, so the scan cannot see them. Neither can it see the two
+  # manifest icons, which are named in JSON. Everything else is already covered:
+  # the favicon, the touch icon, and the manifest through an `href`, and the
+  # social card through `website.image`. `assets/icons/*.png` sweeps up the touch
+  # icon as a side effect of catching the two that need it.
   resources:
     - install.sh
     - install.ps1
     - completions/**
     - assets/icons/*.png
-    - assets/social/og-image.png
 
 website:
   title: "Quarto Completions"
@@ -39,13 +40,18 @@ website:
   # is no X account to name.
   image: /assets/social/og-image.png
   image-alt: "The Quarto Completions mark, a circle of four quadrants with the fourth drawn as a dashed green outline, above the words quarto completions on a near-black background."
+  # Every external link here carries `target` and `rel` explicitly. Overriding
+  # `left` and `center` replaces atelier's own strings, which carry them, and
+  # nothing puts them back: `link-external-newwindow` does not reach the footer
+  # template, and atelier's external-links script only adds `rel` to anchors
+  # that already open in a new tab.
   page-footer:
     left: |
-      Powered by [{{< iconify simple-icons:quarto title="Quarto Logo" label="Quarto Logo" >}} Quarto](https://quarto.org).
+      Powered by [{{< iconify simple-icons:quarto title="Quarto Logo" label="Quarto Logo" >}} Quarto](https://quarto.org){target="_blank" rel="noopener noreferrer"}.
     center: |
-      &copy; []{#current-year} [Mickaël CANOUIL](https://mickael.canouil.fr). [{{< iconify octicon:heart-fill-16 title="Heart" label="Heart" >}} Sponsor](https://github.com/sponsors/mcanouil?o=esb).
+      &copy; []{#current-year} [Mickaël CANOUIL](https://mickael.canouil.fr){target="_blank" rel="noopener noreferrer"}. [{{< iconify octicon:heart-fill-16 title="Heart" label="Heart" >}} Sponsor](https://github.com/sponsors/mcanouil?o=esb){target="_blank" rel="noopener noreferrer"}.
     right: |
-      Licence: [MIT](https://github.com/mcanouil/quarto-completions?tab=MIT-1-ov-file#readme).
+      Licence: [MIT](https://github.com/mcanouil/quarto-completions?tab=MIT-1-ov-file#readme){target="_blank" rel="noopener noreferrer"}.
   navbar:
     left:
       - text: "{{< iconify octicon:download-16 title='Install' label='Install' >}} Install"
@@ -63,24 +69,30 @@ brand: _brand.yml
 # The `atelier` project type sets `format: atelier-html`. Declaring `html` here
 # would replace that format rather than configure it, silently dropping the
 # accessibility scripts, `lang: en-GB`, the colour-scheme handling, and the
-# extension stylesheet. The theme lists below extend the format's own, which is
-# why the project layer wins the cascade. They are written out twice rather than
-# shared through a YAML anchor, which the schema check rejects.
+# extension stylesheet.
+#
+# These lists extend the format's own rather than replacing it, so only the one
+# file this site adds belongs here. `brand` is not repeated: Quarto concatenates
+# the two lists and then drops duplicates, keeping the first, and atelier
+# already places `brand` between its chrome and its theme, which is the position
+# the cascade needs. Naming it again compiles to byte-identical CSS.
 format:
   atelier-html:
     theme:
       light:
-        - brand
         - assets/stylesheets/theme.scss
       dark:
-        - brand
         - assets/stylesheets/theme.scss
 
+# Named as bare strings, not as `{path:, at:}` entries. Quarto applies an `at`
+# given here to every filter the extension contributes, not just the one it
+# looks like it names: `resolveFilterExtension` spreads `at: filter.at` over the
+# whole contributed list. code-window contributes `main.lua` at pre-quarto and a
+# Typst hot-fix at post-quarto, and naming a stage would drag the second one
+# forward with the first. A bare string keeps each extension's own staging.
 filters:
-  - at: pre-quarto
-    path: code-window
-  - at: post-quarto
-    path: gitlink
+  - code-window
+  - gitlink
 
 extensions:
   atelier:

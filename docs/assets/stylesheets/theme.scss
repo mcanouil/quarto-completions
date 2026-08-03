@@ -53,19 +53,23 @@
 // These tables are mostly commands, flags, option names, and installation
 // paths. Keeping the first column monospaced and unwrapped is what makes a
 // column of `quarto render --to <TAB>` scannable rather than reflowed prose.
-// Bootstrap's `.table` has no responsive wrapper of its own, so the unwrapped
-// first column below would widen the page rather than the table on a narrow
-// viewport. Scroll the table instead.
+// Bootstrap's `.table` has no responsive wrapper of its own, so on a narrow
+// viewport these tables widened the page rather than themselves. Scroll the
+// wrapper instead. Each one is also given `tabindex`, `role`, and a label in
+// the document, without which the scroll it creates is unreachable from the
+// keyboard.
 .completions-shell {
   overflow-x: auto;
 }
 
 .completions-shell table {
   font-size: 0.9rem;
+}
 
-  td:first-child,
-  th:first-child {
-    font-family: var(--bs-font-monospace);
-    white-space: nowrap;
-  }
+// Keep a candidate like `quarto render --to <TAB>` on one line, so the column
+// reads as commands rather than as reflowed prose. The rule has to name the
+// `code` element: Quarto sets `white-space: pre-wrap` on inline code in table
+// cells, which is more specific than anything set on the cell itself.
+.completions-shell td:first-child code {
+  white-space: nowrap;
 }
