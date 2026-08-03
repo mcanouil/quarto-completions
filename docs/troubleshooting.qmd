@@ -1,0 +1,93 @@
+---
+title: "Troubleshooting"
+subtitle: "What to check when nothing completes."
+---
+
+## Nothing happens when I press Tab
+
+The completions are loaded when the shell starts.
+Open a new shell, or reload the current one:
+
+```bash
+exec "$SHELL" -l
+```
+
+If that does not help, confirm the file is where the installer put it:
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --dry-run
+```
+
+`--dry-run` prints every path the installer would touch, without touching any of them.
+
+## zsh completes filenames instead of commands
+
+zsh only loads a completion function once `compinit` has run, and only from a directory that was on `fpath` at that point.
+If your `~/.zshrc` calls `compinit` itself, the managed block the installer appended runs after it.
+
+Move this line above your own `compinit` call:
+
+```zsh
+fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
+```
+
+Then remove the stale completion cache and start a new shell:
+
+```zsh
+rm -f ~/.zcompdump*
+exec zsh -l
+```
+
+## bash offers every file, not just documents
+
+Filtering to `.qmd`, `.ipynb`, `.md`, and `.Rmd` needs the `extglob` shell option.
+The script enables it around the one call that needs it, so this should not happen.
+It will, however, fall back to offering every file if `compgen` is not available, which is the case in a shell built without programmable completion.
+
+Check that programmable completion is present:
+
+```bash
+complete -p quarto
+```
+
+An error there means bash was started with `--norc` or without `bash-completion`, and the script was never sourced.
+
+## The completions are out of date
+
+They are generated from a released Quarto, so a flag added after that release is not there yet.
+Check which version yours came from:
+
+```bash
+grep -m1 Quarto ~/.local/share/quarto-completions/quarto.bash
+```
+
+Every script carries that line in its header.
+If you run a Quarto prerelease, install the matching channel:
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --channel prerelease
+```
+
+## Extension formats are missing from `--to`
+
+Only Quarto's built-in formats are completed.
+A format contributed by an installed extension would have to be read from disk on every keystroke, which is the cost these completions exist to avoid.
+
+## Checksum mismatch
+
+The installer verifies each file against `manifest.json` before writing it, and stops if they disagree.
+That normally means the download was truncated.
+Run it again.
+
+On Windows PowerShell 5.1, a connection error rather than a mismatch usually means TLS 1.2 was not negotiated.
+The installer enables it, so this should only appear on a Windows build old enough to lack it entirely.
+
+If it keeps failing, report it with the two hashes the error printed: <https://github.com/mcanouil/quarto-completions/issues>.
+
+## Removing everything
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --uninstall
+```
+
+That deletes the completion file and the managed block from your shell's configuration, and leaves the rest of your configuration untouched.

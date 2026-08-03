@@ -1,0 +1,109 @@
+---
+title: "Shells"
+subtitle: "Where each script is installed, and how to do it by hand."
+---
+
+The installer writes one file per shell and, where the shell cannot find that file on its own, adds a managed block to your shell's configuration:
+
+```bash
+# >>> quarto completions >>>
+# <<< quarto completions <<<
+```
+
+Re-running the installer replaces that block.
+`--uninstall` removes it, and nothing else.
+
+## bash
+
+| | |
+| --- | --- |
+| Script | [`completions/stable/quarto.bash`](completions/stable/quarto.bash) |
+| Installed to | `$XDG_DATA_HOME/bash-completion/completions/quarto` when that directory exists, otherwise `$XDG_DATA_HOME/quarto-completions/quarto.bash` |
+| Configuration | None in the first case, a `source` line in `~/.bashrc` in the second |
+
+`$XDG_DATA_HOME` defaults to `~/.local/share`.
+
+The script targets bash 3.2, which is the version macOS ships.
+Filtering candidates to Quarto's input formats needs `extglob`, which the script enables around that one call and restores afterwards.
+
+Manual install:
+
+```bash
+mkdir -p ~/.local/share/quarto-completions
+curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.bash \
+  -o ~/.local/share/quarto-completions/quarto.bash
+echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/quarto-completions/quarto.bash' >> ~/.bashrc
+```
+
+## zsh
+
+| | |
+| --- | --- |
+| Script | [`completions/stable/_quarto`](completions/stable/_quarto) |
+| Installed to | `$XDG_DATA_HOME/zsh/site-functions/_quarto` |
+| Configuration | An `fpath` line in `~/.zshrc`, followed by `compinit` |
+
+zsh loads completion functions from the directories on `fpath`, and only after `compinit` has run.
+The managed block adds the directory and calls `compinit -C`, which skips the security check that a second call would otherwise repeat.
+
+If your configuration already puts `~/.local/share/zsh/site-functions` on `fpath` before it runs `compinit`, you can delete the managed block: the file alone is enough.
+
+Manual install:
+
+```zsh
+mkdir -p ~/.local/share/zsh/site-functions
+curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/_quarto \
+  -o ~/.local/share/zsh/site-functions/_quarto
+```
+
+## fish
+
+| | |
+| --- | --- |
+| Script | [`completions/stable/quarto.fish`](completions/stable/quarto.fish) |
+| Installed to | `$XDG_CONFIG_HOME/fish/completions/quarto.fish` |
+| Configuration | None |
+
+fish autoloads that directory, so there is nothing to add to `config.fish`.
+
+Manual install:
+
+```fish
+mkdir -p ~/.config/fish/completions
+curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.fish \
+  -o ~/.config/fish/completions/quarto.fish
+```
+
+## PowerShell
+
+| | |
+| --- | --- |
+| Script | [`completions/stable/quarto.ps1`](completions/stable/quarto.ps1) |
+| Installed to | `Completions/quarto.ps1` beside `$PROFILE.CurrentUserAllHosts` |
+| Configuration | A dot-source line in `$PROFILE.CurrentUserAllHosts` |
+
+The completer is registered for both `quarto` and `quarto.cmd`, because the Windows installation puts the `.cmd` shim on `PATH`.
+
+Manual install:
+
+```powershell
+$directory = Join-Path (Split-Path -Parent $PROFILE.CurrentUserAllHosts) 'Completions'
+New-Item -ItemType Directory -Path $directory -Force | Out-Null
+Invoke-WebRequest `
+  -Uri https://m.canouil.dev/quarto-completions/completions/stable/quarto.ps1 `
+  -OutFile (Join-Path $directory 'quarto.ps1')
+Add-Content -Path $PROFILE.CurrentUserAllHosts -Value ". `"$directory\quarto.ps1`""
+```
+
+## Channels
+
+Every script is published for two channels:
+
+- `stable`, generated from the current Quarto release.
+- `prerelease`, generated from the current Quarto prerelease.
+
+Swap `stable` for `prerelease` in any URL above, or pass `--channel prerelease` to the installer.
+
+Each channel also publishes a `manifest.json`, carrying the Quarto version the scripts were generated from and a SHA-256 for each file.
+The installers verify that checksum before writing anything, which catches a truncated or corrupted download.
+Since the manifest is served from the same site as the scripts, it is the HTTPS connection, not the checksum, that establishes where those bytes came from.

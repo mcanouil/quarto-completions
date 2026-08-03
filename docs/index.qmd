@@ -1,0 +1,88 @@
+---
+title: "Quarto Completions"
+subtitle: "Tab completion for the Quarto CLI, in the shell you already use."
+---
+
+Press <kbd>Tab</kbd> and get Quarto's commands, flags, output formats, log levels, and publishing providers, with the input documents filtered to the ones Quarto can render.
+
+The scripts are generated ahead of time and contain every candidate, so nothing runs Quarto while you type.
+
+## Install
+
+::: {.panel-tabset}
+
+### macOS and Linux
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash
+```
+
+The shell is detected from `$SHELL`.
+Pass `--shell bash`, `--shell zsh`, or `--shell fish` to override it.
+
+### Windows
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
+```
+
+:::
+
+Start a new shell afterwards, and the completions are live.
+
+## What it completes
+
+| Where | Candidates |
+| --- | --- |
+| `quarto <TAB>` | Every command, with its description. |
+| `quarto render --<TAB>` | Quarto's own flags, plus the Pandoc flags Quarto forwards. |
+| `quarto render --to <TAB>` | Every built-in output format. |
+| `quarto render <TAB>` | `.qmd`, `.ipynb`, `.md`, and `.Rmd` documents, and directories. |
+| `quarto publish <TAB>` | The publishing providers, then a path once one is chosen. |
+| `quarto --log-level <TAB>` | `debug`, `info`, `warning`, `error`, `critical`. |
+| `quarto install <TAB>` | `tinytex`, `chrome-headless-shell`, `verapdf`. |
+
+## Options
+
+Both installers accept the same choices.
+The piped form cannot take arguments in PowerShell, so each one also reads an environment variable.
+
+| Option | Environment variable | Effect |
+| --- | --- | --- |
+| `--shell` | `QUARTO_COMPLETIONS_SHELL` | Which shell to install for. |
+| `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `stable` (default) or `prerelease`. |
+| `--dry-run` | | Report every path that would change, then exit. |
+| `--uninstall` | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block. |
+
+Everything is written under your home directory, and nothing needs root.
+Re-running replaces what the last run wrote rather than appending to it.
+
+Each file is checked against the SHA-256 published in `manifest.json` before it is written, and the installer stops if they disagree.
+That guards against a truncated or corrupted download.
+It is not a guard against a compromised host, which could serve a matching script and manifest together: the trust boundary is the HTTPS connection to this site.
+
+## Uninstall
+
+::: {.panel-tabset}
+
+### macOS and Linux
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --uninstall
+```
+
+### Windows
+
+```powershell
+$env:QUARTO_COMPLETIONS_UNINSTALL = '1'
+powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
+```
+
+:::
+
+## Known limitations
+
+Formats and shortcodes supplied by installed extensions are not completed.
+Reading them would mean running Quarto on every keystroke, which is the cost this project exists to remove.
+
+Hidden developer commands, such as `quarto dev-call`, are left out on purpose: they do not appear in `quarto --help` either.

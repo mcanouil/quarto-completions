@@ -1,0 +1,87 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+
+    defaults:
+      run:
+        # Windows runners provide bash through Git for Windows, which is what
+        # the test scripts are written against.
+        shell: bash
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Setup Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: release
+
+      # Each test script reports a shell it cannot find as skipped, so the
+      # matrix covers the four shells between the three runners rather than
+      # demanding all four everywhere.
+      - name: Install fish and shell linters
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes fish shellcheck zsh
+          curl -fsSL https://github.com/mvdan/sh/releases/download/v3.13.1/shfmt_v3.13.1_linux_amd64 -o /usr/local/bin/shfmt
+          chmod +x /usr/local/bin/shfmt
+
+      - name: Install fish and shell linters
+        if: runner.os == 'macOS'
+        run: brew install fish shellcheck shfmt
+
+      - name: Install PSScriptAnalyzer
+        shell: pwsh
+        run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Unit tests
+        run: quarto run tests/run.ts
+
+      # Whether the committed scripts still match the current Quarto release is
+      # checked by the Generate workflow, which opens a pull request when they
+      # do not. Asserting it here would fail every unrelated pull request on the
+      # day Quarto ships a release.
+      - name: Syntax and lint
+        run: |
+          bash tests/syntax.sh docs/completions/stable
+          bash tests/syntax.sh docs/completions/prerelease --scripts-only
+
+      - name: Functional completions
+        run: bash tests/completions.sh docs/completions/stable
+
+      - name: Render the site
+        run: quarto render docs
+
+      - name: Installer end to end (POSIX shells)
+        if: runner.os != 'Windows'
+        run: bash tests/install.sh docs/_site
+
+      - name: Installer end to end (PowerShell)
+        shell: pwsh
+        run: pwsh -NoProfile -File tests/install.ps1 docs/_site
