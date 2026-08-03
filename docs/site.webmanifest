@@ -1,0 +1,22 @@
+{
+  "name": "Quarto Completions",
+  "short_name": "Completions",
+  "description": "Shell completions for the Quarto CLI: bash, zsh, fish, and PowerShell, with a one-line installer.",
+  "lang": "en-GB",
+  "icons": [
+    {
+      "src": "/quarto-completions/assets/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/quarto-completions/assets/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#0D1210",
+  "background_color": "#0D1210",
+  "display": "standalone",
+  "start_url": "/quarto-completions/"
+}

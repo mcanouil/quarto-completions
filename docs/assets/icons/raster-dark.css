@@ -1,0 +1,15 @@
+/* Force the dark-scheme colours when rasterising icon.svg.
+
+   librsvg does not evaluate `prefers-color-scheme`, so it would render the
+   light variant, an ink mark that disappears once flattened onto the graphite
+   background the PNG and ICO files use. `rsvg-convert --stylesheet` applies
+   this as a user stylesheet, hence `!important` to beat the author rules inside
+   the SVG. */
+
+.pane {
+  fill: #DCE5DE !important;
+}
+
+.suggest {
+  stroke: #4FCB84 !important;
+}

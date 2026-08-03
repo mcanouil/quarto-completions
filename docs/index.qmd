@@ -3,9 +3,15 @@ title: "Quarto Completions"
 subtitle: "Tab completion for the Quarto CLI, in the shell you already use."
 ---
 
+::: {.completions-hero}
+
+[Press Tab]{.completions-hero-eyebrow}
+
 Press <kbd>Tab</kbd> and get Quarto's commands, flags, output formats, log levels, and publishing providers, with the input documents filtered to the ones Quarto can render.
 
 The scripts are generated ahead of time and contain every candidate, so nothing runs Quarto while you type.
+
+:::
 
 ## Install
 
@@ -32,6 +38,8 @@ Start a new shell afterwards, and the completions are live.
 
 ## What it completes
 
+::: {.completions-shell}
+
 | Where | Candidates |
 | --- | --- |
 | `quarto <TAB>` | Every command, with its description. |
@@ -42,10 +50,14 @@ Start a new shell afterwards, and the completions are live.
 | `quarto --log-level <TAB>` | `debug`, `info`, `warning`, `error`, `critical`. |
 | `quarto install <TAB>` | `tinytex`, `chrome-headless-shell`, `verapdf`. |
 
+:::
+
 ## Options
 
 Both installers accept the same choices.
 The piped form cannot take arguments in PowerShell, so each one also reads an environment variable.
+
+::: {.completions-shell}
 
 | Option | Environment variable | Effect |
 | --- | --- | --- |
@@ -53,6 +65,8 @@ The piped form cannot take arguments in PowerShell, so each one also reads an en
 | `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `stable` (default) or `prerelease`. |
 | `--dry-run` | | Report every path that would change, then exit. |
 | `--uninstall` | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block. |
+
+:::
 
 Everything is written under your home directory, and nothing needs root.
 Re-running replaces what the last run wrote rather than appending to it.
