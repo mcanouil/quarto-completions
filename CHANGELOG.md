@@ -13,6 +13,12 @@ All notable changes to this project will be documented in this file.
 - feat: publish a `stable` and a `prerelease` channel, generated from the two Quarto release channels, each with a manifest carrying the Quarto version and a checksum per file.
 - feat: generate the scripts by walking `quarto <command> --help` over the whole command tree, run with `quarto run src/generate.ts`. The generator uses Quarto's own embedded runtime, so an installed Quarto is its only dependency.
 
+### Bug Fixes
+
+- fix: install zsh completions where Oh My Zsh will find them. Oh My Zsh puts `$ZSH_CUSTOM/completions` on `fpath` and runs `compinit` itself while `~/.zshrc` is still sourcing it, so a block appended below that ran too late and the completions never loaded. The file now goes straight there, and no shell configuration is edited.
+- fix: use `compinit -i` rather than `compinit -C` in the managed block. `-C` omits the check for new completion functions and reuses the existing dump, so on any machine where `compinit` had already run, the newly installed `_quarto` was never picked up.
+- fix: remove what an earlier run left behind. The installer wrote to whichever location suited the machine at the time and only ever cleaned that one, so installing `bash-completion` or Oh My Zsh afterwards stranded the previous script, and its managed block with it. Installing and uninstalling now sweep every location the installer has ever used, and `--dry-run` reports them.
+
 ### Documentation
 
 - docs: add a documentation website at <https://m.canouil.dev/quarto-completions>, covering installation, the file and configuration each shell needs, and troubleshooting.

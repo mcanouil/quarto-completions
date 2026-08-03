@@ -160,6 +160,28 @@ script_name_for() {
 data_home() { echo "${XDG_DATA_HOME:-${HOME}/.local/share}"; }
 config_home() { echo "${XDG_CONFIG_HOME:-${HOME}/.config}"; }
 
+# Oh My Zsh's custom directory, which is both written to and, once stale,
+# removed.
+#
+# $ZSH is exported by Oh My Zsh's stock .zshrc and $ZSH_CUSTOM may be, so both
+# survive into a child process whose HOME is something else: `sudo -E`, a
+# container, or a plain `HOME=/tmp/x bash install.sh`. Following them out of
+# $HOME would mean deleting another home's completions, and would break the
+# promise at the top of this file. They are honoured, because a relocated
+# Oh My Zsh is worth supporting, but only when they point inside $HOME.
+omz_custom() {
+  local candidate="${ZSH_CUSTOM:-${ZSH:+${ZSH}/custom}}"
+  if [ -n "${candidate}" ] && [ -n "${HOME:-}" ]; then
+    case "${candidate}" in
+      "${HOME}"/*)
+        echo "${candidate}"
+        return
+        ;;
+    esac
+  fi
+  echo "${HOME}/.oh-my-zsh/custom"
+}
+
 # Where the completion file belongs, and which rc file (if any) needs a line
 # added so the shell picks it up.
 resolve_target() {
@@ -178,12 +200,27 @@ resolve_target() {
       fi
       ;;
     zsh)
-      local site_functions
+      local omz site_functions
+      omz="$(omz_custom)"
+      if [ -d "${omz}" ]; then
+        # Oh My Zsh puts $ZSH_CUSTOM/completions on fpath and calls compinit
+        # itself, both before .zshrc reaches anything appended to it, so the
+        # file on its own is enough and a managed block would only run too late.
+        TARGET_FILE="${omz}/completions/_quarto"
+        RC_FILE=""
+        return
+      fi
       site_functions="$(data_home)/zsh/site-functions"
       TARGET_FILE="${site_functions}/_quarto"
       RC_FILE="${HOME}/.zshrc"
+      # `compinit -i`, not `-C`. `-C` omits the check for new completion
+      # functions and reuses the dump when one exists, and one always does
+      # here: this block is appended below whatever compinit the user already
+      # calls, so `_quarto` would never be picked up. `-i` keeps that check and
+      # only skips the warning about insecure directories, which the user's own
+      # call has already reported if there was anything to report.
       RC_BODY="fpath=(\"${site_functions}\" \$fpath)
-autoload -Uz compinit && compinit -C"
+autoload -Uz compinit && compinit -i"
       ;;
     fish)
       # fish autoloads this directory, so there is nothing to add to config.
@@ -191,6 +228,103 @@ autoload -Uz compinit && compinit -C"
       RC_FILE=""
       ;;
   esac
+}
+
+# Every location this installer has ever written for a shell. Which one
+# `resolve_target` picks depends on what is installed on the machine, and that
+# changes: adding bash-completion, or Oh My Zsh, moves the answer. Re-running
+# has to clear out whatever an earlier run left behind, or the old copy is
+# silently kept up to date by nothing.
+known_targets_for() {
+  case "$1" in
+    bash)
+      printf '%s\n' \
+        "$(data_home)/bash-completion/completions/quarto" \
+        "$(data_home)/quarto-completions/quarto.bash"
+      ;;
+    zsh)
+      printf '%s\n' \
+        "$(omz_custom)/completions/_quarto" \
+        "$(data_home)/zsh/site-functions/_quarto"
+      ;;
+    fish)
+      printf '%s\n' "$(config_home)/fish/completions/quarto.fish"
+      ;;
+  esac
+}
+
+# The rc file a shell would ever carry a managed block in, whether or not the
+# layout resolved this time wants one.
+rc_file_for() {
+  case "$1" in
+    bash) printf '%s\n' "${HOME}/.bashrc" ;;
+    zsh) printf '%s\n' "${HOME}/.zshrc" ;;
+  esac
+}
+
+# Locations that exist and are not the one being kept. Pass an empty argument to
+# keep none of them, which is what uninstalling wants.
+stale_locations() {
+  # $1: location to keep, or empty
+  local location
+  known_targets_for "${TARGET_SHELL}" | while IFS= read -r location; do
+    if [ -z "${location}" ] || [ "${location}" = "$1" ]; then
+      continue
+    fi
+    if [ -f "${location}" ]; then
+      printf '%s\n' "${location}"
+    fi
+  done
+}
+
+# The rc file, when it holds a managed block that is not wanted any more.
+stale_rc() {
+  # $1: rc file the resolved layout will write to, or empty
+  local rc
+  rc="$(rc_file_for "${TARGET_SHELL}")"
+  if [ -n "${rc}" ] && [ "${rc}" != "$1" ] && rc_block_present "${rc}"; then
+    printf '%s\n' "${rc}"
+  fi
+}
+
+# The same two lists as remove_stale, printed rather than acted on, so that
+# --dry-run reports every path it would touch and not only the one it writes.
+report_stale() {
+  # $1: file prefix, $2: rc prefix, $3: location to keep, $4: rc to keep
+  local location rc
+  while IFS= read -r location; do
+    [ -n "${location}" ] || continue
+    log "$1 ${location}"
+  done <<EOF
+$(stale_locations "$3")
+EOF
+
+  while IFS= read -r rc; do
+    [ -n "${rc}" ] || continue
+    log "$2 ${rc} (managed block)"
+  done <<EOF
+$(stale_rc "$4")
+EOF
+}
+
+remove_stale() {
+  # $1: location to keep, or empty; $2: rc file to keep, or empty
+  local location rc
+  while IFS= read -r location; do
+    [ -n "${location}" ] || continue
+    rm -f "${location}"
+    log "Removed ${location}"
+  done <<EOF
+$(stale_locations "$1")
+EOF
+
+  while IFS= read -r rc; do
+    [ -n "${rc}" ] || continue
+    remove_rc_block "${rc}"
+    log "Cleaned ${rc}"
+  done <<EOF
+$(stale_rc "$2")
+EOF
 }
 
 rc_block_present() {
@@ -230,6 +364,7 @@ do_install() {
     if [ -n "${RC_FILE}" ]; then
       log "Would update   ${RC_FILE} (managed block)"
     fi
+    report_stale "Would remove  " "Would clean   " "${TARGET_FILE}" "${RC_FILE}"
     return 0
   fi
 
@@ -254,31 +389,42 @@ do_install() {
     log "Updated ${RC_FILE}"
   fi
 
+  remove_stale "${TARGET_FILE}" "${RC_FILE}"
+
   manifest="$(sed -n 's/.*"quartoVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${TEMPORARY}/manifest.json" | head -n 1)"
   log ""
   log "Quarto ${manifest} completions for ${TARGET_SHELL} (${CHANNEL} channel)."
   log "Start a new shell, or run: exec ${TARGET_SHELL} -l"
 }
 
+# Everything an uninstall would touch: the scripts, and the rc file when it
+# still holds a managed block. Both halves count, or a home whose script is
+# already gone but whose block is not reports "Nothing to remove" immediately
+# after saying it cleaned the rc file.
+uninstall_residue() {
+  printf '%s%s' "$(stale_locations "")" "$(stale_rc "")"
+}
+
 do_uninstall() {
+  # Nothing is kept, so every location and the rc block go, whichever layout
+  # this machine happens to resolve to now.
+  local residue
+  residue="$(uninstall_residue)"
+
   if [ "${DRY_RUN}" = "1" ]; then
-    log "Would remove ${TARGET_FILE}"
-    if [ -n "${RC_FILE}" ]; then
-      log "Would clean  ${RC_FILE} (managed block)"
+    # Saying nothing at all would read as a broken script, and --dry-run is the
+    # first thing the troubleshooting page asks people to run.
+    if [ -z "${residue}" ]; then
+      log "Nothing to remove for ${TARGET_SHELL}"
+    else
+      report_stale "Would remove" "Would clean " "" ""
     fi
     return 0
   fi
 
-  if [ -f "${TARGET_FILE}" ]; then
-    rm -f "${TARGET_FILE}"
-    log "Removed ${TARGET_FILE}"
-  else
-    log "Nothing to remove at ${TARGET_FILE}"
-  fi
-
-  if [ -n "${RC_FILE}" ] && rc_block_present "${RC_FILE}"; then
-    remove_rc_block "${RC_FILE}"
-    log "Cleaned ${RC_FILE}"
+  remove_stale "" ""
+  if [ -z "${residue}" ]; then
+    log "Nothing to remove for ${TARGET_SHELL}"
   fi
 }
 

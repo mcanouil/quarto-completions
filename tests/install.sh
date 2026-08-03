@@ -79,8 +79,13 @@ fi
 HOME_DIR="${SCRATCH}/home"
 mkdir -p "${HOME_DIR}"
 
+# -u ZSH -u ZSH_CUSTOM: Oh My Zsh exports both, and the installer honours them
+# ahead of $HOME, so a developer running this suite from an Oh My Zsh shell
+# would otherwise have the installer reach out of the throwaway home and write
+# into their own ~/.oh-my-zsh. Every scenario that wants that layout builds it
+# under its own home instead.
 install_run() {
-  env \
+  env -u ZSH -u ZSH_CUSTOM \
     HOME="${HOME_DIR}" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
     XDG_CONFIG_HOME="${HOME_DIR}/.config" \
@@ -132,7 +137,7 @@ for _ in $(seq 1 60); do
 done
 
 tampered_output="$(
-  env \
+  env -u ZSH -u ZSH_CUSTOM \
     HOME="${HOME_DIR}" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
     XDG_CONFIG_HOME="${HOME_DIR}/.config" \
@@ -155,5 +160,145 @@ expect_absent "zsh: script removed" "${HOME_DIR}/.local/share/zsh/site-functions
 expect_absent "fish: script removed" "${HOME_DIR}/.config/fish/completions/quarto.fish"
 expect_count "zsh: rc block removed" "${HOME_DIR}/.zshrc" ">>> quarto completions >>>" 0
 expect_count "bash: rc block removed" "${HOME_DIR}/.bashrc" ">>> quarto completions >>>" 0
+
+# Each scenario below gets a home of its own. The one above is reused across
+# runs, and giving it an Oh My Zsh layout partway through would change what the
+# assertions already made mean.
+scenario_home() {
+  # $1: name
+  local home="${SCRATCH}/$1"
+  mkdir -p "${home}"
+  printf '%s' "${home}"
+}
+
+scenario_run() {
+  # $1: home, then installer arguments
+  local home="$1"
+  shift
+  env -u ZSH -u ZSH_CUSTOM \
+    HOME="${home}" \
+    XDG_DATA_HOME="${home}/.local/share" \
+    XDG_CONFIG_HOME="${home}/.config" \
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+}
+
+# Oh My Zsh already puts its custom completions directory on fpath and runs
+# compinit itself, so the file is all that is needed and .zshrc is left alone.
+OMZ_HOME="$(scenario_home omz)"
+mkdir -p "${OMZ_HOME}/.oh-my-zsh/custom"
+scenario_run "${OMZ_HOME}" --shell zsh >/dev/null
+expect_file "oh-my-zsh: script installed in the custom directory" \
+  "${OMZ_HOME}/.oh-my-zsh/custom/completions/_quarto"
+expect_absent "oh-my-zsh: no rc file written" "${OMZ_HOME}/.zshrc"
+
+# Installing Oh My Zsh after the fact moves where the file belongs. The run
+# that notices has to take the old one with it, block included, or the machine
+# keeps a copy that nothing updates.
+MIGRATE_HOME="$(scenario_home migrate-zsh)"
+scenario_run "${MIGRATE_HOME}" --shell zsh >/dev/null
+expect_file "zsh migration: starts in site-functions" \
+  "${MIGRATE_HOME}/.local/share/zsh/site-functions/_quarto"
+mkdir -p "${MIGRATE_HOME}/.oh-my-zsh/custom"
+scenario_run "${MIGRATE_HOME}" --shell zsh >/dev/null
+expect_file "zsh migration: moves to the custom directory" \
+  "${MIGRATE_HOME}/.oh-my-zsh/custom/completions/_quarto"
+expect_absent "zsh migration: the old script is gone" \
+  "${MIGRATE_HOME}/.local/share/zsh/site-functions/_quarto"
+expect_count "zsh migration: the old rc block is gone" \
+  "${MIGRATE_HOME}/.zshrc" ">>> quarto completions >>>" 0
+
+# The same shape for bash, and the case that was broken before any of this:
+# installing bash-completion later switches the branch, and the previous run's
+# script and rc block were both left behind.
+MIGRATE_BASH="$(scenario_home migrate-bash)"
+scenario_run "${MIGRATE_BASH}" --shell bash >/dev/null
+expect_file "bash migration: starts in quarto-completions" \
+  "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
+mkdir -p "${MIGRATE_BASH}/.local/share/bash-completion/completions"
+scenario_run "${MIGRATE_BASH}" --shell bash >/dev/null
+expect_file "bash migration: moves to bash-completion" \
+  "${MIGRATE_BASH}/.local/share/bash-completion/completions/quarto"
+expect_absent "bash migration: the old script is gone" \
+  "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
+expect_count "bash migration: the old rc block is gone" \
+  "${MIGRATE_BASH}/.bashrc" ">>> quarto completions >>>" 0
+
+# Uninstalling sweeps every location, not only the one that resolves now. Put a
+# file back in the branch that no longer resolves, so that removing just the
+# resolved one would leave something behind.
+mkdir -p "${MIGRATE_BASH}/.local/share/quarto-completions"
+touch "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
+printf '%s\n%s\n%s\n' \
+  "# >>> quarto completions >>>" "stale" "# <<< quarto completions <<<" \
+  >>"${MIGRATE_BASH}/.bashrc"
+scenario_run "${MIGRATE_BASH}" --shell bash --uninstall >/dev/null
+expect_absent "uninstall: removes the resolved location" \
+  "${MIGRATE_BASH}/.local/share/bash-completion/completions/quarto"
+expect_absent "uninstall: removes the location that no longer resolves" \
+  "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
+expect_count "uninstall: removes the block the resolved branch never writes" \
+  "${MIGRATE_BASH}/.bashrc" ">>> quarto completions >>>" 0
+
+# $ZSH and $ZSH_CUSTOM are exported by Oh My Zsh, so they reach a child whose
+# HOME is something else. Following them there would mean installing into, and
+# on uninstall deleting from, a home the user did not name.
+OUTSIDE="$(scenario_home outside)"
+SANDBOX="$(scenario_home sandbox)"
+mkdir -p "${OUTSIDE}/.oh-my-zsh/custom/completions"
+printf 'not ours to delete\n' >"${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
+env ZSH="${OUTSIDE}/.oh-my-zsh" \
+  HOME="${SANDBOX}" \
+  XDG_DATA_HOME="${SANDBOX}/.local/share" \
+  XDG_CONFIG_HOME="${SANDBOX}/.config" \
+  bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
+  --shell zsh --uninstall >/dev/null
+expect_file "an out-of-home ZSH is not followed on uninstall" \
+  "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
+
+env ZSH="${OUTSIDE}/.oh-my-zsh" \
+  HOME="${SANDBOX}" \
+  XDG_DATA_HOME="${SANDBOX}/.local/share" \
+  XDG_CONFIG_HOME="${SANDBOX}/.config" \
+  bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
+  --shell zsh >/dev/null
+expect_file "an out-of-home ZSH is not followed on install" \
+  "${SANDBOX}/.local/share/zsh/site-functions/_quarto"
+expect_count "the out-of-home file is still untouched" \
+  "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto" "not ours to delete" 1
+
+# A home whose script is already gone but whose block is not must not report
+# that it cleaned the rc file and then that there was nothing to remove.
+RESIDUE_HOME="$(scenario_home residue)"
+printf '%s\n%s\n%s\n' \
+  "# >>> quarto completions >>>" "stale" "# <<< quarto completions <<<" \
+  >"${RESIDUE_HOME}/.zshrc"
+residue_output="$(scenario_run "${RESIDUE_HOME}" --shell zsh --uninstall)"
+expect_contains "a leftover block alone is still removed" "${residue_output}" "Cleaned"
+expect_missing "a removed block does not also report nothing to remove" \
+  "${residue_output}" "Nothing to remove"
+
+# --dry-run is the first diagnostic the troubleshooting page asks for, so it
+# has to say something even when there is nothing to do.
+CLEAN_HOME="$(scenario_home clean)"
+clean_output="$(scenario_run "${CLEAN_HOME}" --shell zsh --uninstall --dry-run)"
+expect_contains "a dry-run uninstall on a clean home still reports" \
+  "${clean_output}" "Nothing to remove"
+
+# The managed block has to work in the shell it is written for. A user who
+# already calls compinit is the ordinary case, not an edge one: the block is
+# appended below their call, so whatever it does has to work with a dump
+# already on disk.
+if command -v zsh >/dev/null 2>&1; then
+  RC_HOME="$(scenario_home rc)"
+  cat >"${RC_HOME}/.zshrc" <<'EOF'
+autoload -Uz compinit
+compinit -d "${ZDOTDIR:-$HOME}/.zcompdump"
+EOF
+  scenario_run "${RC_HOME}" --shell zsh >/dev/null
+  rc_completed="$(zsh "${ROOT}/tests/zsh-complete.zsh" rc "${RC_HOME}" 'quarto ren')"
+  expect_contains "zsh: the managed block makes completions work" "${rc_completed}" "quarto render"
+else
+  skip "zsh: the managed block makes completions work" "zsh not installed"
+fi
 
 summary

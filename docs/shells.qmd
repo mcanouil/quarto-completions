@@ -46,13 +46,20 @@ echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/q
 | What | Where |
 | --- | --- |
 | Script | [`completions/stable/_quarto`](completions/stable/_quarto) |
-| Installed to | `$XDG_DATA_HOME/zsh/site-functions/_quarto` |
-| Configuration | An `fpath` line in `~/.zshrc`, followed by `compinit` |
+| Installed to | `$ZSH_CUSTOM/completions/_quarto` under Oh My Zsh, otherwise `$XDG_DATA_HOME/zsh/site-functions/_quarto` |
+| Configuration | None in the first case, an `fpath` line in `~/.zshrc` followed by `compinit` in the second |
 
 :::
 
-zsh loads completion functions from the directories on `fpath`, and only after `compinit` has run.
-The managed block adds the directory and calls `compinit -C`, which skips the security check that a second call would otherwise repeat.
+zsh loads completion functions from the directories on `fpath`, and only once `compinit` has run.
+
+Oh My Zsh already puts `$ZSH_CUSTOM/completions` on `fpath` and calls `compinit` itself, both while `~/.zshrc` is still sourcing it.
+Anything appended below that runs too late to matter, so the installer writes the file there and leaves your configuration alone.
+`$ZSH_CUSTOM` defaults to `~/.oh-my-zsh/custom`.
+
+Without Oh My Zsh, the managed block adds the directory to `fpath` and calls `compinit -i`.
+It has to be `-i` rather than `-C`: `-C` omits the check for new completion functions and reuses the existing dump, and by the time the block runs your own `compinit` has usually written one, which would leave `_quarto` unseen.
+`-i` keeps that check and only suppresses the warning about insecure directories, which your own call has already reported if there was anything to report.
 
 If your configuration already puts `~/.local/share/zsh/site-functions` on `fpath` before it runs `compinit`, you can delete the managed block: the file alone is enough.
 
@@ -63,6 +70,8 @@ mkdir -p ~/.local/share/zsh/site-functions
 curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/_quarto \
   -o ~/.local/share/zsh/site-functions/_quarto
 ```
+
+Under Oh My Zsh, write it to `~/.oh-my-zsh/custom/completions/_quarto` instead, and add nothing to `~/.zshrc`.
 
 ## fish
 
