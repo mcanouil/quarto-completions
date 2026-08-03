@@ -56,8 +56,9 @@ if [ "${SCRIPTS_ONLY}" = "0" ]; then
     "${ROOT}/tests/install.sh" \
     "${ROOT}/tests/lib.sh" \
     "${ROOT}/tests/syntax.sh"
+  # -Path takes one string, so the scripts are piped rather than passed as a list.
   check "PowerShell scripts pass PSScriptAnalyzer" pwsh pwsh -NoProfile -Command \
-    "Invoke-ScriptAnalyzer -Path '${PS_ROOT}/docs/install.ps1','${PS_ROOT}/tests/install.ps1' -EnableExit -Severity Error,Warning"
+    "@('${PS_ROOT}/docs/install.ps1', '${PS_ROOT}/tests/install.ps1') | ForEach-Object { Invoke-ScriptAnalyzer -Path \$_ -EnableExit -Severity Error,Warning }"
 fi
 
 summary
