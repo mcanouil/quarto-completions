@@ -93,8 +93,12 @@ function Start-Site {
 
   if (-not $PSCmdlet.ShouldProcess("port $On", 'Serve the site')) { return }
 
-  $server = Start-Process -PassThru -WindowStyle Hidden `
-    -FilePath (Get-Python) -ArgumentList @('-m', 'http.server', "$On", '--directory', $Directory)
+  # -WindowStyle is Windows-only, so the server's own logging is redirected
+  # instead of hidden, which keeps it out of the test output everywhere.
+  $log = Join-Path $scratch "server-$On"
+  $server = Start-Process -PassThru -NoNewWindow `
+    -FilePath (Get-Python) -ArgumentList @('-m', 'http.server', "$On", '--directory', $Directory) `
+    -RedirectStandardOutput "$log.out" -RedirectStandardError "$log.err"
   foreach ($attempt in 1..60) {
     try {
       Invoke-RestMethod -Uri "http://127.0.0.1:$On/completions/stable/manifest.json" -UseBasicParsing | Out-Null
