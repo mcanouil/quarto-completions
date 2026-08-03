@@ -195,6 +195,23 @@ const tests: Record<string, () => void> = {
     assertIncludes(output, "-CommandName quarto.cmd -ScriptBlock");
   },
 
+  "zsh escapes brackets, which would otherwise truncate a description"() {
+    const spec = fixtureSpec();
+    spec.root.commands[0].options.push({
+      long: "--bracketed",
+      description: "Writes [DIR] somewhere.",
+      kind: "none",
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "\\[DIR\\]");
+    assertExcludes(output, "[Writes [DIR] somewhere.]");
+  },
+
+  "bash guards the word before the first argument"() {
+    const output = emitBash(enrich(fixtureSpec()));
+    assertIncludes(output, `if [ "$COMP_CWORD" -gt 0 ]; then`);
+  },
+
   "descriptions are escaped for the shell that shows them"() {
     const spec = fixtureSpec();
     // `--output` reads "use '--output -' for stdout", which is the only

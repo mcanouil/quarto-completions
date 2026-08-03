@@ -59,15 +59,15 @@ function commandFunction(command: CommandSpec): string {
   ];
 
   if (hasCommands) {
-    const describe = command.commands
-      .map((child) => `'${commandName(child)}:${singleQuote(oneLine(child.description))}'`)
+    const subcommandList = command.commands
+      .map((child) => `'${commandName(child)}:${escapeDescription(child.description)}'`)
       .join(" \\\n      ");
     body.push(
       `  case $state in`,
       `    command)`,
       `      local -a subcommands`,
       `      subcommands=( \\`,
-      `      ${describe} \\`,
+      `      ${subcommandList} \\`,
       `      )`,
       `      _describe -t commands 'quarto command' subcommands`,
       `      ;;`,
@@ -85,8 +85,16 @@ function commandFunction(command: CommandSpec): string {
   return `${id}() {\n${body.join("\n")}\n}`;
 }
 
+/**
+ * zsh reads an option description up to the matching `]`, so a bracket inside
+ * one would truncate it and leave the rest to be parsed as a spec.
+ */
+function escapeDescription(text: string): string {
+  return singleQuote(oneLine(text).replace(/([[\]])/g, "\\$1"));
+}
+
 function optionSpec(option: OptionSpec): string {
-  const description = singleQuote(oneLine(option.description));
+  const description = escapeDescription(option.description);
   const forms = [option.short, option.long].filter(Boolean) as string[];
   const exclusion = `(${forms.join(" ")})`;
   const flag = forms.length > 1 ? `{${forms.join(",")}}` : `${forms[0]}`;

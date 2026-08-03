@@ -747,8 +747,15 @@ $script:QuartoCompleter = {
   param($wordToComplete, $commandAst, $cursorPosition)
 
   $words = @($commandAst.CommandElements | Select-Object -Skip 1 | ForEach-Object { $_.ToString() })
+  # Drop the partial word the user is typing. A range ending at -1 would wrap
+  # around and repeat the whole array, so the single-word case is explicit.
   if ($words.Count -gt 0 -and $words[-1] -eq $wordToComplete) {
-    $words = @($words[0..($words.Count - 2)])
+    if ($words.Count -gt 1) {
+      $words = @($words[0..($words.Count - 2)])
+    }
+    else {
+      $words = @()
+    }
   }
 
   $resolved = Script:Resolve-QuartoNode -Words $words

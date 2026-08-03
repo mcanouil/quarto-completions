@@ -3,10 +3,10 @@
   "channel": "prerelease",
   "generated": "2026-08-03",
   "files": {
-    "quarto.bash": "7f888bcd5f6c6a35f6d24bf33587f25c6b1d225ab68f7647fcc1c56df537d144",
+    "quarto.bash": "58a0c3df34e9379cec06128036dc3286776c2361231ffbd13f23b9bcd044cb04",
     "_quarto": "4457a230aaf045fc67648ee4214457d7ac5ae2547e7d83c1d0e18697deff3c9b",
     "quarto.fish": "3a7c4996edef5366d28fdb9329ddb3b0e2ca3547fc69b31c6220a99627a764b4",
-    "quarto.ps1": "44196ace77304924628b26e6a03b0e23241248520539e101ba21c08f482eceee",
+    "quarto.ps1": "b8f5ca8d4ad7bd8eef48fa0551549d9fe6a2fbcaa16dc2ee727f42938bb8d9cc",
     "spec.json": "99feca80c835c6954ccaf2eee85b707141ada7b47872cd83daf1d87547196af9"
   }
 }

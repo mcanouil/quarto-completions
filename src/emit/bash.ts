@@ -67,7 +67,11 @@ _quarto() {
   local cur prev cmd word key vals i pos skip
   COMPREPLY=()
   cur="\${COMP_WORDS[COMP_CWORD]}"
-  prev="\${COMP_WORDS[COMP_CWORD-1]}"
+  # bash 3.2 rejects a negative array subscript, so guard the first word.
+  prev=""
+  if [ "$COMP_CWORD" -gt 0 ]; then
+    prev="\${COMP_WORDS[COMP_CWORD-1]}"
+  fi
 
   cmd="quarto"
   vals="$(_quarto_valued "$cmd")"

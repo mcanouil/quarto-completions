@@ -89,6 +89,14 @@ test_bash() {
 
   expect_missing "bash: provider not offered twice" \
     "$(bash_complete quarto publish gh-pages '')" "quarto-pub"
+
+  # bash 3.2 rejects a negative array subscript, which is what completing at
+  # position zero would ask for.
+  if bash_complete quarto >/dev/null 2>&1; then
+    pass "bash: completing the command name itself does not error"
+  else
+    fail "bash: completing the command name itself does not error" "the function exited non-zero"
+  fi
 }
 
 test_zsh() {
@@ -143,12 +151,15 @@ test_pwsh() {
       (TabExpansion2 \$Line \$Line.Length).CompletionMatches.CompletionText -join ' '
     }
     'COMMANDS:' + (Complete-Line 'quarto ')
+    'PARTIAL:' + (Complete-Line 'quarto ren')
     'FORMATS:' + (Complete-Line 'quarto render --to ')
     'PROVIDERS:' + (Complete-Line 'quarto publish ')
     'AFTER:' + (Complete-Line 'quarto publish gh-pages ')
   " 2>&1)"
 
   expect_contains "pwsh: top-level commands" "${output}" "render"
+  expect_contains "pwsh: a single partial word completes" \
+    "$(printf '%s' "${output}" | grep '^PARTIAL:' || true)" "render"
   expect_contains "pwsh: formats for --to" "${output}" "revealjs"
   expect_contains "pwsh: publish providers" "${output}" "gh-pages"
   expect_missing "pwsh: provider not offered twice" \
