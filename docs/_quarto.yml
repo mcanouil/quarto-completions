@@ -7,15 +7,15 @@ project:
     - 404.qmd
   # Quarto copies nothing to the output directory by convention: only these
   # globs, plus files it finds behind an `href` or `src` in the rendered HTML.
-  # The installers and the generated completions are fetched by URL rather than
-  # linked from a page, and the manifest names its icons in JSON, which is not
-  # scanned, so they are all listed here.
+  # Everything below is invisible to that scan: the installers and the generated
+  # completions are fetched by URL rather than linked from a page, the manifest
+  # names its icons in JSON, and the social card is named in a `<meta>` tag.
+  # The favicon, the touch icon, and the manifest itself are not listed, since
+  # each is reached through an `href` and copied without being asked for.
   resources:
     - install.sh
     - install.ps1
     - completions/**
-    - favicon.ico
-    - site.webmanifest
     - assets/icons/*.png
     - assets/social/og-image.png
 
