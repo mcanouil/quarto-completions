@@ -33,51 +33,70 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$BlockStart = '# >>> quarto completions >>>'
-$BlockEnd = '# <<< quarto completions <<<'
+# Promoted to script scope so the functions below read one binding rather than
+# closing over the parameters.
+$script:Channel = $Channel
+$script:BaseUrl = $BaseUrl.TrimEnd('/')
+$script:DryRun = [bool]$DryRun
+$script:Uninstall = [bool]$Uninstall -or ($env:QUARTO_COMPLETIONS_UNINSTALL -eq '1')
 
-if ($env:QUARTO_COMPLETIONS_UNINSTALL -eq '1') { $Uninstall = $true }
+$script:BlockStart = '# >>> quarto completions >>>'
+$script:BlockEnd = '# <<< quarto completions <<<'
+$script:ProfilePath = $PROFILE.CurrentUserAllHosts
+$script:CompletionPath = Join-Path (Split-Path -Parent $script:ProfilePath) 'Completions/quarto.ps1'
 
-$profilePath = $PROFILE.CurrentUserAllHosts
-$completionPath = Join-Path (Split-Path -Parent $profilePath) 'Completions/quarto.ps1'
+function Script:Write-Log {
+  param([string]$Message = '')
 
-function Remove-ManagedBlock {
-  param([string]$Path)
+  Write-Information -MessageData $Message -InformationAction Continue
+}
+
+function Script:Remove-ManagedBlock {
+  [CmdletBinding(SupportsShouldProcess)]
+  param([Parameter(Mandatory)][string]$Path)
 
   if (-not (Test-Path -LiteralPath $Path)) { return }
+  if (-not $PSCmdlet.ShouldProcess($Path, 'Remove the managed block')) { return }
 
-  $lines = Get-Content -LiteralPath $Path
   $kept = @()
   $inside = $false
-  foreach ($line in $lines) {
-    if ($line -eq $BlockStart) { $inside = $true; continue }
-    if ($line -eq $BlockEnd) { $inside = $false; continue }
+  foreach ($line in (Get-Content -LiteralPath $Path)) {
+    if ($line -eq $script:BlockStart) { $inside = $true; continue }
+    if ($line -eq $script:BlockEnd) { $inside = $false; continue }
     if (-not $inside) { $kept += $line }
   }
   Set-Content -LiteralPath $Path -Value $kept -Encoding utf8
 }
 
-function Write-ManagedBlock {
-  param([string]$Path, [string]$Body)
+function Script:Set-ManagedBlock {
+  [CmdletBinding(SupportsShouldProcess)]
+  param([Parameter(Mandatory)][string]$Path, [Parameter(Mandatory)][string]$Body)
 
-  Remove-ManagedBlock -Path $Path
+  if (-not $PSCmdlet.ShouldProcess($Path, 'Write the managed block')) { return }
+
+  Script:Remove-ManagedBlock -Path $Path
   $directory = Split-Path -Parent $Path
   if (-not (Test-Path -LiteralPath $directory)) {
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
   }
-  Add-Content -LiteralPath $Path -Value @($BlockStart, $Body, $BlockEnd) -Encoding utf8
+  Add-Content -LiteralPath $Path -Value @($script:BlockStart, $Body, $script:BlockEnd) -Encoding utf8
 }
 
-function Install-Completions {
-  $url = "$BaseUrl/completions/$Channel/quarto.ps1"
-  $manifestUrl = "$BaseUrl/completions/$Channel/manifest.json"
+function Script:Install-QuartoCompletion {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
 
-  if ($DryRun) {
-    Write-Host "Would download $url"
-    Write-Host "Would write    $completionPath"
-    Write-Host "Would update   $profilePath (managed block)"
+  $url = "$($script:BaseUrl)/completions/$($script:Channel)/quarto.ps1"
+  $manifestUrl = "$($script:BaseUrl)/completions/$($script:Channel)/manifest.json"
+
+  if ($script:DryRun) {
+    Script:Write-Log "Would download $url"
+    Script:Write-Log "Would write    $($script:CompletionPath)"
+    Script:Write-Log "Would update   $($script:ProfilePath) (managed block)"
     return
   }
+
+  if (-not $PSCmdlet.ShouldProcess($script:CompletionPath, 'Install Quarto completions')) { return }
 
   $manifest = Invoke-RestMethod -Uri $manifestUrl
   $expected = $manifest.files.'quarto.ps1'
@@ -94,38 +113,48 @@ function Install-Completions {
     throw "Checksum mismatch for quarto.ps1: expected $expected, got $actual"
   }
 
-  $directory = Split-Path -Parent $completionPath
+  $directory = Split-Path -Parent $script:CompletionPath
   if (-not (Test-Path -LiteralPath $directory)) {
     New-Item -ItemType Directory -Path $directory -Force | Out-Null
   }
-  Move-Item -LiteralPath $temporary -Destination $completionPath -Force
-  Write-Host "Installed $completionPath"
+  Move-Item -LiteralPath $temporary -Destination $script:CompletionPath -Force
+  Script:Write-Log "Installed $($script:CompletionPath)"
 
-  Write-ManagedBlock -Path $profilePath -Body ". `"$completionPath`""
-  Write-Host "Updated $profilePath"
+  Script:Set-ManagedBlock -Path $script:ProfilePath -Body ". `"$($script:CompletionPath)`""
+  Script:Write-Log "Updated $($script:ProfilePath)"
 
-  Write-Host ''
-  Write-Host "Quarto $($manifest.quartoVersion) completions for PowerShell ($Channel channel)."
-  Write-Host "Start a new session, or run: . `"$completionPath`""
+  Script:Write-Log
+  Script:Write-Log "Quarto $($manifest.quartoVersion) completions for PowerShell ($($script:Channel) channel)."
+  Script:Write-Log "Start a new session, or run: . `"$($script:CompletionPath)`""
 }
 
-function Uninstall-Completions {
-  if ($DryRun) {
-    Write-Host "Would remove $completionPath"
-    Write-Host "Would clean  $profilePath (managed block)"
+function Script:Uninstall-QuartoCompletion {
+  [CmdletBinding(SupportsShouldProcess)]
+  param()
+
+  if ($script:DryRun) {
+    Script:Write-Log "Would remove $($script:CompletionPath)"
+    Script:Write-Log "Would clean  $($script:ProfilePath) (managed block)"
     return
   }
 
-  if (Test-Path -LiteralPath $completionPath) {
-    Remove-Item -LiteralPath $completionPath -Force
-    Write-Host "Removed $completionPath"
+  if (-not $PSCmdlet.ShouldProcess($script:CompletionPath, 'Remove Quarto completions')) { return }
+
+  if (Test-Path -LiteralPath $script:CompletionPath) {
+    Remove-Item -LiteralPath $script:CompletionPath -Force
+    Script:Write-Log "Removed $($script:CompletionPath)"
   }
   else {
-    Write-Host "Nothing to remove at $completionPath"
+    Script:Write-Log "Nothing to remove at $($script:CompletionPath)"
   }
 
-  Remove-ManagedBlock -Path $profilePath
-  Write-Host "Cleaned $profilePath"
+  Script:Remove-ManagedBlock -Path $script:ProfilePath
+  Script:Write-Log "Cleaned $($script:ProfilePath)"
 }
 
-if ($Uninstall) { Uninstall-Completions } else { Install-Completions }
+if ($script:Uninstall) {
+  Script:Uninstall-QuartoCompletion
+}
+else {
+  Script:Install-QuartoCompletion
+}
