@@ -78,6 +78,10 @@ jobs:
       - name: Render the site
         run: quarto render docs
 
-      - name: Installer end to end
+      - name: Installer end to end (POSIX shells)
         if: runner.os != 'Windows'
         run: bash tests/install.sh docs/_site
+
+      - name: Installer end to end (PowerShell)
+        shell: pwsh
+        run: pwsh -NoProfile -File tests/install.ps1 docs/_site

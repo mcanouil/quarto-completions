@@ -79,6 +79,9 @@ The installer verifies each file against `manifest.json` before writing it, and 
 That normally means the download was truncated.
 Run it again.
 
+On Windows PowerShell 5.1, a connection error rather than a mismatch usually means TLS 1.2 was not negotiated.
+The installer enables it, so this should only appear on a Windows build old enough to lack it entirely.
+
 If it keeps failing, report it with the two hashes the error printed: <https://github.com/mcanouil/quarto-completions/issues>.
 
 ## Removing everything

@@ -105,4 +105,5 @@ Every script is published for two channels:
 Swap `stable` for `prerelease` in any URL above, or pass `--channel prerelease` to the installer.
 
 Each channel also publishes a `manifest.json`, carrying the Quarto version the scripts were generated from and a SHA-256 for each file.
-The installers verify that checksum before writing anything.
+The installers verify that checksum before writing anything, which catches a truncated or corrupted download.
+Since the manifest is served from the same site as the scripts, it is the HTTPS connection, not the checksum, that establishes where those bytes came from.

@@ -16,7 +16,11 @@
 .NOTES
   The piped form above cannot take parameters, so each one also reads an
   environment variable: QUARTO_COMPLETIONS_CHANNEL, QUARTO_COMPLETIONS_BASE_URL,
-  and QUARTO_COMPLETIONS_UNINSTALL=1.
+  and QUARTO_COMPLETIONS_UNINSTALL=1. QUARTO_COMPLETIONS_PROFILE overrides the
+  profile that is written to, which is how the tests avoid touching a real one.
+
+  Runs on Windows PowerShell 5.1, which is what `powershell.exe` is, as well as
+  PowerShell 7.
 #>
 
 [CmdletBinding()]
@@ -33,6 +37,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Windows PowerShell 5.1 does not negotiate TLS 1.2 by default on older builds,
+# where every download would otherwise fail with a connection error.
+if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
+  [Net.ServicePointManager]::SecurityProtocol =
+    [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+}
+
 # Promoted to script scope so the functions below read one binding rather than
 # closing over the parameters.
 $script:Channel = $Channel
@@ -42,7 +53,12 @@ $script:Uninstall = [bool]$Uninstall -or ($env:QUARTO_COMPLETIONS_UNINSTALL -eq 
 
 $script:BlockStart = '# >>> quarto completions >>>'
 $script:BlockEnd = '# <<< quarto completions <<<'
-$script:ProfilePath = $PROFILE.CurrentUserAllHosts
+$script:ProfilePath = if ($env:QUARTO_COMPLETIONS_PROFILE) {
+  $env:QUARTO_COMPLETIONS_PROFILE
+}
+else {
+  $PROFILE.CurrentUserAllHosts
+}
 $script:CompletionPath = Join-Path (Split-Path -Parent $script:ProfilePath) 'Completions/quarto.ps1'
 
 function Script:Write-Log {
@@ -98,14 +114,15 @@ function Script:Install-QuartoCompletion {
 
   if (-not $PSCmdlet.ShouldProcess($script:CompletionPath, 'Install Quarto completions')) { return }
 
-  $manifest = Invoke-RestMethod -Uri $manifestUrl
+  # -UseBasicParsing keeps 5.1 from waiting on Internet Explorer's engine.
+  $manifest = Invoke-RestMethod -Uri $manifestUrl -UseBasicParsing
   $expected = $manifest.files.'quarto.ps1'
   if (-not $expected) {
     throw "No checksum for quarto.ps1 in $manifestUrl"
   }
 
   $temporary = Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName())
-  Invoke-WebRequest -Uri $url -OutFile $temporary
+  Invoke-WebRequest -Uri $url -OutFile $temporary -UseBasicParsing
 
   $actual = (Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash.ToLowerInvariant()
   if ($actual -ne $expected.ToLowerInvariant()) {

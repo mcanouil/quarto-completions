@@ -46,6 +46,7 @@ bash tests/syntax.sh           # parse each script with its own shell, lint the 
 bash tests/completions.sh      # drive real completion in each shell and assert candidates
 quarto render docs             # build the site
 bash tests/install.sh          # install, re-install, and uninstall against a local server
+pwsh -NoProfile -File tests/install.ps1   # the same, for the PowerShell installer
 ```
 
 Each script reports a shell it cannot find as skipped, so a machine without fish or PowerShell still runs everything else.

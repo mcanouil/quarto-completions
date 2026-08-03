@@ -173,6 +173,12 @@ const tests: Record<string, () => void> = {
     }
   },
 
+  "two runs of the same spec produce identical files"() {
+    // What `--check` rests on: a difference means the CLI surface moved, not
+    // that the generator was run twice.
+    assertEquals(render(fixtureSpec()), render(fixtureSpec()));
+  },
+
   "a generated script carries no date, so it is stable between runs"() {
     for (const [name, output] of Object.entries(render(fixtureSpec()))) {
       if (name.endsWith(".json")) {

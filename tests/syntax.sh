@@ -56,8 +56,8 @@ if [ "${SCRIPTS_ONLY}" = "0" ]; then
     "${ROOT}/tests/install.sh" \
     "${ROOT}/tests/lib.sh" \
     "${ROOT}/tests/syntax.sh"
-  check "install.ps1 passes PSScriptAnalyzer" pwsh pwsh -NoProfile -Command \
-    "Invoke-ScriptAnalyzer -Path '${PS_ROOT}/docs/install.ps1' -EnableExit -Severity Error,Warning"
+  check "PowerShell scripts pass PSScriptAnalyzer" pwsh pwsh -NoProfile -Command \
+    "Invoke-ScriptAnalyzer -Path '${PS_ROOT}/docs/install.ps1','${PS_ROOT}/tests/install.ps1' -EnableExit -Severity Error,Warning"
 fi
 
 summary

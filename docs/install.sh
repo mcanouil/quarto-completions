@@ -53,19 +53,29 @@ fail() {
   exit 1
 }
 
+# Fails with a message when an option that needs a value was given none.
+# Without this, `shift 2` on a lone flag ends the script silently.
+require_value() {
+  # $1: option name, $2: remaining argument count
+  [ "$2" -ge 2 ] || fail "option '$1' needs a value (try --help)"
+}
+
 parse_args() {
   while [ $# -gt 0 ]; do
     case "$1" in
       --shell)
-        TARGET_SHELL="${2:-}"
+        require_value "$1" "$#"
+        TARGET_SHELL="$2"
         shift 2
         ;;
       --channel)
-        CHANNEL="${2:-}"
+        require_value "$1" "$#"
+        CHANNEL="$2"
         shift 2
         ;;
       --base-url)
-        BASE_URL="${2:-}"
+        require_value "$1" "$#"
+        BASE_URL="$2"
         shift 2
         ;;
       --uninstall)
@@ -130,10 +140,13 @@ sha256_of() {
   fi
 }
 
-# Reads one checksum out of manifest.json without requiring jq.
+# Reads one checksum out of manifest.json without requiring jq. The file name
+# is escaped because `.` would otherwise match any character.
 manifest_sha() {
   # $1: manifest path, $2: file name
-  sed -n "s/.*\"$2\"[[:space:]]*:[[:space:]]*\"\([0-9a-f]\{64\}\)\".*/\1/p" "$1" | head -n 1
+  local key
+  key="$(printf '%s' "$2" | sed 's/[.[\*^$]/\\&/g')"
+  sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\([0-9a-f]\{64\}\)\".*/\1/p" "$1" | head -n 1
 }
 
 script_name_for() {
