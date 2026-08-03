@@ -160,11 +160,27 @@ script_name_for() {
 data_home() { echo "${XDG_DATA_HOME:-${HOME}/.local/share}"; }
 config_home() { echo "${XDG_CONFIG_HOME:-${HOME}/.config}"; }
 
-# Oh My Zsh's custom directory. It sets $ZSH and $ZSH_CUSTOM inside interactive
-# zsh and does not export them, so a `curl | bash` run almost always falls
-# through to the default; honouring them anyway costs nothing and covers a
-# relocated install.
-omz_custom() { echo "${ZSH_CUSTOM:-${ZSH:-${HOME}/.oh-my-zsh}/custom}"; }
+# Oh My Zsh's custom directory, which is both written to and, once stale,
+# removed.
+#
+# $ZSH is exported by Oh My Zsh's stock .zshrc and $ZSH_CUSTOM may be, so both
+# survive into a child process whose HOME is something else: `sudo -E`, a
+# container, or a plain `HOME=/tmp/x bash install.sh`. Following them out of
+# $HOME would mean deleting another home's completions, and would break the
+# promise at the top of this file. They are honoured, because a relocated
+# Oh My Zsh is worth supporting, but only when they point inside $HOME.
+omz_custom() {
+  local candidate="${ZSH_CUSTOM:-${ZSH:+${ZSH}/custom}}"
+  if [ -n "${candidate}" ] && [ -n "${HOME:-}" ]; then
+    case "${candidate}" in
+      "${HOME}"/*)
+        echo "${candidate}"
+        return
+        ;;
+    esac
+  fi
+  echo "${HOME}/.oh-my-zsh/custom"
+}
 
 # Where the completion file belongs, and which rc file (if any) needs a line
 # added so the shell picks it up.
@@ -381,18 +397,33 @@ do_install() {
   log "Start a new shell, or run: exec ${TARGET_SHELL} -l"
 }
 
+# Everything an uninstall would touch: the scripts, and the rc file when it
+# still holds a managed block. Both halves count, or a home whose script is
+# already gone but whose block is not reports "Nothing to remove" immediately
+# after saying it cleaned the rc file.
+uninstall_residue() {
+  printf '%s%s' "$(stale_locations "")" "$(stale_rc "")"
+}
+
 do_uninstall() {
   # Nothing is kept, so every location and the rc block go, whichever layout
   # this machine happens to resolve to now.
+  local residue
+  residue="$(uninstall_residue)"
+
   if [ "${DRY_RUN}" = "1" ]; then
-    report_stale "Would remove" "Would clean " "" ""
+    # Saying nothing at all would read as a broken script, and --dry-run is the
+    # first thing the troubleshooting page asks people to run.
+    if [ -z "${residue}" ]; then
+      log "Nothing to remove for ${TARGET_SHELL}"
+    else
+      report_stale "Would remove" "Would clean " "" ""
+    fi
     return 0
   fi
 
-  local found
-  found="$(stale_locations "")"
   remove_stale "" ""
-  if [ -z "${found}" ]; then
+  if [ -z "${residue}" ]; then
     log "Nothing to remove for ${TARGET_SHELL}"
   fi
 }

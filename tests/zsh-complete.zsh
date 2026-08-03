@@ -59,6 +59,24 @@ esac
 
 zpty z $boot
 zpty -w z $setup
+
+# Wait for the shell to echo the setup line back before typing anything. Under
+# `rc` it is reading a .zshrc and running compinit, sometimes twice, and typing
+# into a shell that has not finished starting loses the keystrokes: the drain
+# below then returns nothing at all, which reads as a completion that produced
+# no candidates. Ten seconds is a ceiling, not a delay; it breaks as soon as the
+# echo arrives.
+local ready="" chunk
+repeat 100; do
+  if zpty -rt z chunk 2>/dev/null; then
+    ready+=$chunk
+    if [[ $ready == *'quarto()'* ]]; then
+      break
+    fi
+  fi
+  sleep 0.1
+done
+
 zpty -w z ""
 
 local keys=$line
@@ -72,7 +90,7 @@ zpty -w -n z $keys
 # reverted: the pseudo-terminal goes quiet between the prompt redraw and the
 # completion output, so on a loaded runner the read stopped before the
 # candidates arrived. Four seconds of test time is worth the determinism.
-local out="" chunk
+local out=""
 repeat 40; do
   if zpty -rt z chunk 2>/dev/null; then
     out+=$chunk

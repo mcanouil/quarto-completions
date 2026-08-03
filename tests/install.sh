@@ -239,6 +239,51 @@ expect_absent "uninstall: removes the location that no longer resolves" \
 expect_count "uninstall: removes the block the resolved branch never writes" \
   "${MIGRATE_BASH}/.bashrc" ">>> quarto completions >>>" 0
 
+# $ZSH and $ZSH_CUSTOM are exported by Oh My Zsh, so they reach a child whose
+# HOME is something else. Following them there would mean installing into, and
+# on uninstall deleting from, a home the user did not name.
+OUTSIDE="$(scenario_home outside)"
+SANDBOX="$(scenario_home sandbox)"
+mkdir -p "${OUTSIDE}/.oh-my-zsh/custom/completions"
+printf 'not ours to delete\n' >"${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
+env ZSH="${OUTSIDE}/.oh-my-zsh" \
+  HOME="${SANDBOX}" \
+  XDG_DATA_HOME="${SANDBOX}/.local/share" \
+  XDG_CONFIG_HOME="${SANDBOX}/.config" \
+  bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
+  --shell zsh --uninstall >/dev/null
+expect_file "an out-of-home ZSH is not followed on uninstall" \
+  "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
+
+env ZSH="${OUTSIDE}/.oh-my-zsh" \
+  HOME="${SANDBOX}" \
+  XDG_DATA_HOME="${SANDBOX}/.local/share" \
+  XDG_CONFIG_HOME="${SANDBOX}/.config" \
+  bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
+  --shell zsh >/dev/null
+expect_file "an out-of-home ZSH is not followed on install" \
+  "${SANDBOX}/.local/share/zsh/site-functions/_quarto"
+expect_count "the out-of-home file is still untouched" \
+  "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto" "not ours to delete" 1
+
+# A home whose script is already gone but whose block is not must not report
+# that it cleaned the rc file and then that there was nothing to remove.
+RESIDUE_HOME="$(scenario_home residue)"
+printf '%s\n%s\n%s\n' \
+  "# >>> quarto completions >>>" "stale" "# <<< quarto completions <<<" \
+  >"${RESIDUE_HOME}/.zshrc"
+residue_output="$(scenario_run "${RESIDUE_HOME}" --shell zsh --uninstall)"
+expect_contains "a leftover block alone is still removed" "${residue_output}" "Cleaned"
+expect_missing "a removed block does not also report nothing to remove" \
+  "${residue_output}" "Nothing to remove"
+
+# --dry-run is the first diagnostic the troubleshooting page asks for, so it
+# has to say something even when there is nothing to do.
+CLEAN_HOME="$(scenario_home clean)"
+clean_output="$(scenario_run "${CLEAN_HOME}" --shell zsh --uninstall --dry-run)"
+expect_contains "a dry-run uninstall on a clean home still reports" \
+  "${clean_output}" "Nothing to remove"
+
 # The managed block has to work in the shell it is written for. A user who
 # already calls compinit is the ordinary case, not an edge one: the block is
 # appended below their call, so whatever it does has to work with a dump
