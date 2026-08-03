@@ -23,9 +23,18 @@ curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --dr
 ## zsh completes filenames instead of commands
 
 zsh only loads a completion function once `compinit` has run, and only from a directory that was on `fpath` at that point.
-If your `~/.zshrc` calls `compinit` itself, the managed block the installer appended runs after it.
+The managed block is appended to `~/.zshrc`, so it runs after any `compinit` you call yourself, and it calls `compinit -i` of its own to pick up what it has just added.
 
-Move this line above your own `compinit` call:
+Under Oh My Zsh there is no managed block at all: the file goes to `$ZSH_CUSTOM/completions`, which Oh My Zsh puts on `fpath` before running `compinit`.
+Confirm the file is where that expects:
+
+```zsh
+ls ~/.oh-my-zsh/custom/completions/_quarto
+```
+
+Otherwise, check that the block is still the last word on the subject.
+If something later in `~/.zshrc` calls `compinit -C`, or replaces `fpath` outright, it undoes the block.
+Move the block below it, or delete the block and put this above your own `compinit`:
 
 ```zsh
 fpath=("$HOME/.local/share/zsh/site-functions" $fpath)

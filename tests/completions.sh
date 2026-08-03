@@ -77,17 +77,17 @@ test_zsh() {
   fi
 
   local completed candidates
-  completed="$(zsh "${ROOT}/tests/zsh-complete.zsh" "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto ren')"
+  completed="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto ren')"
   expect_contains "zsh: completes a command name" "${completed}" "quarto render"
 
-  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto render --to ' 2)"
+  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto render --to ' 2)"
   expect_contains "zsh: formats for --to" "${candidates}" "revealjs"
 
-  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish ' 2)"
+  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish ' 2)"
   expect_contains "zsh: publish providers" "${candidates}" "gh-pages"
 
   # The second positional is a path, so the providers must not come back.
-  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish gh-pages ' 2)"
+  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish gh-pages ' 2)"
   expect_missing "zsh: provider not offered twice" "${candidates}" "quarto-pub"
 }
 
