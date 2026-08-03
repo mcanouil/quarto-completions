@@ -223,10 +223,21 @@ expect_absent "bash migration: the old script is gone" \
 expect_count "bash migration: the old rc block is gone" \
   "${MIGRATE_BASH}/.bashrc" ">>> quarto completions >>>" 0
 
-# Uninstalling sweeps every location, not only the one that resolves now.
+# Uninstalling sweeps every location, not only the one that resolves now. Put a
+# file back in the branch that no longer resolves, so that removing just the
+# resolved one would leave something behind.
+mkdir -p "${MIGRATE_BASH}/.local/share/quarto-completions"
+touch "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
+printf '%s\n%s\n%s\n' \
+  "# >>> quarto completions >>>" "stale" "# <<< quarto completions <<<" \
+  >>"${MIGRATE_BASH}/.bashrc"
 scenario_run "${MIGRATE_BASH}" --shell bash --uninstall >/dev/null
-expect_absent "uninstall: sweeps the resolved location" \
+expect_absent "uninstall: removes the resolved location" \
   "${MIGRATE_BASH}/.local/share/bash-completion/completions/quarto"
+expect_absent "uninstall: removes the location that no longer resolves" \
+  "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
+expect_count "uninstall: removes the block the resolved branch never writes" \
+  "${MIGRATE_BASH}/.bashrc" ">>> quarto completions >>>" 0
 
 # The managed block has to work in the shell it is written for. A user who
 # already calls compinit is the ordinary case, not an edge one: the block is
