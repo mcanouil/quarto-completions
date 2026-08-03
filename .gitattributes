@@ -1,0 +1,14 @@
+# Shell scripts need LF wherever they are checked out: a CRLF shebang is not a
+# valid interpreter path.
+*.sh text eol=lf
+*.bash text eol=lf
+*.fish text eol=lf
+*.zsh text eol=lf
+*.ps1 text eol=lf
+
+# The generated completions are checksummed in manifest.json against the bytes
+# the generator produced. Git rewrites line endings on checkout by default on
+# Windows, which would change those bytes and make every download look
+# tampered with. Keep them exactly as committed. Last match wins, so this
+# stays below the rules above.
+docs/completions/** -text
