@@ -1,0 +1,93 @@
+# The phosphor palette: a completion candidate glowing on a terminal, which is
+# what this project puts in your shell. Green is the accent because it is the
+# colour a shell reserves for something that succeeded or something being
+# offered, and it is unclaimed across the rest of m.canouil.dev.
+#
+# Every pair below clears WCAG AA against the background it is drawn on:
+# phosphor-deep on bone 6.15:1, phosphor on graphite 9.19:1, ink on bone
+# 16.56:1, ash on graphite 14.67:1. ash-muted is only ever used on the chrome,
+# which assets/stylesheets/theme.scss pins to graphite in both schemes, where it
+# reaches 6.56:1.
+meta:
+  name: Mickaël CANOUIL
+  link:
+    home: https://mickael.canouil.fr
+    github: https://github.com/mcanouil
+    bluesky: https://bsky.app/profile/mickael.canouil.fr
+    linkedin: https://www.linkedin.com/in/MickaelCanouil
+
+# One file, not a light and a dark pair: the navbar this lands in is graphite in
+# both colour schemes, so the mark is always drawn on the dark background.
+# assets/icons/icon.svg is the scheme-adaptive twin, used as the favicon.
+logo:
+  small: assets/icons/logo.svg
+
+color:
+  palette:
+    graphite: "#0D1210"
+    graphite-2: "#161E1A"
+    bone: "#F7F8F5"
+    ink: "#141A17"
+    ash: "#DCE5DE"
+    ash-muted: "#8C9C93"
+    phosphor: "#4FCB84"
+    phosphor-deep: "#146B3F"
+  background:
+    dark: graphite
+    light: bone
+  foreground:
+    dark: ash
+    light: ink
+  primary:
+    dark: phosphor
+    light: phosphor-deep
+  # `dark` and `light` are Bootstrap's own two theme colours, not the colour
+  # schemes: pinning both to the same value in either bundle is what keeps a
+  # `.bg-dark` surface dark once the page itself goes dark.
+  dark:
+    dark: graphite
+    light: graphite
+  light:
+    dark: ash
+    light: ash
+
+typography:
+  fonts:
+    - family: JetBrains Mono
+      source: google
+      weight: [400, 500, 700]
+    - family: Inter
+      source: google
+      weight: [300, 400, 500, 600]
+  base: Inter
+  # Headings in the monospace face: the site documents a shell, and setting the
+  # headings in the same typeface as the commands below them is the cheapest
+  # way to say so.
+  headings:
+    family: JetBrains Mono
+    weight: 700
+  monospace: JetBrains Mono
+  link:
+    color: primary
+
+defaults:
+  bootstrap:
+    defaults:
+      tooltip-color: $background
+      tooltip-bg: $foreground
+      btn-close-color: $foreground
+      # Pin atelier's chrome, the navbar and footer, to graphite in both colour
+      # schemes. The site is about a terminal, its icon rasters are drawn on
+      # graphite, and site.webmanifest names graphite as the theme colour, so
+      # the bars stay dark either way.
+      #
+      # These belong here rather than in a stylesheet: Quarto evaluates user
+      # layer defaults in reverse list order, so any file the project adds to
+      # the theme list is evaluated before the brand layer and cannot see
+      # $brand-*. This block is emitted by the brand layer itself, after the
+      # palette, which is the only place the three chrome colours can be named
+      # rather than repeated as literals.
+      atelier-chrome: dark
+      atelier-chrome-dark-bg: $brand-graphite
+      atelier-chrome-dark-fg: $brand-ash
+      atelier-chrome-dark-accent: $brand-phosphor

@@ -15,11 +15,15 @@ Re-running the installer replaces that block.
 
 ## bash
 
-| | |
+::: {.completions-shell tabindex="0" role="region" aria-label="bash installation"}
+
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/quarto.bash`](completions/stable/quarto.bash) |
 | Installed to | `$XDG_DATA_HOME/bash-completion/completions/quarto` when that directory exists, otherwise `$XDG_DATA_HOME/quarto-completions/quarto.bash` |
 | Configuration | None in the first case, a `source` line in `~/.bashrc` in the second |
+
+:::
 
 `$XDG_DATA_HOME` defaults to `~/.local/share`.
 
@@ -37,11 +41,15 @@ echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/q
 
 ## zsh
 
-| | |
+::: {.completions-shell tabindex="0" role="region" aria-label="zsh installation"}
+
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/_quarto`](completions/stable/_quarto) |
 | Installed to | `$XDG_DATA_HOME/zsh/site-functions/_quarto` |
 | Configuration | An `fpath` line in `~/.zshrc`, followed by `compinit` |
+
+:::
 
 zsh loads completion functions from the directories on `fpath`, and only after `compinit` has run.
 The managed block adds the directory and calls `compinit -C`, which skips the security check that a second call would otherwise repeat.
@@ -58,11 +66,15 @@ curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/_quarto \
 
 ## fish
 
-| | |
+::: {.completions-shell tabindex="0" role="region" aria-label="fish installation"}
+
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/quarto.fish`](completions/stable/quarto.fish) |
 | Installed to | `$XDG_CONFIG_HOME/fish/completions/quarto.fish` |
 | Configuration | None |
+
+:::
 
 fish autoloads that directory, so there is nothing to add to `config.fish`.
 
@@ -76,11 +88,15 @@ curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.fi
 
 ## PowerShell
 
-| | |
+::: {.completions-shell tabindex="0" role="region" aria-label="PowerShell installation"}
+
+| What | Where |
 | --- | --- |
 | Script | [`completions/stable/quarto.ps1`](completions/stable/quarto.ps1) |
 | Installed to | `Completions/quarto.ps1` beside `$PROFILE.CurrentUserAllHosts` |
 | Configuration | A dot-source line in `$PROFILE.CurrentUserAllHosts` |
+
+:::
 
 The completer is registered for both `quarto` and `quarto.cmd`, because the Windows installation puts the `.cmd` shim on `PATH`.
 

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-labelledby="quarto-completions-icon-title">
+  <title id="quarto-completions-icon-title">Quarto Completions</title>
+  <style>
+    /* Colours come from _brand.yml: ink and phosphor-deep in the light scheme,
+       ash and phosphor in the dark one, matching the brand primary mapping.
+       Three panes are solid and the fourth is only suggested, which is the
+       whole idea: the candidate Tab is about to fill in. */
+    .pane { fill: #141A17; }
+    .suggest { stroke: #146B3F; }
+
+    @media (prefers-color-scheme: dark) {
+      .pane { fill: #DCE5DE; }
+      .suggest { stroke: #4FCB84; }
+    }
+  </style>
+  <!-- The Quarto quadrant mark, reduced to a 32x32 grid: a circle of radius 13
+       about (16, 16), split by a 1.8-wide gutter on both axes. Each solid pane
+       is the quarter disc outside that gutter, so the arc endpoints sit where
+       the gutter lines cross the circle, at 16 +/- sqrt(13^2 - 0.9^2). -->
+  <path class="pane" d="M15.1 3.03A13 13 0 0 0 3.03 15.1H15.1Z"/>
+  <path class="pane" d="M16.9 3.03A13 13 0 0 1 28.97 15.1H16.9Z"/>
+  <path class="pane" d="M3.03 16.9A13 13 0 0 0 15.1 28.97V16.9Z"/>
+  <!-- The suggestion is stroked rather than filled, so its radius is 12 and its
+       corner 17.9: a 2-wide stroke centred there puts its outer edge back on
+       the same circle and its inner edge back on the same gutter as the three
+       panes above. -->
+  <path class="suggest" d="M17.9 17.9H27.85A12 12 0 0 1 17.9 27.85Z" fill="none" stroke-width="2" stroke-dasharray="2.4 2.2" stroke-linecap="round"/>
+</svg>

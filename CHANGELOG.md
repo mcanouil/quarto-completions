@@ -16,3 +16,4 @@ All notable changes to this project will be documented in this file.
 ### Documentation
 
 - docs: add a documentation website at <https://m.canouil.dev/quarto-completions>, covering installation, the file and configuration each shell needs, and troubleshooting.
+- docs: give the website its own identity, built on the `atelier` project type: a terminal-green palette that follows the light and dark colour schemes, a mark derived from the Quarto quadrant with the fourth pane left for Tab to complete, and the favicon, touch icon, web app manifest, and social card generated from it. Code blocks carry window chrome naming the shell, the navbar links to issues, discussions, and releases through a repository widget, and a 404 page replaces the server default.

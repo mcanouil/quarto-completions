@@ -1,43 +1,127 @@
 project:
-  type: website
+  type: atelier
   render:
     - index.qmd
     - shells.qmd
     - troubleshooting.qmd
+    - 404.qmd
   # Quarto copies nothing to the output directory by convention: only these
-  # globs, plus files it finds behind an `href` or `src` in the rendered HTML.
+  # globs, plus files it finds behind an `href` or `src` in the rendered HTML,
+  # and the ones a website key names outright.
+  #
   # The installers and the generated completions are fetched by URL rather than
-  # linked from a page, so they are listed here.
+  # linked from a page, so the scan cannot see them. Neither can it see the two
+  # manifest icons, which are named in JSON. Everything else is already covered:
+  # the favicon, the touch icon, and the manifest through an `href`, and the
+  # social card through `website.image`. `assets/icons/*.png` sweeps up the touch
+  # icon as a side effect of catching the two that need it.
   resources:
     - install.sh
     - install.ps1
     - completions/**
+    - assets/icons/*.png
 
 website:
   title: "Quarto Completions"
   description: "Shell completions for the Quarto CLI: bash, zsh, fish, and PowerShell, with a one-line installer."
-  site-url: "https://m.canouil.dev/quarto-completions"
+  # No trailing slash: Quarto builds the social image URL by concatenating this
+  # with a leading-slash image path, without normalising.
+  site-url: &site-url "https://m.canouil.dev/quarto-completions"
   repo-url: https://github.com/mcanouil/quarto-completions
+  # The Quarto project root is docs/, so the edit and issue links atelier turns
+  # on need the subdirectory; without it they point at the repository root
+  # and 404.
+  repo-subdir: docs
+  favicon: favicon.ico
+  # The leading slash marks a project-relative path, which Quarto turns into
+  # `<site-url>/assets/social/og-image.png` and measures to fill the image width
+  # and height tags. The card inherits into both Open Graph and the Twitter
+  # card, which atelier switches on; no `creator` or `site` handles, since there
+  # is no X account to name.
+  image: /assets/social/og-image.png
+  image-alt: "The Quarto Completions mark, a circle of four quadrants with the fourth drawn as a dashed green outline, above the words quarto completions on a near-black background."
+  # Every external link here carries `target` and `rel` explicitly. Overriding
+  # `left` and `center` replaces atelier's own strings, which carry them, and
+  # nothing puts them back: `link-external-newwindow` does not reach the footer
+  # template, and atelier's external-links script only adds `rel` to anchors
+  # that already open in a new tab.
   page-footer:
+    left: |
+      Powered by [{{< iconify simple-icons:quarto title="Quarto Logo" label="Quarto Logo" >}} Quarto](https://quarto.org){target="_blank" rel="noopener noreferrer"}.
+    center: |
+      &copy; []{#current-year} [Mickaël CANOUIL](https://mickael.canouil.fr){target="_blank" rel="noopener noreferrer"}. [{{< iconify octicon:heart-fill-16 title="Heart" label="Heart" >}} Sponsor](https://github.com/sponsors/mcanouil?o=esb){target="_blank" rel="noopener noreferrer"}.
     right: |
-      Licence: [MIT](https://github.com/mcanouil/quarto-completions?tab=MIT-1-ov-file#readme).
+      Licence: [MIT](https://github.com/mcanouil/quarto-completions?tab=MIT-1-ov-file#readme){target="_blank" rel="noopener noreferrer"}.
   navbar:
     left:
-      - text: "Install"
+      - text: "{{< iconify octicon:download-16 title='Install' label='Install' >}} Install"
         href: index.qmd
-      - text: "Shells"
+      - text: "{{< iconify octicon:terminal-16 title='Shells' label='Shells' >}} Shells"
         href: shells.qmd
-      - text: "Troubleshooting"
+      - text: "{{< iconify octicon:question-16 title='Troubleshooting' label='Troubleshooting' >}} Troubleshooting"
         href: troubleshooting.qmd
     right:
-      - icon: github
-        href: https://github.com/mcanouil/quarto-completions
+      - href: "#gitlink-widget"
         aria-label: "GitHub"
 
+brand: _brand.yml
+
+# The `atelier` project type sets `format: atelier-html`. Declaring `html` here
+# would replace that format rather than configure it, silently dropping the
+# accessibility scripts, `lang: en-GB`, the colour-scheme handling, and the
+# extension stylesheet.
+#
+# These lists extend the format's own rather than replacing it, so only the one
+# file this site adds belongs here. `brand` is not repeated: Quarto concatenates
+# the two lists and then drops duplicates, keeping the first, and atelier
+# already places `brand` between its chrome and its theme, which is the position
+# the cascade needs. Naming it again compiles to byte-identical CSS.
 format:
-  html:
+  atelier-html:
     theme:
-      light: flatly
-      dark: darkly
-    toc: true
-    lang: en-GB
+      light:
+        - assets/stylesheets/theme.scss
+      dark:
+        - assets/stylesheets/theme.scss
+
+# Named as bare strings, not as `{path:, at:}` entries. Quarto applies an `at`
+# given here to every filter the extension contributes, not just the one it
+# looks like it names: `resolveFilterExtension` spreads `at: filter.at` over the
+# whole contributed list. code-window contributes `main.lua` at pre-quarto and a
+# Typst hot-fix at post-quarto, and naming a stage would drag the second one
+# forward with the first. A bare string keeps each extension's own staging.
+filters:
+  - code-window
+  - gitlink
+
+extensions:
+  atelier:
+    # Quarto keeps the `website` block out of the metadata it hands to Lua
+    # filters, so atelier's social-metadata filter cannot read
+    # `website.site-url` to build the canonical URL. The anchor above
+    # republishes the same scalar here, without a second copy of the string.
+    site-url: *site-url
+    icon: assets/icons/icon.svg
+    apple-touch-icon: assets/icons/apple-touch-icon.png
+    manifest: site.webmanifest
+    # `theme-color` is left out: it falls back to `color.background` of
+    # _brand.yml for each scheme, which is already what this site wants.
+  gitlink:
+    # Widget only: the platform and repository come from `website.repo-url`,
+    # and in-text reference rewriting stays off so prose is left alone.
+    enabled: false
+    widget:
+      enabled: true
+      extra-links:
+        - text: "Ideas / Feature Requests"
+          href: "/discussions/categories/ideas"
+          icon: discussion
+        - text: "Q&A"
+          href: "/discussions/categories/q-a"
+          icon: question
+      sponsor: mcanouil
+      style-navbar-tools: true
+  # code-window is left on its defaults: the macOS style, and a filename
+  # derived from the language. Every block here is a shell command, so that
+  # label reads as the shell it belongs to, which is exactly the distinction
+  # this site is about.
