@@ -27,21 +27,14 @@ done
 
 zpty -w -n z $keys
 
-# Read until the shell has been quiet for half a second, with a four-second
-# ceiling. Completion output arrives in bursts, so quiescence is the signal
-# that it has finished; a fixed wait would spend the ceiling every time.
-local out="" chunk previous=""
-local -i quiet=0
+# Drain for a fixed four seconds. Exiting early on quiescence was tried and
+# reverted: the pseudo-terminal goes quiet between the prompt redraw and the
+# completion output, so on a loaded runner the read stopped before the
+# candidates arrived. Four seconds of test time is worth the determinism.
+local out="" chunk
 repeat 40; do
   if zpty -rt z chunk 2>/dev/null; then
     out+=$chunk
-  fi
-  if [[ -n $out && $out == $previous ]]; then
-    (( quiet++ ))
-    (( quiet >= 5 )) && break
-  else
-    quiet=0
-    previous=$out
   fi
   sleep 0.1
 done
