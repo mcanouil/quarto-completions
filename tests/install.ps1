@@ -32,26 +32,31 @@ $completionPath = Join-Path $scratch 'Profile/Completions/quarto.ps1'
 $script:Passed = 0
 $script:Failed = 0
 
+function Write-Report {
+  param([string]$Message = '')
+  Write-Information -MessageData $Message -InformationAction Continue
+}
+
 function Test-Pass {
   param([string]$Label)
-  Write-Host "ok    $Label"
+  Write-Report "ok    $Label"
   $script:Passed++
 }
 
 function Test-Fail {
   param([string]$Label, [string]$Detail)
-  Write-Host "FAIL  $Label"
-  Write-Host "      $Detail"
+  Write-Report "FAIL  $Label"
+  Write-Report "      $Detail"
   $script:Failed++
 }
 
-function Assert-FileExists {
+function Assert-FilePresent {
   param([string]$Label, [string]$Path)
   if (Test-Path -LiteralPath $Path) { Test-Pass $Label }
   else { Test-Fail $Label "missing file: $Path" }
 }
 
-function Assert-FileAbsent {
+function Assert-FileMissing {
   param([string]$Label, [string]$Path)
   if (Test-Path -LiteralPath $Path) { Test-Fail $Label "expected to be gone: $Path" }
   else { Test-Pass $Label }
@@ -83,11 +88,14 @@ function Get-Python {
 }
 
 function Start-Site {
+  [CmdletBinding(SupportsShouldProcess)]
   param([string]$Directory, [int]$On)
+
+  if (-not $PSCmdlet.ShouldProcess("port $On", 'Serve the site')) { return }
 
   $server = Start-Process -PassThru -WindowStyle Hidden `
     -FilePath (Get-Python) -ArgumentList @('-m', 'http.server', "$On", '--directory', $Directory)
-  foreach ($_ in 1..60) {
+  foreach ($attempt in 1..60) {
     try {
       Invoke-RestMethod -Uri "http://127.0.0.1:$On/completions/stable/manifest.json" -UseBasicParsing | Out-Null
       return $server
@@ -109,15 +117,15 @@ $baseUrl = "http://127.0.0.1:$Port"
 
 try {
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-DryRun') | Out-Null
-  Assert-FileAbsent 'dry run writes nothing' $completionPath
-  Assert-FileAbsent 'dry run leaves the profile alone' $profilePath
+  Assert-FileMissing 'dry run writes nothing' $completionPath
+  Assert-FileMissing 'dry run leaves the profile alone' $profilePath
 
   $output = Invoke-Installer -BaseUrl $baseUrl
   if ($LASTEXITCODE -eq 0) { Test-Pass 'install succeeds' }
   else { Test-Fail 'install succeeds' $output }
 
-  Assert-FileExists 'script installed' $completionPath
-  Assert-FileExists 'profile written' $profilePath
+  Assert-FilePresent 'script installed' $completionPath
+  Assert-FilePresent 'profile written' $profilePath
   Assert-Count 'profile dot-sources the script' $profilePath 'Completions' 1
 
   # The completer the installer just wrote has to load and answer.
@@ -150,7 +158,7 @@ try {
   }
 
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall') | Out-Null
-  Assert-FileAbsent 'script removed' $completionPath
+  Assert-FileMissing 'script removed' $completionPath
   Assert-Count 'managed block removed' $profilePath '>>> quarto completions >>>' 0
 }
 finally {
@@ -159,6 +167,6 @@ finally {
   Remove-Item Env:\QUARTO_COMPLETIONS_PROFILE -ErrorAction SilentlyContinue
 }
 
-Write-Host ''
-Write-Host "$script:Passed passed, $script:Failed failed."
+Write-Report
+Write-Report "$script:Passed passed, $script:Failed failed."
 if ($script:Failed -gt 0) { exit 1 }
