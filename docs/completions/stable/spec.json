@@ -1,0 +1,2098 @@
+{
+  "quartoVersion": "1.10.18",
+  "channel": "stable",
+  "generated": "2026-08-03",
+  "root": {
+    "path": [],
+    "description": "Quarto CLI",
+    "options": [
+      {
+        "short": "-h",
+        "long": "--help",
+        "description": "Show this help.",
+        "kind": "none"
+      },
+      {
+        "short": "-V",
+        "long": "--version",
+        "description": "Show the version number for this program.",
+        "kind": "none"
+      }
+    ],
+    "args": [],
+    "commands": [
+      {
+        "path": [
+          "render"
+        ],
+        "description": "Render files or projects to various document types.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "short": "-t",
+            "long": "--to",
+            "description": "Specify output format(s).",
+            "kind": "enum",
+            "values": [
+              "html",
+              "pdf",
+              "docx",
+              "odt",
+              "rtf",
+              "revealjs",
+              "beamer",
+              "pptx",
+              "typst",
+              "dashboard",
+              "epub",
+              "gfm",
+              "commonmark",
+              "markdown",
+              "markua",
+              "hugo-md",
+              "docusaurus-md",
+              "jats",
+              "asciidoc",
+              "asciidoctor",
+              "ipynb",
+              "context",
+              "docbook",
+              "dokuwiki",
+              "jira",
+              "mediawiki",
+              "man",
+              "ms",
+              "muse",
+              "opml",
+              "org",
+              "rst",
+              "texinfo",
+              "textile",
+              "xwiki",
+              "zimwiki"
+            ]
+          },
+          {
+            "short": "-o",
+            "long": "--output",
+            "description": "Write output to FILE (use '--output -' for stdout).",
+            "kind": "file"
+          },
+          {
+            "long": "--output-dir",
+            "description": "Write output to DIR (path is input/project relative)",
+            "kind": "dir"
+          },
+          {
+            "short": "-M",
+            "long": "--metadata",
+            "description": "Metadata value (KEY:VALUE).",
+            "kind": "value"
+          },
+          {
+            "long": "--site-url",
+            "description": "Override site-url for website or book output",
+            "kind": "value"
+          },
+          {
+            "long": "--execute",
+            "description": "Execute code (--no-execute to skip execution).",
+            "kind": "none"
+          },
+          {
+            "short": "-P",
+            "long": "--execute-param",
+            "description": "Execution parameter (KEY:VALUE).",
+            "kind": "value"
+          },
+          {
+            "long": "--execute-params",
+            "description": "YAML file with execution parameters.",
+            "kind": "file",
+            "globs": [
+              "yml",
+              "yaml",
+              "json"
+            ]
+          },
+          {
+            "long": "--execute-dir",
+            "description": "Working directory for code execution.",
+            "kind": "dir"
+          },
+          {
+            "long": "--execute-daemon",
+            "description": "Keep Jupyter kernel alive (defaults to 300 seconds).",
+            "kind": "value"
+          },
+          {
+            "long": "--execute-daemon-restart",
+            "description": "Restart keepalive Jupyter kernel before render.",
+            "kind": "none"
+          },
+          {
+            "long": "--execute-debug",
+            "description": "Show debug output when executing computations.",
+            "kind": "none"
+          },
+          {
+            "long": "--use-freezer",
+            "description": "Force use of frozen computations for an incremental file render.",
+            "kind": "none"
+          },
+          {
+            "long": "--cache",
+            "description": "Cache execution output (--no-cache to prevent cache).",
+            "kind": "none"
+          },
+          {
+            "long": "--cache-refresh",
+            "description": "Force refresh of execution cache.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-clean",
+            "description": "Do not clean project output-dir prior to render",
+            "kind": "none"
+          },
+          {
+            "long": "--debug",
+            "description": "Leave intermediate files in place after render.",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          },
+          {
+            "long": "--no-execute",
+            "description": "Negated form of --execute.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-cache",
+            "description": "Negated form of --cache.",
+            "kind": "none"
+          },
+          {
+            "long": "--toc",
+            "description": "Include an automatically generated table of contents.",
+            "kind": "none"
+          },
+          {
+            "long": "--toc-depth",
+            "description": "Number of section levels in the table of contents.",
+            "kind": "value"
+          },
+          {
+            "long": "--number-sections",
+            "description": "Number section headings.",
+            "kind": "none"
+          },
+          {
+            "long": "--number-offset",
+            "description": "Offset for section headings.",
+            "kind": "value"
+          },
+          {
+            "long": "--top-level-division",
+            "description": "Treat top-level headings as this division.",
+            "kind": "enum",
+            "values": [
+              "default",
+              "section",
+              "chapter",
+              "part"
+            ]
+          },
+          {
+            "long": "--standalone",
+            "description": "Produce a standalone document.",
+            "kind": "none"
+          },
+          {
+            "long": "--template",
+            "description": "Use FILE as a custom template.",
+            "kind": "file"
+          },
+          {
+            "long": "--css",
+            "description": "Link to a CSS style sheet.",
+            "kind": "file"
+          },
+          {
+            "long": "--bibliography",
+            "description": "Bibliography file.",
+            "kind": "file"
+          },
+          {
+            "long": "--csl",
+            "description": "Citation Style Language file.",
+            "kind": "file"
+          },
+          {
+            "long": "--citeproc",
+            "description": "Process citations with citeproc.",
+            "kind": "none"
+          },
+          {
+            "long": "--highlight-style",
+            "description": "Syntax highlighting style.",
+            "kind": "value"
+          },
+          {
+            "long": "--pdf-engine",
+            "description": "Engine used to produce PDF output.",
+            "kind": "enum",
+            "values": [
+              "pdflatex",
+              "lualatex",
+              "xelatex",
+              "tectonic",
+              "latexmk",
+              "context",
+              "wkhtmltopdf",
+              "weasyprint",
+              "typst"
+            ]
+          },
+          {
+            "long": "--mathjax",
+            "description": "Render mathematics with MathJax.",
+            "kind": "none"
+          },
+          {
+            "long": "--katex",
+            "description": "Render mathematics with KaTeX.",
+            "kind": "none"
+          },
+          {
+            "long": "--wrap",
+            "description": "Text wrapping in the output.",
+            "kind": "enum",
+            "values": [
+              "auto",
+              "none",
+              "preserve"
+            ]
+          },
+          {
+            "long": "--reference-doc",
+            "description": "Reference document for docx, pptx, or odt output.",
+            "kind": "file"
+          },
+          {
+            "long": "--shift-heading-level-by",
+            "description": "Shift heading levels by this amount.",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "input",
+            "optional": true,
+            "variadic": false,
+            "kind": "file",
+            "globs": [
+              "qmd",
+              "ipynb",
+              "md",
+              "Rmd",
+              "rmd",
+              "markdown"
+            ]
+          },
+          {
+            "name": "args",
+            "optional": true,
+            "variadic": true,
+            "kind": "value"
+          },
+          {
+            "name": "pandoc-args",
+            "optional": true,
+            "variadic": true,
+            "kind": "value"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "preview"
+        ],
+        "description": "Render and preview a document or website project.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--port",
+            "placeholder": "port",
+            "description": "Suggested port to listen on (defaults to random value between 3000 and 8000).",
+            "kind": "value"
+          },
+          {
+            "long": "--host",
+            "placeholder": "host",
+            "description": "Hostname to bind to (defaults to 127.0.0.1)",
+            "kind": "value"
+          },
+          {
+            "long": "--render",
+            "placeholder": "format",
+            "description": "Render to the specified format(s) before previewing (Default: \"none\")",
+            "kind": "enum",
+            "values": [
+              "all",
+              "html",
+              "pdf",
+              "docx",
+              "odt",
+              "rtf",
+              "revealjs",
+              "beamer",
+              "pptx",
+              "typst",
+              "dashboard",
+              "epub",
+              "gfm",
+              "commonmark",
+              "markdown",
+              "markua",
+              "hugo-md",
+              "docusaurus-md",
+              "jats",
+              "asciidoc",
+              "asciidoctor",
+              "ipynb",
+              "context",
+              "docbook",
+              "dokuwiki",
+              "jira",
+              "mediawiki",
+              "man",
+              "ms",
+              "muse",
+              "opml",
+              "org",
+              "rst",
+              "texinfo",
+              "textile",
+              "xwiki",
+              "zimwiki"
+            ]
+          },
+          {
+            "long": "--no-serve",
+            "description": "Don't run a local preview web server (just monitor and re-render input files)",
+            "kind": "none"
+          },
+          {
+            "long": "--no-navigate",
+            "description": "Don't navigate the browser automatically when outputs are updated.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-browser",
+            "description": "Don't open a browser to preview the site.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-watch-inputs",
+            "description": "Do not re-render input files when they change.",
+            "kind": "none"
+          },
+          {
+            "long": "--timeout",
+            "description": "Time (in seconds) after which to exit if there are no active clients.",
+            "kind": "value"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          },
+          {
+            "long": "--toc",
+            "description": "Include an automatically generated table of contents.",
+            "kind": "none"
+          },
+          {
+            "long": "--toc-depth",
+            "description": "Number of section levels in the table of contents.",
+            "kind": "value"
+          },
+          {
+            "long": "--number-sections",
+            "description": "Number section headings.",
+            "kind": "none"
+          },
+          {
+            "long": "--number-offset",
+            "description": "Offset for section headings.",
+            "kind": "value"
+          },
+          {
+            "long": "--top-level-division",
+            "description": "Treat top-level headings as this division.",
+            "kind": "enum",
+            "values": [
+              "default",
+              "section",
+              "chapter",
+              "part"
+            ]
+          },
+          {
+            "long": "--standalone",
+            "description": "Produce a standalone document.",
+            "kind": "none"
+          },
+          {
+            "long": "--template",
+            "description": "Use FILE as a custom template.",
+            "kind": "file"
+          },
+          {
+            "long": "--css",
+            "description": "Link to a CSS style sheet.",
+            "kind": "file"
+          },
+          {
+            "long": "--bibliography",
+            "description": "Bibliography file.",
+            "kind": "file"
+          },
+          {
+            "long": "--csl",
+            "description": "Citation Style Language file.",
+            "kind": "file"
+          },
+          {
+            "long": "--citeproc",
+            "description": "Process citations with citeproc.",
+            "kind": "none"
+          },
+          {
+            "long": "--highlight-style",
+            "description": "Syntax highlighting style.",
+            "kind": "value"
+          },
+          {
+            "long": "--pdf-engine",
+            "description": "Engine used to produce PDF output.",
+            "kind": "enum",
+            "values": [
+              "pdflatex",
+              "lualatex",
+              "xelatex",
+              "tectonic",
+              "latexmk",
+              "context",
+              "wkhtmltopdf",
+              "weasyprint",
+              "typst"
+            ]
+          },
+          {
+            "long": "--mathjax",
+            "description": "Render mathematics with MathJax.",
+            "kind": "none"
+          },
+          {
+            "long": "--katex",
+            "description": "Render mathematics with KaTeX.",
+            "kind": "none"
+          },
+          {
+            "long": "--wrap",
+            "description": "Text wrapping in the output.",
+            "kind": "enum",
+            "values": [
+              "auto",
+              "none",
+              "preserve"
+            ]
+          },
+          {
+            "long": "--reference-doc",
+            "description": "Reference document for docx, pptx, or odt output.",
+            "kind": "file"
+          },
+          {
+            "long": "--shift-heading-level-by",
+            "description": "Shift heading levels by this amount.",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "file",
+            "optional": true,
+            "variadic": false,
+            "kind": "file",
+            "globs": [
+              "qmd",
+              "ipynb",
+              "md",
+              "Rmd",
+              "rmd",
+              "markdown"
+            ]
+          },
+          {
+            "name": "args",
+            "optional": true,
+            "variadic": true,
+            "kind": "value"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "serve"
+        ],
+        "description": "Serve a Shiny interactive document.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-render",
+            "description": "Do not render the document before serving.",
+            "kind": "none"
+          },
+          {
+            "short": "-p",
+            "long": "--port",
+            "placeholder": "port",
+            "description": "The TCP port that the application should listen on.",
+            "kind": "value"
+          },
+          {
+            "long": "--host",
+            "placeholder": "host",
+            "description": "Hostname to bind to (defaults to 127.0.0.1)",
+            "kind": "value"
+          },
+          {
+            "long": "--browser",
+            "description": "Open a browser to preview the site.",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "input",
+            "optional": true,
+            "variadic": false,
+            "kind": "file",
+            "globs": [
+              "qmd",
+              "ipynb",
+              "md",
+              "Rmd",
+              "rmd",
+              "markdown"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "create"
+        ],
+        "description": "Create a Quarto project or extension",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--open",
+            "placeholder": "editor",
+            "description": "Open new artifact in this editor (positron, vscode, rstudio)",
+            "kind": "enum",
+            "values": [
+              "positron",
+              "vscode",
+              "rstudio"
+            ]
+          },
+          {
+            "long": "--no-open",
+            "description": "Do not open in an editor",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "type",
+            "optional": true,
+            "variadic": false,
+            "kind": "enum",
+            "values": [
+              "project",
+              "extension"
+            ]
+          },
+          {
+            "name": "commands",
+            "optional": true,
+            "variadic": true,
+            "kind": "value"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "use"
+        ],
+        "description": "Automate document or project setup tasks.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          }
+        ],
+        "args": [
+          {
+            "name": "type",
+            "optional": false,
+            "variadic": false,
+            "kind": "value"
+          },
+          {
+            "name": "target",
+            "optional": true,
+            "variadic": false,
+            "kind": "value"
+          }
+        ],
+        "commands": [
+          {
+            "path": [
+              "use",
+              "template"
+            ],
+            "description": "Use a Quarto template for this directory or project.",
+            "options": [
+              {
+                "short": "-h",
+                "long": "--help",
+                "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--no-prompt",
+                "description": "Do not prompt to confirm actions",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
+              }
+            ],
+            "args": [
+              {
+                "name": "target",
+                "optional": false,
+                "variadic": false,
+                "kind": "value"
+              }
+            ],
+            "commands": []
+          },
+          {
+            "path": [
+              "use",
+              "binder"
+            ],
+            "description": "Configure the current project with Binder support.",
+            "options": [
+              {
+                "short": "-h",
+                "long": "--help",
+                "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--no-prompt",
+                "description": "Do not prompt to confirm actions",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
+              }
+            ],
+            "args": [],
+            "commands": []
+          },
+          {
+            "path": [
+              "use",
+              "brand"
+            ],
+            "description": "Use a brand for this project.",
+            "options": [
+              {
+                "short": "-h",
+                "long": "--help",
+                "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--force",
+                "description": "Skip all prompts and confirmations",
+                "kind": "none"
+              },
+              {
+                "long": "--dry-run",
+                "description": "Show what would happen without making changes",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
+              },
+              {
+                "long": "--profile",
+                "description": "Active project profile(s)",
+                "kind": "value"
+              }
+            ],
+            "args": [
+              {
+                "name": "target",
+                "optional": false,
+                "variadic": false,
+                "kind": "value"
+              }
+            ],
+            "commands": []
+          }
+        ]
+      },
+      {
+        "path": [
+          "add"
+        ],
+        "description": "Add an extension to this folder or project",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          },
+          {
+            "long": "--embed",
+            "placeholder": "extensionId",
+            "description": "Embed this extension within another extension (used when authoring extensions).",
+            "kind": "value"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "extension",
+            "optional": false,
+            "variadic": false,
+            "kind": "value"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "update"
+        ],
+        "description": "Updates an extension or global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          },
+          {
+            "long": "--embed",
+            "placeholder": "extensionId",
+            "description": "Embed this extension within another extension (used when authoring extensions).",
+            "kind": "value"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "target",
+            "optional": true,
+            "variadic": true,
+            "kind": "enum",
+            "values": [
+              "tinytex",
+              "chrome-headless-shell",
+              "verapdf"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "remove"
+        ],
+        "description": "Removes an extension.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          },
+          {
+            "long": "--embed",
+            "placeholder": "extensionId",
+            "description": "Remove this extension from within another extension (used when authoring extensions).",
+            "kind": "value"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "target",
+            "optional": true,
+            "variadic": true,
+            "kind": "value"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "convert"
+        ],
+        "description": "Convert documents to alternate representations.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "short": "-o",
+            "long": "--output",
+            "placeholder": "path",
+            "description": "Write output to PATH.",
+            "kind": "file"
+          },
+          {
+            "long": "--with-ids",
+            "description": "Include ids in conversion",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "input",
+            "optional": false,
+            "variadic": false,
+            "kind": "file",
+            "globs": [
+              "qmd",
+              "ipynb",
+              "md",
+              "Rmd",
+              "rmd",
+              "markdown"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "pandoc"
+        ],
+        "description": "Run the version of Pandoc embedded within Quarto.",
+        "options": [],
+        "args": [],
+        "commands": []
+      },
+      {
+        "path": [
+          "typst"
+        ],
+        "description": "Run the version of Typst embedded within Quarto.",
+        "options": [],
+        "args": [],
+        "commands": []
+      },
+      {
+        "path": [
+          "run"
+        ],
+        "description": "Run a TypeScript, R, Python, or Lua script.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "script",
+            "optional": true,
+            "variadic": false,
+            "kind": "file",
+            "globs": [
+              "ts",
+              "js",
+              "py",
+              "R",
+              "r",
+              "lua"
+            ]
+          },
+          {
+            "name": "args",
+            "optional": true,
+            "variadic": true,
+            "kind": "value"
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "list"
+        ],
+        "description": "Lists an extension or global dependency.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "type",
+            "optional": false,
+            "variadic": false,
+            "kind": "enum",
+            "values": [
+              "extensions",
+              "tools"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "install"
+        ],
+        "description": "Installs a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          },
+          {
+            "long": "--update-path",
+            "description": "Update system path when a tool is installed",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "target",
+            "optional": true,
+            "variadic": true,
+            "kind": "enum",
+            "values": [
+              "tinytex",
+              "chrome-headless-shell",
+              "verapdf"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "uninstall"
+        ],
+        "description": "Uninstalls a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm actions",
+            "kind": "none"
+          },
+          {
+            "long": "--update-path",
+            "description": "Update system path when a tool is installed",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "tool",
+            "optional": true,
+            "variadic": false,
+            "kind": "enum",
+            "values": [
+              "tinytex",
+              "chrome-headless-shell",
+              "verapdf"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "tools"
+        ],
+        "description": "Display the status of Quarto installed dependencies",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          }
+        ],
+        "args": [],
+        "commands": []
+      },
+      {
+        "path": [
+          "publish"
+        ],
+        "description": "Publish a document or project to a provider.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--id",
+            "placeholder": "id",
+            "description": "Identifier of content to publish",
+            "kind": "value"
+          },
+          {
+            "long": "--server",
+            "placeholder": "server",
+            "description": "Server to publish to",
+            "kind": "value"
+          },
+          {
+            "long": "--token",
+            "placeholder": "token",
+            "description": "Access token for publising provider",
+            "kind": "value"
+          },
+          {
+            "long": "--no-render",
+            "description": "Do not render before publishing.",
+            "kind": "none"
+          },
+          {
+            "long": "--no-prompt",
+            "description": "Do not prompt to confirm publishing destination",
+            "kind": "none"
+          },
+          {
+            "long": "--no-browser",
+            "description": "Do not open a browser to the site after publishing",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "provider",
+            "optional": true,
+            "variadic": false,
+            "kind": "enum",
+            "values": [
+              "quarto-pub",
+              "gh-pages",
+              "connect",
+              "posit-connect-cloud",
+              "netlify",
+              "confluence",
+              "huggingface"
+            ]
+          },
+          {
+            "name": "path",
+            "optional": true,
+            "variadic": false,
+            "kind": "file",
+            "globs": [
+              "qmd",
+              "ipynb",
+              "md",
+              "Rmd",
+              "rmd",
+              "markdown"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "check"
+        ],
+        "description": "Verify correct functioning of Quarto installation.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          },
+          {
+            "long": "--output",
+            "placeholder": "path",
+            "description": "Output as JSON to a file",
+            "kind": "file"
+          },
+          {
+            "long": "--no-strict",
+            "description": "When set, will not fail if dependency versions don't match precisely",
+            "kind": "none"
+          },
+          {
+            "long": "--log",
+            "placeholder": "file",
+            "description": "Path to log file",
+            "kind": "file"
+          },
+          {
+            "long": "--log-level",
+            "placeholder": "level",
+            "description": "Log level (debug, info, warning, error, critical)",
+            "kind": "enum",
+            "values": [
+              "debug",
+              "info",
+              "warning",
+              "error",
+              "critical"
+            ]
+          },
+          {
+            "long": "--log-format",
+            "placeholder": "format",
+            "description": "Log format (plain, json-stream)",
+            "kind": "enum",
+            "values": [
+              "plain",
+              "json-stream"
+            ]
+          },
+          {
+            "long": "--quiet",
+            "description": "Suppress console output.",
+            "kind": "none"
+          },
+          {
+            "long": "--profile",
+            "description": "Active project profile(s)",
+            "kind": "value"
+          }
+        ],
+        "args": [
+          {
+            "name": "target",
+            "optional": true,
+            "variadic": false,
+            "kind": "enum",
+            "values": [
+              "install",
+              "jupyter",
+              "knitr",
+              "versions",
+              "all"
+            ]
+          }
+        ],
+        "commands": []
+      },
+      {
+        "path": [
+          "call"
+        ],
+        "description": "Access functions of Quarto subsystems such as its rendering engines.",
+        "options": [
+          {
+            "short": "-h",
+            "long": "--help",
+            "description": "Show this help.",
+            "kind": "none"
+          }
+        ],
+        "args": [],
+        "commands": [
+          {
+            "path": [
+              "call",
+              "engine"
+            ],
+            "description": "Access functionality specific to quarto's different rendering engines.",
+            "options": [
+              {
+                "short": "-h",
+                "long": "--help",
+                "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
+              }
+            ],
+            "args": [
+              {
+                "name": "engine-name",
+                "optional": false,
+                "variadic": false,
+                "kind": "enum",
+                "values": [
+                  "jupyter",
+                  "knitr",
+                  "markdown",
+                  "julia"
+                ]
+              },
+              {
+                "name": "args",
+                "optional": true,
+                "variadic": true,
+                "kind": "value"
+              }
+            ],
+            "commands": []
+          },
+          {
+            "path": [
+              "call",
+              "build-ts-extension"
+            ],
+            "description": "Build TypeScript execution engine extensions.",
+            "options": [
+              {
+                "short": "-h",
+                "long": "--help",
+                "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--check",
+                "description": "Type-check only (skip bundling)",
+                "kind": "none"
+              },
+              {
+                "long": "--init-config",
+                "description": "Generate deno.json with absolute importMap path",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
+              }
+            ],
+            "args": [
+              {
+                "name": "entry-point",
+                "optional": true,
+                "variadic": false,
+                "kind": "file",
+                "globs": [
+                  "ts"
+                ]
+              }
+            ],
+            "commands": []
+          },
+          {
+            "path": [
+              "call",
+              "typst-gather"
+            ],
+            "description": "Gather Typst packages for a format extension.",
+            "options": [
+              {
+                "short": "-h",
+                "long": "--help",
+                "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--init-config",
+                "description": "Generate a starter typst-gather.toml in current directory",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
+              },
+              {
+                "long": "--profile",
+                "description": "Active project profile(s)",
+                "kind": "value"
+              }
+            ],
+            "args": [],
+            "commands": []
+          }
+        ]
+      }
+    ]
+  }
+}

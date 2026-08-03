@@ -1,0 +1,34 @@
+name: Pages
+
+on:
+  pull_request:
+    paths:
+      - "docs/**"
+      - ".github/workflows/pages.yml"
+  workflow_dispatch:
+    inputs:
+      use-main-as-release:
+        type: boolean
+        description: "Render from the default branch instead of the latest version tag"
+        default: false
+      quarto:
+        type: choice
+        description: "Quarto version"
+        default: "release"
+        options:
+          - "release"
+          - "pre-release"
+
+permissions:
+  contents: read
+
+jobs:
+  pages:
+    uses: mcanouil/quarto-workflows/.github/workflows/pages.yml@v1
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    with:
+      use-main-as-release: ${{ inputs.use-main-as-release || false }}
+      quarto: ${{ inputs.quarto || 'release' }}

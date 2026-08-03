@@ -1,0 +1,43 @@
+project:
+  type: website
+  render:
+    - index.qmd
+    - shells.qmd
+    - troubleshooting.qmd
+  # Quarto copies nothing to the output directory by convention: only these
+  # globs, plus files it finds behind an `href` or `src` in the rendered HTML.
+  # The installers and the generated completions are fetched by URL rather than
+  # linked from a page, so they are listed here.
+  resources:
+    - install.sh
+    - install.ps1
+    - completions/**
+
+website:
+  title: "Quarto Completions"
+  description: "Shell completions for the Quarto CLI: bash, zsh, fish, and PowerShell, with a one-line installer."
+  site-url: "https://m.canouil.dev/quarto-completions"
+  repo-url: https://github.com/mcanouil/quarto-completions
+  page-footer:
+    right: |
+      Licence: [MIT](https://github.com/mcanouil/quarto-completions?tab=MIT-1-ov-file#readme).
+  navbar:
+    left:
+      - text: "Install"
+        href: index.qmd
+      - text: "Shells"
+        href: shells.qmd
+      - text: "Troubleshooting"
+        href: troubleshooting.qmd
+    right:
+      - icon: github
+        href: https://github.com/mcanouil/quarto-completions
+        aria-label: "GitHub"
+
+format:
+  html:
+    theme:
+      light: flatly
+      dark: darkly
+    toc: true
+    lang: en-GB

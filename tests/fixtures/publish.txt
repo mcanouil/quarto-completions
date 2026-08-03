@@ -1,0 +1,56 @@
+
+Usage:   quarto publish [provider] [path]
+Version: 1.10.18                         
+
+Description:
+
+  Publish a document or project to a provider.            
+                                                          
+  Available providers include:                            
+                                                          
+   - Quarto Pub (quarto-pub)                              
+   - GitHub Pages (gh-pages)                              
+   - Posit Connect (connect)                              
+   - Posit Connect Cloud (posit-connect-cloud)            
+   - Netlify (netlify)                                    
+   - Confluence (confluence)                              
+   - Hugging Face Spaces (huggingface)                    
+                                                          
+  Accounts are configured interactively during publishing.
+  Manage/remove accounts with: quarto publish accounts    
+
+Options:
+
+  -h, --help              - Show this help.                                     
+  --id          <id>      - Identifier of content to publish                    
+  --server      <server>  - Server to publish to                                
+  --token       <token>   - Access token for publising provider                 
+  --no-render             - Do not render before publishing.                    
+  --no-prompt             - Do not prompt to confirm publishing destination     
+  --no-browser            - Do not open a browser to the site after publishing  
+  --log         <file>    - Path to log file                                    
+  --log-level   <level>   - Log level (debug, info, warning, error, critical)   
+  --log-format  <format>  - Log format (plain, json-stream)                     
+  --quiet                 - Suppress console output.                            
+  --profile               - Active project profile(s)                           
+
+Commands:
+
+  help  [command]  - Show this help or the help of a sub-command.
+
+Examples:
+
+  Publish project (prompt for provider):  quarto publish                                                  
+  Publish document (prompt for provider): quarto publish document.qmd                                     
+  Publish project to Hugging Face Spaces: quarto publish huggingface                                      
+  Publish project to Netlify:             quarto publish netlify                                          
+  Publish with explicit target:           quarto publish netlify --id DA36416-F950-4647-815C-01A24233E294 
+  Publish project to GitHub Pages:        quarto publish gh-pages                                         
+  Publish project to Posit Connect:       quarto publish connect                                          
+  Publish with explicit credentials:      quarto publish connect --server example.com --token 01A24233E294
+  Publish project to Posit Connect Cloud: quarto publish posit-connect-cloud                              
+  Publish without confirmation prompt:    quarto publish --no-prompt                                      
+  Publish without rendering:              quarto publish --no-render                                      
+  Publish without opening browser:        quarto publish --no-browser                                     
+  Manage/remove publishing accounts:      quarto publish accounts                                         
+
