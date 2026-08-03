@@ -11,6 +11,9 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SITE="${1:-${ROOT}/docs/_site}"
 [ -d "${SITE}" ] && SITE="$(cd "${SITE}" && pwd)"
+
+# shellcheck source=tests/lib.sh
+. "${ROOT}/tests/lib.sh"
 PORT="${QUARTO_COMPLETIONS_TEST_PORT:-8799}"
 SCRATCH="$(mktemp -d)"
 SERVER_PID=""
@@ -22,19 +25,6 @@ cleanup() {
   rm -rf "${SCRATCH}"
 }
 trap cleanup EXIT
-
-PASSED=0
-FAILED=0
-
-pass() {
-  printf 'ok    %s\n' "$1"
-  PASSED=$((PASSED + 1))
-}
-
-fail() {
-  printf 'FAIL  %s\n      %s\n' "$1" "$2"
-  FAILED=$((FAILED + 1))
-}
 
 expect_file() {
   if [ -f "$2" ]; then
@@ -123,11 +113,37 @@ install_run --shell bash >/dev/null
 expect_count "zsh: rc block is not duplicated" "${HOME_DIR}/.zshrc" ">>> quarto completions >>>" 1
 expect_count "bash: rc block is not duplicated" "${HOME_DIR}/.bashrc" ">>> quarto completions >>>" 1
 
-# A tampered download is refused.
 if install_run --shell zsh --channel nonsense >/dev/null 2>&1; then
   fail "an unknown channel is refused" "installer exited zero"
 else
   pass "an unknown channel is refused"
+fi
+
+# A download that no longer matches the manifest is refused. Serve a copy of
+# the site whose fish script has been altered after the checksums were written.
+TAMPERED="${SCRATCH}/tampered"
+cp -R "${SITE}" "${TAMPERED}"
+printf '\n# tampered\n' >>"${TAMPERED}/completions/stable/quarto.fish"
+python3 -m http.server "$((PORT + 1))" --directory "${TAMPERED}" >/dev/null 2>&1 &
+TAMPERED_PID=$!
+for _ in $(seq 1 60); do
+  curl -fsS "http://127.0.0.1:$((PORT + 1))/completions/stable/manifest.json" >/dev/null 2>&1 && break
+  sleep 1
+done
+
+tampered_output="$(
+  env \
+    HOME="${HOME_DIR}" \
+    XDG_DATA_HOME="${HOME_DIR}/.local/share" \
+    XDG_CONFIG_HOME="${HOME_DIR}/.config" \
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" --shell fish 2>&1
+)" && tampered_status=0 || tampered_status=1
+kill "${TAMPERED_PID}" 2>/dev/null || true
+
+if [ "${tampered_status}" = "1" ]; then
+  expect_contains "a checksum mismatch is refused" "${tampered_output}" "checksum mismatch"
+else
+  fail "a checksum mismatch is refused" "installer exited zero: ${tampered_output}"
 fi
 
 for shell in bash zsh fish; do
@@ -140,5 +156,4 @@ expect_absent "fish: script removed" "${HOME_DIR}/.config/fish/completions/quart
 expect_count "zsh: rc block removed" "${HOME_DIR}/.zshrc" ">>> quarto completions >>>" 0
 expect_count "bash: rc block removed" "${HOME_DIR}/.bashrc" ">>> quarto completions >>>" 0
 
-printf '\n%d passed, %d failed.\n' "${PASSED}" "${FAILED}"
-[ "${FAILED}" -eq 0 ]
+summary

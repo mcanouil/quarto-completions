@@ -8,14 +8,14 @@
  */
 
 import type { CommandSpec, Spec } from "../spec.ts";
-import { commandName } from "../spec.ts";
+import { commandName, optionFlags } from "../spec.ts";
 import {
   banner,
   nodes,
   oneLine,
   positionals,
   trailingIsVariadic,
-  valuedOptions,
+  valuedFlags,
 } from "./common.ts";
 
 export function emitPwsh(spec: Spec): string {
@@ -132,9 +132,7 @@ function nodeEntry(command: CommandSpec): string {
   const key = command.path.join(" ");
 
   const options = command.options.flatMap((option) =>
-    [option.short, option.long]
-      .filter((flag): flag is string => !!flag)
-      .map((flag) => `      ${quote(flag)} = ${quote(oneLine(option.description))}`)
+    optionFlags(option).map((flag) => `      ${quote(flag)} = ${quote(oneLine(option.description))}`)
   );
 
   const commands = command.commands.map((child) =>
@@ -144,14 +142,12 @@ function nodeEntry(command: CommandSpec): string {
   const values = command.options
     .filter((option) => option.kind === "enum")
     .flatMap((option) =>
-      [option.short, option.long]
-        .filter((flag): flag is string => !!flag)
-        .map((flag) => `      ${quote(flag)} = @(${(option.values ?? []).map(quote).join(", ")})`)
+      optionFlags(option).map((flag) =>
+        `      ${quote(flag)} = @(${(option.values ?? []).map(quote).join(", ")})`
+      )
     );
 
-  const valued = valuedOptions(command).flatMap((option) =>
-    [option.short, option.long].filter((flag): flag is string => !!flag)
-  );
+  const valued = valuedFlags(command);
 
   // Keyed by index rather than emitted as a nested array, which PowerShell
   // would flatten. File and directory positionals are left as empty slots on

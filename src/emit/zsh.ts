@@ -7,8 +7,8 @@
  */
 
 import type { CommandSpec, OptionSpec, Spec } from "../spec.ts";
-import { commandName, nodeId } from "../spec.ts";
-import { banner, nodes, oneLine, positionals, singleQuote } from "./common.ts";
+import { commandName, nodeId, optionFlags } from "../spec.ts";
+import { banner, nodes, oneLine, positionals, singleQuote, trailingIsVariadic } from "./common.ts";
 
 export function emitZsh(spec: Spec): string {
   const all = nodes(spec);
@@ -43,7 +43,7 @@ function commandFunction(command: CommandSpec): string {
     } else {
       for (const [index, arg] of args.entries()) {
         const last = index === args.length - 1;
-        const slot = last && arg.variadic ? "*" : `${index + 1}`;
+        const slot = last && trailingIsVariadic(command) ? "*" : `${index + 1}`;
         specs.push(`'${slot}:${arg.name}:${argAction(arg.kind, arg.values, arg.globs)}'`);
       }
     }
@@ -95,7 +95,7 @@ function escapeDescription(text: string): string {
 
 function optionSpec(option: OptionSpec): string {
   const description = escapeDescription(option.description);
-  const forms = [option.short, option.long].filter(Boolean) as string[];
+  const forms = optionFlags(option);
   const exclusion = `(${forms.join(" ")})`;
   const flag = forms.length > 1 ? `{${forms.join(",")}}` : `${forms[0]}`;
   const value = option.kind === "none"

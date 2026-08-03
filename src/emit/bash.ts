@@ -10,13 +10,14 @@
  */
 
 import type { ArgSpec, CommandSpec, Spec } from "../spec.ts";
-import { commandName, nodeId } from "../spec.ts";
+import { commandName, nodeId, optionFlags } from "../spec.ts";
 import {
   banner,
   flags,
   nodes,
   positionals,
   trailingIsVariadic,
+  valuedFlags,
   valuedOptions,
 } from "./common.ts";
 
@@ -35,17 +36,22 @@ _quarto_words() {
 }
 
 _quarto_files() {
-  local pattern="$1" restore
-  restore="$(shopt -p extglob)"
-  shopt -s extglob
+  local pattern="$1" enabled=0
   if [ -n "$pattern" ]; then
+    # shopt -q is a builtin; reading the option with shopt -p needs a subshell.
+    if ! shopt -q extglob; then
+      shopt -s extglob
+      enabled=1
+    fi
     # shellcheck disable=SC2207
-    COMPREPLY+=( $(compgen -f -X "!*.@($pattern)" -- "$cur") $(compgen -d -- "$cur") )
+    COMPREPLY+=( $(compgen -f -X "!*.@($pattern)" -- "$cur"; compgen -d -- "$cur") )
+    if [ "$enabled" = "1" ]; then
+      shopt -u extglob
+    fi
   else
     # shellcheck disable=SC2207
     COMPREPLY+=( $(compgen -f -- "$cur") )
   fi
-  eval "$restore"
   compopt -o filenames 2>/dev/null
 }
 
@@ -55,11 +61,12 @@ _quarto_dirs() {
   compopt -o filenames 2>/dev/null
 }
 
-# Flags of a command that consume the word after them.
+# Sets vals to the flags of a command that consume the word after them.
+# Assigns rather than echoes, so walking the command line forks nothing.
 _quarto_valued() {
   case "$1" in
 ${all.map(valuedCase).filter(Boolean).join("\n")}
-    *) echo "" ;;
+    *) vals="" ;;
   esac
 }
 
@@ -74,7 +81,7 @@ _quarto() {
   fi
 
   cmd="quarto"
-  vals="$(_quarto_valued "$cmd")"
+  _quarto_valued "$cmd"
   pos=0
   skip=0
   for (( i=1; i < COMP_CWORD; i++ )); do
@@ -95,7 +102,7 @@ _quarto() {
     case " $_quarto_nodes " in
       *" $key "*)
         cmd="$key"
-        vals="$(_quarto_valued "$cmd")"
+        _quarto_valued "$cmd"
         pos=0
         continue
         ;;
@@ -131,21 +138,18 @@ complete -o bashdefault -o default -F _quarto quarto
 }
 
 function valuedCase(command: CommandSpec): string {
-  const consuming = valuedOptions(command).flatMap((option) =>
-    [option.short, option.long].filter((flag): flag is string => !!flag)
-  );
+  const consuming = valuedFlags(command);
   if (consuming.length === 0) {
     return "";
   }
-  return `    ${nodeId(command.path)}) echo "${consuming.join(" ")}" ;;`;
+  return `    ${nodeId(command.path)}) vals="${consuming.join(" ")}" ;;`;
 }
 
 function valueCases(command: CommandSpec): string {
   const id = nodeId(command.path);
   return valuedOptions(command)
     .map((option) => {
-      const patterns = [option.short, option.long]
-        .filter(Boolean)
+      const patterns = optionFlags(option)
         .map((flag) => `${id}:::${flag}`)
         .join("|");
       return `    ${patterns}) ${completer(option.kind, option.values, option.globs)} return ;;`;

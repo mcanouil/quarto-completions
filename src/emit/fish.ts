@@ -17,7 +17,7 @@ import {
   positionals,
   singleQuote,
   trailingIsVariadic,
-  valuedOptions,
+  valuedFlags,
 } from "./common.ts";
 
 export function emitFish(spec: Spec): string {
@@ -40,13 +40,21 @@ ${all.map(valuedCase).filter(Boolean).join("\n")}
   end
 end
 
-# True when the command line is at command path $target, optionally with
-# exactly $index positionals typed, or at least $index when it ends in '+'.
-function __quarto_at --argument-names target index
-  set -l words (commandline -opc)
+# Resolves the command path and the number of positionals after it. Every
+# completion below is guarded by a condition, and fish evaluates one per
+# distinct condition, so the answer is cached against the command line it was
+# computed from rather than recomputed for each.
+function __quarto_resolve
+  set -l line (commandline -opc)
+  if test "$__quarto_line" = "$line"
+    return
+  end
+  set -g __quarto_line $line
+
+  set -l words $line
   set -e words[1]
   set -l path ""
-  set -l vals (string split " " -- (__quarto_valued ""))
+  set -l vals
   set -l pos 0
   set -l skip 0
   for word in $words
@@ -70,13 +78,22 @@ function __quarto_at --argument-names target index
     set pos (math $pos + 1)
   end
 
-  test "$path" = "$target"; or return 1
+  set -g __quarto_path "$path"
+  set -g __quarto_pos $pos
+end
+
+# True when the command line is at command path $target, optionally with
+# exactly $index positionals typed, or at least $index when it ends in '+'.
+function __quarto_at --argument-names target index
+  __quarto_resolve
+
+  test "$__quarto_path" = "$target"; or return 1
   test -z "$index"; and return 0
 
   if string match -q -- '*+' "$index"
-    test $pos -ge (string replace -- '+' '' "$index")
+    test $__quarto_pos -ge (string replace -- '+' '' "$index")
   else
-    test $pos -eq "$index"
+    test $__quarto_pos -eq "$index"
   end
 end
 
@@ -85,9 +102,7 @@ ${all.flatMap(commandCompletions).join("\n")}
 }
 
 function valuedCase(command: CommandSpec): string {
-  const consuming = valuedOptions(command).flatMap((option) =>
-    [option.short, option.long].filter((flag): flag is string => !!flag)
-  );
+  const consuming = valuedFlags(command);
   if (consuming.length === 0) {
     return "";
   }

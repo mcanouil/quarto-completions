@@ -1,7 +1,6 @@
 {
   "quartoVersion": "1.11.1",
   "channel": "prerelease",
-  "generated": "2026-08-03",
   "root": {
     "path": [],
     "description": "Quarto CLI",
@@ -258,17 +257,30 @@
           {
             "long": "--css",
             "description": "Link to a CSS style sheet.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "css"
+            ]
           },
           {
             "long": "--bibliography",
             "description": "Bibliography file.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "bib",
+              "bibtex",
+              "json",
+              "yml",
+              "yaml"
+            ]
           },
           {
             "long": "--csl",
             "description": "Citation Style Language file.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "csl"
+            ]
           },
           {
             "long": "--citeproc",
@@ -319,7 +331,12 @@
           {
             "long": "--reference-doc",
             "description": "Reference document for docx, pptx, or odt output.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "docx",
+              "pptx",
+              "odt"
+            ]
           },
           {
             "long": "--shift-heading-level-by",
@@ -534,17 +551,30 @@
           {
             "long": "--css",
             "description": "Link to a CSS style sheet.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "css"
+            ]
           },
           {
             "long": "--bibliography",
             "description": "Bibliography file.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "bib",
+              "bibtex",
+              "json",
+              "yml",
+              "yaml"
+            ]
           },
           {
             "long": "--csl",
             "description": "Citation Style Language file.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "csl"
+            ]
           },
           {
             "long": "--citeproc",
@@ -595,7 +625,12 @@
           {
             "long": "--reference-doc",
             "description": "Reference document for docx, pptx, or odt output.",
-            "kind": "file"
+            "kind": "file",
+            "globs": [
+              "docx",
+              "pptx",
+              "odt"
+            ]
           },
           {
             "long": "--shift-heading-level-by",

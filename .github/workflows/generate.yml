@@ -54,17 +54,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          # The manifest and the spec carry a generation date, which changes on
-          # every run. Only a real change to a completion script is worth a
-          # pull request, so the scripts are named rather than globbed.
-          scripts=()
-          for channel in stable prerelease; do
-            for name in quarto.bash _quarto quarto.fish quarto.ps1; do
-              scripts+=("docs/completions/${channel}/${name}")
-            done
-          done
-
-          if git diff --quiet -- "${scripts[@]}"; then
+          # The manifest carries a generation date, which changes on every run
+          # and says nothing about the CLI surface. Everything else is stable,
+          # so no list of artefact names is repeated here.
+          if git diff --quiet -- docs/completions ':!docs/completions/*/manifest.json'; then
             echo "Completions are unchanged."
             git checkout -- docs/completions
             exit 0

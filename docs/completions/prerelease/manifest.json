@@ -3,10 +3,10 @@
   "channel": "prerelease",
   "generated": "2026-08-03",
   "files": {
-    "quarto.bash": "58a0c3df34e9379cec06128036dc3286776c2361231ffbd13f23b9bcd044cb04",
-    "_quarto": "4457a230aaf045fc67648ee4214457d7ac5ae2547e7d83c1d0e18697deff3c9b",
-    "quarto.fish": "3a7c4996edef5366d28fdb9329ddb3b0e2ca3547fc69b31c6220a99627a764b4",
-    "quarto.ps1": "b8f5ca8d4ad7bd8eef48fa0551549d9fe6a2fbcaa16dc2ee727f42938bb8d9cc",
-    "spec.json": "99feca80c835c6954ccaf2eee85b707141ada7b47872cd83daf1d87547196af9"
+    "quarto.bash": "c4220a7c97c2970d1dde42b7a2d45f75502d468ba1ac8a9218819d0e9cb2cf2e",
+    "_quarto": "08adf09e75a6b26a062877d025983b65efd3eaf9e68ea728712614178c6253d5",
+    "quarto.fish": "21b1cbfbd922d29df9102052553978166840c64d674c617b5954d9b4e130abad",
+    "quarto.ps1": "44047cd87c678a3eae338645bb6d46d2cbd873c4875366399628e85e8045c2e9",
+    "spec.json": "96a0a1a44df4f989ce80335a7425ce5c45793139e9fab29a6dca7fc0ec21cddf"
   }
 }

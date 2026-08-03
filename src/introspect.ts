@@ -29,7 +29,10 @@ import type { ArgSpec, CommandSpec, OptionSpec, Spec, ValueKind } from "./spec.t
 /** Commands that exist but are not worth completing. */
 const kSkippedCommands = new Set(["help"]);
 
-/** Help invocations to run at once. Each one is a cold Quarto start. */
+/**
+ * Help invocations in flight at once, across the whole tree. Each one is a
+ * cold Quarto start, so the cap is on total processes rather than per level.
+ */
 const kConcurrency = 6;
 
 export interface IntrospectOptions {
@@ -39,14 +42,44 @@ export interface IntrospectOptions {
 }
 
 export async function introspect(options: IntrospectOptions): Promise<Spec> {
-  const version = (await run(options.quarto, ["--version"])).trim();
-  const root = await introspectCommand(options.quarto, []);
+  const permits = new Semaphore(kConcurrency);
+  const rootHelp = await permits.run(() => run(options.quarto, ["--help"]));
+  const root = await introspectCommand(options.quarto, [], rootHelp, permits);
   return {
-    quartoVersion: version,
+    // Help output reports the version itself, which saves a cold start that
+    // `quarto --version` would otherwise cost before anything else can begin.
+    quartoVersion: /^Version:\s+(\S+)/m.exec(rootHelp)?.[1] ?? "unknown",
     channel: options.channel,
-    generated: new Date().toISOString().slice(0, 10),
     root,
   };
+}
+
+/** Caps how many Quarto processes run at once, without batching barriers. */
+class Semaphore {
+  #free: number;
+  #waiting: (() => void)[] = [];
+
+  constructor(permits: number) {
+    this.#free = permits;
+  }
+
+  async run<T>(work: () => Promise<T>): Promise<T> {
+    if (this.#free === 0) {
+      await new Promise<void>((resolve) => this.#waiting.push(resolve));
+    } else {
+      this.#free--;
+    }
+    try {
+      return await work();
+    } finally {
+      const next = this.#waiting.shift();
+      if (next) {
+        next();
+      } else {
+        this.#free++;
+      }
+    }
+  }
 }
 
 /**
@@ -79,19 +112,20 @@ export function parseHelp(
 async function introspectCommand(
   quarto: string,
   path: string[],
+  help: string,
+  permits: Semaphore,
 ): Promise<CommandSpec> {
-  const help = await run(quarto, [...path, "--help"]);
   const { command: parsed, children } = parseHelp(help, path);
 
-  const commands: CommandSpec[] = [];
-  for (const batch of chunk(children.filter((c) => !kSkippedCommands.has(c.name)), kConcurrency)) {
-    const resolved = await Promise.all(
-      batch.map((child) => introspectCommand(quarto, [...path, child.name])),
-    );
-    for (const [index, command] of resolved.entries()) {
-      commands.push({ ...command, description: batch[index].description });
-    }
-  }
+  const visit = children.filter((child) => !kSkippedCommands.has(child.name));
+  const commands = await Promise.all(
+    visit.map(async (child) => {
+      const childPath = [...path, child.name];
+      const childHelp = await permits.run(() => run(quarto, [...childPath, "--help"]));
+      const command = await introspectCommand(quarto, childPath, childHelp, permits);
+      return { ...command, description: child.description };
+    }),
+  );
 
   return { ...parsed, commands };
 }
@@ -278,12 +312,4 @@ async function run(quarto: string, args: string[]): Promise<string> {
     );
   }
   return new TextDecoder().decode(stdout);
-}
-
-function chunk<T>(items: T[], size: number): T[][] {
-  const batches: T[][] = [];
-  for (let index = 0; index < items.length; index += size) {
-    batches.push(items.slice(index, index + size));
-  }
-  return batches;
 }

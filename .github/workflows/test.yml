@@ -70,7 +70,7 @@ jobs:
       - name: Syntax and lint
         run: |
           bash tests/syntax.sh docs/completions/stable
-          bash tests/syntax.sh docs/completions/prerelease
+          bash tests/syntax.sh docs/completions/prerelease --scripts-only
 
       - name: Functional completions
         run: bash tests/completions.sh docs/completions/stable

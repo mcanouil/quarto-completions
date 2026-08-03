@@ -11,16 +11,25 @@
 import { assert, assertEquals, assertExcludes, assertIncludes } from "./assert.ts";
 import { parseHelp } from "../src/introspect.ts";
 import { enrich } from "../src/enrich.ts";
+import { render } from "../src/generate.ts";
 import { emitBash } from "../src/emit/bash.ts";
 import { emitFish } from "../src/emit/fish.ts";
 import { emitPwsh } from "../src/emit/pwsh.ts";
 import { emitZsh } from "../src/emit/zsh.ts";
 import type { CommandSpec, OptionSpec, Spec } from "../src/spec.ts";
 
+const fixtures = new Map<string, string>();
+
 function fixture(name: string): string {
   // Read through the URL rather than its `pathname`, which on Windows would be
-  // `/C:/...` and reach no file.
-  return Deno.readTextFileSync(new URL(`fixtures/${name}.txt`, import.meta.url));
+  // `/C:/...` and reach no file. Cached, since the suite builds the same spec
+  // from the same five files for every test.
+  let text = fixtures.get(name);
+  if (text === undefined) {
+    text = Deno.readTextFileSync(new URL(`fixtures/${name}.txt`, import.meta.url));
+    fixtures.set(name, text);
+  }
+  return text;
 }
 
 function option(command: CommandSpec, flag: string): OptionSpec {
@@ -60,7 +69,6 @@ function fixtureSpec(): Spec {
   return {
     quartoVersion: "1.10.18",
     channel: "stable",
-    generated: "2026-08-03",
     root,
   };
 }
@@ -151,17 +159,26 @@ const tests: Record<string, () => void> = {
     assertEquals(option(render, "--profile").kind, "value");
   },
 
-  "no emitter calls quarto at completion time"() {
-    const spec = fixtureSpec();
-    for (const [shell, output] of Object.entries(emitAll(spec))) {
-      assertExcludes(output, "quarto completions complete", `${shell} shells out`);
+  // These two iterate `render()` rather than a list of their own, so a fifth
+  // emitter is covered the moment it is added to the generator.
+  "no generated file calls quarto at completion time"() {
+    for (const [name, output] of Object.entries(render(fixtureSpec()))) {
+      assertExcludes(output, "quarto completions complete", `${name} shells out`);
     }
   },
 
-  "every emitter carries the version it was generated from"() {
-    const spec = fixtureSpec();
-    for (const [shell, output] of Object.entries(emitAll(spec))) {
-      assertIncludes(output, "1.10.18", `${shell} has no version banner`);
+  "every generated file carries the version it came from"() {
+    for (const [name, output] of Object.entries(render(fixtureSpec()))) {
+      assertIncludes(output, "1.10.18", `${name} has no version`);
+    }
+  },
+
+  "a generated script carries no date, so it is stable between runs"() {
+    for (const [name, output] of Object.entries(render(fixtureSpec()))) {
+      if (name.endsWith(".json")) {
+        continue;
+      }
+      assertExcludes(output, "generated 2", `${name} stamps a date into every run`);
     }
   },
 
@@ -221,15 +238,6 @@ const tests: Record<string, () => void> = {
   },
 };
 
-function emitAll(spec: Spec): Record<string, string> {
-  const enriched = enrich(spec);
-  return {
-    bash: emitBash(enriched),
-    zsh: emitZsh(enriched),
-    fish: emitFish(enriched),
-    pwsh: emitPwsh(enriched),
-  };
-}
 
 let failures = 0;
 for (const [name, test] of Object.entries(tests)) {

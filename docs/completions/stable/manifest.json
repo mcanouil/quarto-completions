@@ -3,10 +3,10 @@
   "channel": "stable",
   "generated": "2026-08-03",
   "files": {
-    "quarto.bash": "a8e6b89f5c3d1db7687c387c307a9874694654380917be9c92ff2fc8c319026b",
-    "_quarto": "2178cb6e035c6698b1bd4d21ef38f1268d6f959cfaf7161b3f2c30090b576b39",
-    "quarto.fish": "6b4f188fa0ba0c405e4754e1619b42650e097049e1b7b5ece300bf481899dc56",
-    "quarto.ps1": "69f1d82c017027be273f154c96a6559d36947d53a6984babc91cbf94ba6dfb45",
-    "spec.json": "231d80016d08047ce0cbe78e519220a0e94178c2f290028a125c3bb864c216a4"
+    "quarto.bash": "c298cb662d6eaa759fa9cec2fc0c4218181fc631db3c4b1e00d48ca6687ea7e8",
+    "_quarto": "b039b19d0da38e8013d88fd2cda2e69ef869bd2919631fdb91b87f9e6c4535a6",
+    "quarto.fish": "52cfffc9708505f7e9198f12acc0803830fafb616b04d8ecd6e9c711d435598f",
+    "quarto.ps1": "9ed7c91e43dedf09ff1dbe4b95cf1281a22588c0b7f508e248ae4b17c72a4bd2",
+    "spec.json": "8f4ab0040ee78ba16cb55a17607e1430779461bd4f264f7fb9018f16d4c714fe"
   }
 }

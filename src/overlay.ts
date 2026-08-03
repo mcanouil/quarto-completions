@@ -13,7 +13,7 @@
  * options are described once.
  */
 
-import type { ArgSpec, OptionSpec, ValueKind } from "./spec.ts";
+import type { OptionSpec, ValueKind } from "./spec.ts";
 
 /** Input documents Quarto renders. */
 const kInputGlobs = ["qmd", "ipynb", "md", "Rmd", "rmd", "markdown"];
@@ -77,40 +77,54 @@ const kPublishProviders = [
  * pressing TAB after `quarto render doc.qmd --` offers nothing beyond Quarto's
  * own flags, even though every one of these is accepted.
  */
-const kPandocPassthrough: Record<string, { description: string; kind: ValueKind; values?: string[] }> = {
-  "--toc": { description: "Include an automatically generated table of contents.", kind: "none" },
-  "--toc-depth": { description: "Number of section levels in the table of contents.", kind: "value" },
-  "--number-sections": { description: "Number section headings.", kind: "none" },
-  "--number-offset": { description: "Offset for section headings.", kind: "value" },
-  "--top-level-division": {
+const kPandocOptions: OptionSpec[] = [
+  { long: "--toc", description: "Include an automatically generated table of contents.", kind: "none" },
+  { long: "--toc-depth", description: "Number of section levels in the table of contents.", kind: "value" },
+  { long: "--number-sections", description: "Number section headings.", kind: "none" },
+  { long: "--number-offset", description: "Offset for section headings.", kind: "value" },
+  {
+    long: "--top-level-division",
     description: "Treat top-level headings as this division.",
     kind: "enum",
     values: ["default", "section", "chapter", "part"],
   },
-  "--standalone": { description: "Produce a standalone document.", kind: "none" },
-  "--template": { description: "Use FILE as a custom template.", kind: "file" },
-  "--css": { description: "Link to a CSS style sheet.", kind: "file" },
-  "--bibliography": { description: "Bibliography file.", kind: "file" },
-  "--csl": { description: "Citation Style Language file.", kind: "file" },
-  "--citeproc": { description: "Process citations with citeproc.", kind: "none" },
-  "--highlight-style": { description: "Syntax highlighting style.", kind: "value" },
-  "--pdf-engine": {
+  { long: "--standalone", description: "Produce a standalone document.", kind: "none" },
+  { long: "--template", description: "Use FILE as a custom template.", kind: "file" },
+  { long: "--css", description: "Link to a CSS style sheet.", kind: "file", globs: ["css"] },
+  {
+    long: "--bibliography",
+    description: "Bibliography file.",
+    kind: "file",
+    globs: ["bib", "bibtex", "json", "yml", "yaml"],
+  },
+  { long: "--csl", description: "Citation Style Language file.", kind: "file", globs: ["csl"] },
+  { long: "--citeproc", description: "Process citations with citeproc.", kind: "none" },
+  { long: "--highlight-style", description: "Syntax highlighting style.", kind: "value" },
+  {
+    long: "--pdf-engine",
     description: "Engine used to produce PDF output.",
     kind: "enum",
     values: ["pdflatex", "lualatex", "xelatex", "tectonic", "latexmk", "context", "wkhtmltopdf", "weasyprint", "typst"],
   },
-  "--mathjax": { description: "Render mathematics with MathJax.", kind: "none" },
-  "--katex": { description: "Render mathematics with KaTeX.", kind: "none" },
-  "--wrap": {
+  { long: "--mathjax", description: "Render mathematics with MathJax.", kind: "none" },
+  { long: "--katex", description: "Render mathematics with KaTeX.", kind: "none" },
+  {
+    long: "--wrap",
     description: "Text wrapping in the output.",
     kind: "enum",
     values: ["auto", "none", "preserve"],
   },
-  "--reference-doc": { description: "Reference document for docx, pptx, or odt output.", kind: "file" },
-  "--shift-heading-level-by": { description: "Shift heading levels by this amount.", kind: "value" },
-};
+  {
+    long: "--reference-doc",
+    description: "Reference document for docx, pptx, or odt output.",
+    kind: "file",
+    globs: ["docx", "pptx", "odt"],
+  },
+  { long: "--shift-heading-level-by", description: "Shift heading levels by this amount.", kind: "value" },
+];
 
-interface OptionOverride {
+/** How a flag or positional is completed, when help output cannot say. */
+interface ValueOverride {
   kind: ValueKind;
   values?: string[];
   globs?: string[];
@@ -118,11 +132,11 @@ interface OptionOverride {
 
 interface CommandOverride {
   /** Keyed by any flag form, long preferred. */
-  options?: Record<string, OptionOverride>;
+  options?: Record<string, ValueOverride>;
   /** Keyed by the positional name used in the usage line. */
-  args?: Record<string, OptionOverride>;
-  /** Extra flags Quarto forwards but does not declare. */
-  passthrough?: "pandoc";
+  args?: Record<string, ValueOverride>;
+  /** Flags the command accepts and forwards, but does not declare. */
+  extraOptions?: OptionSpec[];
 }
 
 export const overlay: Record<string, CommandOverride> = {
@@ -132,11 +146,8 @@ export const overlay: Record<string, CommandOverride> = {
       "--profile": { kind: "value" },
     },
   },
-  "": {
-    options: {},
-  },
   "render": {
-    passthrough: "pandoc",
+    extraOptions: kPandocOptions,
     options: {
       "--to": { kind: "enum", values: kFormats },
       "--output": { kind: "file" },
@@ -153,7 +164,7 @@ export const overlay: Record<string, CommandOverride> = {
     },
   },
   "preview": {
-    passthrough: "pandoc",
+    extraOptions: kPandocOptions,
     options: {
       "--port": { kind: "value" },
       "--host": { kind: "value" },
@@ -240,47 +251,38 @@ export const overlay: Record<string, CommandOverride> = {
   },
 };
 
-/** Overrides for one command, with the wildcard entry merged in. */
-export function overrideFor(path: string[]): CommandOverride {
+/**
+ * Overrides for one command, with the wildcard entry merged in. Extra options
+ * are read from the command's own entry only: the wildcard applies to every
+ * command, and no flag is forwarded by all of them.
+ */
+export function overrideFor(
+  path: string[],
+): Required<Pick<CommandOverride, "options" | "args">> & Pick<CommandOverride, "extraOptions"> {
   const wildcard = overlay["*"] ?? {};
   const specific = overlay[path.join(" ")] ?? {};
   return {
     options: { ...wildcard.options, ...specific.options },
     args: { ...wildcard.args, ...specific.args },
-    passthrough: specific.passthrough ?? wildcard.passthrough,
+    extraOptions: specific.extraOptions,
   };
 }
 
-export function applyOptionOverride(option: OptionSpec, override?: OptionOverride): OptionSpec {
+/**
+ * Merges an override into a flag or a positional. Both carry the same three
+ * completion fields, so one function serves both.
+ */
+export function applyOverride<T extends Pick<OptionSpec, "kind" | "values" | "globs">>(
+  target: T,
+  override?: ValueOverride,
+): T {
   if (!override) {
-    return option;
+    return target;
   }
   return {
-    ...option,
+    ...target,
     kind: override.kind,
-    values: override.values ?? option.values,
-    globs: override.globs ?? option.globs,
+    values: override.values ?? target.values,
+    globs: override.globs ?? target.globs,
   };
-}
-
-export function applyArgOverride(arg: ArgSpec, override?: OptionOverride): ArgSpec {
-  if (!override) {
-    return arg;
-  }
-  return {
-    ...arg,
-    kind: override.kind,
-    values: override.values ?? arg.values,
-    globs: override.globs ?? arg.globs,
-  };
-}
-
-/** Pandoc options forwarded by the commands that declare a passthrough. */
-export function passthroughOptions(): OptionSpec[] {
-  return Object.entries(kPandocPassthrough).map(([long, spec]) => ({
-    long,
-    description: spec.description,
-    kind: spec.kind,
-    values: spec.values,
-  }));
 }

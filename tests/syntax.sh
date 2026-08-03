@@ -1,45 +1,27 @@
 #!/usr/bin/env bash
 #
 # Parses every generated script with the shell it targets, and lints the
-# installers. Shells that are not installed are reported as skipped.
+# installers and the test scripts. Shells that are not installed are reported
+# as skipped.
 #
-#     tests/syntax.sh [completions-directory]
+#     tests/syntax.sh [completions-directory] [--scripts-only]
+#
+# The installer and test lints do not read the completions directory, so a
+# second channel is checked with --scripts-only rather than repeating them,
+# which would mean a second cold PowerShell start.
 
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/stable}" && pwd)"
+SCRIPTS_ONLY=0
+[ "${2:-}" = "--scripts-only" ] && SCRIPTS_ONLY=1
 
-# PowerShell reads native Windows paths, not the MSYS ones Git Bash hands out.
-native_path() {
-  if command -v cygpath >/dev/null 2>&1; then
-    cygpath -w "$1"
-  else
-    printf '%s' "$1"
-  fi
-}
+# shellcheck source=tests/lib.sh
+. "${ROOT}/tests/lib.sh"
 
 PS_ROOT="$(native_path "${ROOT}")"
 PS_COMPLETIONS="$(native_path "${COMPLETIONS}")"
-
-PASSED=0
-FAILED=0
-SKIPPED=0
-
-pass() {
-  printf 'ok    %s\n' "$1"
-  PASSED=$((PASSED + 1))
-}
-
-fail() {
-  printf 'FAIL  %s\n%s\n' "$1" "$2"
-  FAILED=$((FAILED + 1))
-}
-
-skip() {
-  printf 'skip  %s (%s)\n' "$1" "$2"
-  SKIPPED=$((SKIPPED + 1))
-}
 
 check() {
   # $1: label, $2: required command, $3...: the command to run
@@ -65,12 +47,17 @@ check "pwsh: completion script parses" pwsh pwsh -NoProfile -Command \
 
 check "bash: completion script passes shellcheck" shellcheck \
   shellcheck -s bash "${COMPLETIONS}/quarto.bash"
-check "install.sh passes shellcheck" shellcheck shellcheck "${ROOT}/docs/install.sh"
-check "install.sh is formatted" shfmt shfmt -d -i 2 -ci "${ROOT}/docs/install.sh"
-check "tests pass shellcheck" shellcheck \
-  shellcheck "${ROOT}/tests/completions.sh" "${ROOT}/tests/syntax.sh"
-check "install.ps1 passes PSScriptAnalyzer" pwsh pwsh -NoProfile -Command \
-  "Invoke-ScriptAnalyzer -Path '${PS_ROOT}/docs/install.ps1' -EnableExit -Severity Error,Warning"
 
-printf '\n%d passed, %d failed, %d skipped.\n' "${PASSED}" "${FAILED}" "${SKIPPED}"
-[ "${FAILED}" -eq 0 ]
+if [ "${SCRIPTS_ONLY}" = "0" ]; then
+  check "install.sh passes shellcheck" shellcheck shellcheck "${ROOT}/docs/install.sh"
+  check "install.sh is formatted" shfmt shfmt -d -i 2 -ci "${ROOT}/docs/install.sh"
+  check "tests pass shellcheck" shellcheck shellcheck \
+    "${ROOT}/tests/completions.sh" \
+    "${ROOT}/tests/install.sh" \
+    "${ROOT}/tests/lib.sh" \
+    "${ROOT}/tests/syntax.sh"
+  check "install.ps1 passes PSScriptAnalyzer" pwsh pwsh -NoProfile -Command \
+    "Invoke-ScriptAnalyzer -Path '${PS_ROOT}/docs/install.ps1' -EnableExit -Severity Error,Warning"
+fi
+
+summary

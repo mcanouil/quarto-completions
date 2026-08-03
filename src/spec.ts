@@ -57,8 +57,6 @@ export interface Spec {
   quartoVersion: string;
   /** Release channel the binary came from. */
   channel: "stable" | "prerelease";
-  /** ISO date the spec was generated. */
-  generated: string;
   root: CommandSpec;
 }
 

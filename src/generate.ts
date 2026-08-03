@@ -82,7 +82,9 @@ async function manifest(
       {
         quartoVersion: spec.quartoVersion,
         channel: spec.channel,
-        generated: spec.generated,
+        // The only field that changes without the CLI surface changing, which
+        // is why the manifest is the only file excluded from the drift check.
+        generated: new Date().toISOString().slice(0, 10),
         files: entries,
       },
       null,
@@ -102,18 +104,11 @@ async function main(): Promise<void> {
   const options = parseArgs(Deno.args);
   const spec = await introspect({ quarto: options.quarto, channel: options.channel });
   const files = render(spec);
-  files["manifest.json"] = await manifest(spec, files);
-
   const directory = `${options.out}/${options.channel}`;
 
   if (options.check) {
     const differences: string[] = [];
     for (const [name, content] of Object.entries(files)) {
-      // The manifest and spec carry a generation date, which changes on every
-      // run and says nothing about the CLI surface.
-      if (name === "manifest.json" || name === "spec.json") {
-        continue;
-      }
       const path = `${directory}/${name}`;
       const existing = await Deno.readTextFile(path).catch(() => undefined);
       if (existing !== content) {
@@ -131,6 +126,8 @@ async function main(): Promise<void> {
     console.log(`Completions match Quarto ${spec.quartoVersion} (${options.channel}).`);
     return;
   }
+
+  files["manifest.json"] = await manifest(spec, files);
 
   await Deno.mkdir(directory, { recursive: true });
   for (const [name, content] of Object.entries(files)) {
