@@ -80,6 +80,15 @@ function Invoke-Installer {
   param([string]$BaseUrl, [string[]]$Arguments = @())
 
   $env:QUARTO_COMPLETIONS_PROFILE = $profilePath
+  # Pinned to 'stable' unless the caller already named a channel, on the
+  # command line or through the environment: PowerShell errors on a
+  # duplicate -Channel, so this must not add one when the test being run is
+  # itself exercising channel selection. Everywhere else, this keeps the
+  # suite from depending on whatever quarto happens to be on the machine
+  # running it; see tests/install.sh's equivalent for bash.
+  if ($Arguments -notcontains '-Channel' -and -not $env:QUARTO_COMPLETIONS_CHANNEL) {
+    $Arguments = @('-Channel', 'stable') + $Arguments
+  }
   & pwsh -NoProfile -File $installer -BaseUrl $BaseUrl @Arguments 2>&1 | Out-String
 }
 

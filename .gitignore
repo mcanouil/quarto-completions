@@ -1,6 +1,2 @@
 .DS_Store
 *.log
-
-# Where the Generate workflow's isolated build job hands its 99.9.9
-# quarto-cli binary to the job that generates the dev channel.
-/.quarto-cli-dist/

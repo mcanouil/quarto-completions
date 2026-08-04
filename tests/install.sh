@@ -97,12 +97,18 @@ mkdir -p "${HOME_DIR}"
 # reason: it is authoritative when set, so this keeps a developer's real
 # /opt/homebrew out of every scenario but the one that asks for it.
 #
+# -u QUARTO_COMPLETIONS_UNINSTALL: unlike --channel, --shell, and --base-url,
+# there is no flag that overrides this once the installer reads it as "1", so
+# a developer with it exported would otherwise have every "install succeeds"
+# scenario below silently uninstall instead, with no argument able to say
+# otherwise.
+#
 # --channel stable is a default, not a fixed value: the installer keeps the
 # last --channel it sees, so a caller appending its own after "$@" still
 # overrides it. Without this, every scenario below would silently follow
 # whatever quarto happens to be on the machine running the suite.
 install_run() {
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${HOME_DIR}" \
     HOMEBREW_PREFIX="${HOME_DIR}/no-brew" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
@@ -164,7 +170,7 @@ done
 # asserts on the file tampered above, and the default channel would otherwise
 # follow whatever quarto happens to be on the machine running the suite.
 tampered_output="$(
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${TAMPERED_HOME}" \
     HOMEBREW_PREFIX="${TAMPERED_HOME}/no-brew" \
     XDG_DATA_HOME="${TAMPERED_HOME}/.local/share" \
@@ -205,7 +211,7 @@ scenario_run() {
   # $1: home, then installer arguments
   local home="$1"
   shift
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${home}" \
     HOMEBREW_PREFIX="${home}/no-brew" \
     XDG_DATA_HOME="${home}/.local/share" \
@@ -219,7 +225,7 @@ brew_run() {
   # $1: home, $2: prefix, then installer arguments
   local home="$1" prefix="$2"
   shift 2
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${home}" \
     HOMEBREW_PREFIX="${prefix}" \
     XDG_DATA_HOME="${home}/.local/share" \
@@ -361,7 +367,7 @@ OUTSIDE="$(scenario_home outside)"
 SANDBOX="$(scenario_home sandbox)"
 mkdir -p "${OUTSIDE}/.oh-my-zsh/custom/completions"
 printf 'not ours to delete\n' >"${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
-env ZSH="${OUTSIDE}/.oh-my-zsh" \
+env -u QUARTO_COMPLETIONS_UNINSTALL ZSH="${OUTSIDE}/.oh-my-zsh" \
   HOME="${SANDBOX}" \
   HOMEBREW_PREFIX="${SANDBOX}/no-brew" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
@@ -371,13 +377,13 @@ env ZSH="${OUTSIDE}/.oh-my-zsh" \
 expect_file "an out-of-home ZSH is not followed on uninstall" \
   "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
 
-env ZSH="${OUTSIDE}/.oh-my-zsh" \
+env -u QUARTO_COMPLETIONS_UNINSTALL ZSH="${OUTSIDE}/.oh-my-zsh" \
   HOME="${SANDBOX}" \
   HOMEBREW_PREFIX="${SANDBOX}/no-brew" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
   XDG_CONFIG_HOME="${SANDBOX}/.config" \
   bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
-  --shell zsh >/dev/null
+  --shell zsh --channel stable >/dev/null
 expect_file "an out-of-home ZSH is not followed on install" \
   "${SANDBOX}/.zfunc/_quarto"
 expect_count "the out-of-home file is still untouched" \

@@ -95,7 +95,7 @@ export const kDevVersion = "99.9.9";
  * to fail confusingly partway through: `dev` seeds commands that do not exist
  * outside a source build, and `stable`/`prerelease` must never seed them.
  */
-function assertChannelMatchesVersion(channel: Spec["channel"], quartoVersion: string): void {
+export function assertChannelMatchesVersion(channel: Spec["channel"], quartoVersion: string): void {
   const isDevBuild = quartoVersion === kDevVersion;
   if (channel === "dev" && !isDevBuild) {
     throw new Error(
@@ -209,7 +209,7 @@ function descriptionText(lines: string[]): string {
  * `Description:` block is prose, not that short phrase, so it is cut to its
  * first sentence to match the length every other command in the tree has.
  */
-function firstSentence(text: string): string {
+export function firstSentence(text: string): string {
   const end = text.indexOf(". ");
   return end === -1 ? text : text.slice(0, end + 1);
 }

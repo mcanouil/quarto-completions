@@ -20,16 +20,31 @@ jobs:
   # (src/introspect.ts) exist to be introspected. Neither the release nor the
   # pre-release binary the generate job installs is that build.
   #
-  # Built in a job of its own, with no repository permissions and no
+  # Built AND run in a job of its own, with no repository permissions and no
   # persisted checkout credentials: quarto-cli's main is a moving, third-party
-  # branch, and its configure.sh is arbitrary code that must not run anywhere
-  # near this repository's write-capable token. Only the built binary crosses
-  # into the generate job, as an artifact.
+  # branch, its configure.sh is arbitrary code, and the binary it produces is
+  # exactly as untrusted, since generation runs it once per command in the
+  # tree. Neither may run anywhere near this repository's write-capable
+  # token, which is why generation happens here rather than in the generate
+  # job below: only the completion text this job already produced crosses
+  # over, as an artifact, and the generate job never executes anything this
+  # job built.
   build-dev-quarto:
     runs-on: ubuntu-latest
     permissions: {}
+    # configure.sh builds a moving third-party branch and downloads its own
+    # toolchain; a hang here would otherwise run to the default six hours and,
+    # since cancel-in-progress is false above, hold the "generate" group and
+    # queue every run behind it rather than being replaced by the next one.
+    timeout-minutes: 30
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          path: quarto-completions
+          persist-credentials: false
+
       - name: Checkout quarto-cli
         uses: actions/checkout@v7
         with:
@@ -42,11 +57,17 @@ jobs:
         working-directory: quarto-cli
         run: ./configure.sh
 
-      - name: Upload quarto-cli build
+      - name: Generate dev completions
+        working-directory: quarto-completions
+        run: |
+          quarto="${{ github.workspace }}/quarto-cli/package/dist/bin/quarto"
+          "${quarto}" run src/generate.ts --channel dev --quarto "${quarto}"
+
+      - name: Upload dev completions
         uses: actions/upload-artifact@v4
         with:
-          name: quarto-cli-dev-build
-          path: quarto-cli/package/dist
+          name: quarto-completions-dev
+          path: quarto-completions/docs/completions/dev
           retention-days: 1
           if-no-files-found: error
 
@@ -54,8 +75,10 @@ jobs:
     # Runs even when build-dev-quarto fails: that build is quarto-cli's
     # moving main branch, and one broken commit there must not discard the
     # stable and prerelease regeneration below, which does not depend on it.
+    # !cancelled() rather than always(): this job can push a branch and open
+    # a pull request, which a cancelled run must not still do.
     needs: build-dev-quarto
-    if: always()
+    if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -89,19 +112,19 @@ jobs:
       - name: Generate prerelease completions
         run: quarto run src/generate.ts --channel prerelease
 
-      - name: Download quarto-cli build
+      - name: Remove the previous dev channel
+        if: needs.build-dev-quarto.result == 'success'
+        # download-artifact extracts into this directory rather than replacing
+        # it, so a file the generator stops producing would otherwise survive
+        # from the checkout above, unseen by the git status gate below.
+        run: rm -rf docs/completions/dev
+
+      - name: Download dev completions
         if: needs.build-dev-quarto.result == 'success'
         uses: actions/download-artifact@v4
         with:
-          name: quarto-cli-dev-build
-          path: .quarto-cli-dist
-
-      - name: Generate dev completions
-        if: needs.build-dev-quarto.result == 'success'
-        run: |
-          chmod +x .quarto-cli-dist/bin/quarto
-          quarto run src/generate.ts --channel dev \
-            --quarto "${{ github.workspace }}/.quarto-cli-dist/bin/quarto"
+          name: quarto-completions-dev
+          path: docs/completions/dev
 
       - name: Report a failed dev build
         if: needs.build-dev-quarto.result != 'success'

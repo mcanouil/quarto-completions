@@ -9,7 +9,13 @@
  */
 
 import { assert, assertEquals, assertExcludes, assertIncludes } from "./assert.ts";
-import { hiddenChildrenFor, parseHelp } from "../src/introspect.ts";
+import {
+  assertChannelMatchesVersion,
+  firstSentence,
+  hiddenChildrenFor,
+  kDevVersion,
+  parseHelp,
+} from "../src/introspect.ts";
 import { enrich } from "../src/enrich.ts";
 import { render } from "../src/generate.ts";
 import { emitBash } from "../src/emit/bash.ts";
@@ -372,14 +378,55 @@ const tests: Record<string, () => void> = {
     const enriched = enrich(spec).root.commands[0];
     // Harvested automatically from its parenthesised list in the description.
     assertEquals(option(enriched, "--type").kind, "enum");
-    assertIncludes(option(enriched, "--type").values ?? [], "book");
+    assert((option(enriched, "--type").values ?? []).includes("book"), "--type is missing book");
     // Written "(jupyter, knitr, markdown, ...)"; the trailing ellipsis stops
     // the automatic harvest, so the overlay has to state the set itself.
     assertEquals(option(enriched, "--engine").kind, "enum");
-    assertIncludes(option(enriched, "--engine").values ?? [], "julia");
+    assert(
+      (option(enriched, "--engine").values ?? []).includes("julia"),
+      "--engine is missing julia",
+    );
     // Written "('source' or 'visual')", which the harvester's comma-separated
     // pattern does not match at all.
     assertEquals(option(enriched, "--editor").values, ["source", "visual"]);
+  },
+
+  "the dev channel needs a 99.9.9 build, and a 99.9.9 build needs the dev channel"() {
+    assertEquals(assertChannelMatchesVersion("dev", kDevVersion), undefined);
+    assertEquals(assertChannelMatchesVersion("stable", "1.10.18"), undefined);
+    assertEquals(assertChannelMatchesVersion("prerelease", "1.11.0"), undefined);
+
+    let message = "";
+    try {
+      assertChannelMatchesVersion("dev", "1.10.18");
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, "dev");
+    assertIncludes(message, "1.10.18");
+
+    message = "";
+    try {
+      assertChannelMatchesVersion("stable", kDevVersion);
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, kDevVersion);
+    assertIncludes(message, "stable");
+  },
+
+  "a seeded description is cut to its first sentence"() {
+    assertEquals(
+      firstSentence("Pull configured git subtrees. This command pulls from a repository."),
+      "Pull configured git subtrees.",
+    );
+  },
+
+  "a seeded description with no second sentence is kept whole"() {
+    assertEquals(
+      firstSentence("Builds all the javascript assets necessary for IDE support."),
+      "Builds all the javascript assets necessary for IDE support.",
+    );
   },
 };
 
