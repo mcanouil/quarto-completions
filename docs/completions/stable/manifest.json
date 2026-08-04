@@ -3,10 +3,10 @@
   "channel": "stable",
   "generated": "2026-08-04",
   "files": {
-    "quarto.bash": "5322138e7ef29e2641cfad01ce91eecc5bc4eca07bc73e8f758d1cb88c393c24",
+    "quarto.bash": "4ff60f22af70829f5a6c9a169c7e04b3d2f713a333755b52184a5e36b600ee03",
     "_quarto": "aac931dbf1bfda3e0360e2ad03161e2eb07c87037157894e8aaab03db7148663",
     "quarto.fish": "99002891cfc61311524024844bff4f0ca387822e9c116d7f1d5d05d64f136586",
-    "quarto.ps1": "f0a15f750d56ae4036e10c3e8536ba712a137954eeb9ce83e9721af421e7246d",
+    "quarto.ps1": "af901ffe4d07cd2a1082abb81b34b87c945f34ea4cba9a44f4fc71a76967abbe",
     "spec.json": "8f4ab0040ee78ba16cb55a17607e1430779461bd4f264f7fb9018f16d4c714fe"
   }
 }
