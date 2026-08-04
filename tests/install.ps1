@@ -106,7 +106,7 @@ function Invoke-Installer {
 # since Get-Command -CommandType Application only finds files PATHEXT names;
 # an extension-less script works everywhere else. -Encoding ascii avoids a BOM
 # that would otherwise corrupt the first line either shell reads.
-function Set-QuartoShimVersion {
+function Write-QuartoShimVersion {
   param([string]$Directory, [string]$Version)
 
   if ($IsWindows) {
@@ -279,17 +279,17 @@ try {
   $stableMajor = [int]$stableParts[0]
   $stableMinor = [int]$stableParts[1]
 
-  Set-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$stableMinor.0"
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$stableMinor.0"
   $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
   if ($output -notmatch 'than these completions') { Test-Pass 'advisory: a matching major.minor says nothing' }
   else { Test-Fail 'advisory: a matching major.minor says nothing' $output }
 
-  Set-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$($stableMinor + 1).0"
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$($stableMinor + 1).0"
   $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
   if ($output -match [regex]::Escape('-Channel prerelease')) { Test-Pass 'advisory: a newer Quarto names -Channel prerelease' }
   else { Test-Fail 'advisory: a newer Quarto names -Channel prerelease' $output }
 
-  Set-QuartoShimVersion -Directory $quartoShimDirectory -Version '99.9.9'
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '99.9.9'
   $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
   if ($output -notmatch 'than these completions') { Test-Pass 'advisory: the dev sentinel says nothing' }
   else { Test-Fail 'advisory: the dev sentinel says nothing' $output }
