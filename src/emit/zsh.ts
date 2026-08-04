@@ -58,7 +58,9 @@ function commandFunction(command: CommandSpec): string {
       for (const [index, arg] of args.entries()) {
         const last = index === args.length - 1;
         const slot = last && trailingIsVariadic(command) ? "*" : `${index + 1}`;
-        specs.push(`'${slot}:${arg.name}:${argAction(arg.kind, arg.values, arg.globs)}'`);
+        specs.push(
+          `'${slot}:${singleQuote(arg.name)}:${argAction(arg.kind, arg.values, arg.globs)}'`,
+        );
       }
     }
   }
@@ -74,7 +76,7 @@ function commandFunction(command: CommandSpec): string {
 
   if (hasCommands) {
     const subcommandList = command.commands
-      .map((child) => `'${commandName(child)}:${escapeDescription(child.description)}'`)
+      .map((child) => `'${singleQuote(commandName(child))}:${escapeDescription(child.description)}'`)
       .join(" \\\n      ");
     body.push(
       `  case $state in`,
@@ -88,7 +90,7 @@ function commandFunction(command: CommandSpec): string {
       `    argument)`,
       `      case $words[1] in`,
       ...command.commands.map((child) =>
-        `        ${commandName(child)}) ${functionName(child.path)} ;;`
+        `        ${bareWord(commandName(child))}) ${functionName(child.path)} ;;`
       ),
       `      esac`,
       `      ;;`,
@@ -107,17 +109,36 @@ function escapeDescription(text: string): string {
   return singleQuote(oneLine(text).replace(/([[\]])/g, "\\$1"));
 }
 
+/**
+ * Escapes text for a bare, unquoted zsh word: a flag spelling, or a `case`
+ * pattern matching a command name. Both come from `quarto --help` output,
+ * which the dev channel sources from an unreviewed, third-party branch, and
+ * both stay outside shell quotes on purpose (a flag so zsh's own brace
+ * expansion can turn `{-t,--to}` into one spec per form; a case pattern
+ * because that is the only place one goes). Left unescaped, this text is
+ * parsed as script source the moment the file is read, not as data: an
+ * unquoted `"` or `'` opens real quoting that swallows everything up to the
+ * next one, and `)` ends a case pattern list early. Backslash-escaping every
+ * character outside a safe allowlist, rather than enumerating the dangerous
+ * ones, is what the bash emitter's equivalent needed a second pass to get
+ * right.
+ */
+function bareWord(text: string): string {
+  return text.replace(/[^A-Za-z0-9_./=-]/g, "\\$&");
+}
+
 function optionSpec(option: OptionSpec): string {
   const description = escapeDescription(option.description);
   const takesValue = option.kind !== "none";
   const forms = optionFlags(option);
-  const exclusion = `(${forms.join(" ")})`;
+  const exclusion = `(${forms.map(singleQuote).join(" ")})`;
   // A trailing '=' on the long form tells _arguments the value may sit in the
   // same word after '=' as well as in the next word, so '--to=html' completes.
   const spelled = forms.map((form) =>
     takesValue && form.startsWith("--") ? `${form}=` : form
   );
-  const flag = spelled.length > 1 ? `{${spelled.join(",")}}` : `${spelled[0]}`;
+  const bareForms = spelled.map(bareWord);
+  const flag = bareForms.length > 1 ? `{${bareForms.join(",")}}` : bareForms[0];
   const value = takesValue
     ? `:${option.placeholder ?? "value"}:${argAction(option.kind, option.values, option.globs)}`
     : "";
@@ -131,8 +152,12 @@ function argAction(
 ): string {
   switch (kind) {
     case "enum":
-      return `(${(values ?? []).join(" ")})`;
+      return `(${(values ?? []).map(singleQuote).join(" ")})`;
     case "file":
+      // Globs are never attacker-controlled: they always come from this
+      // repo's own overlay.ts constants, never from quarto --help text, so
+      // this position is left as-is rather than guessing at the escaping a
+      // deferred zsh action string needs for input that can't reach it.
       return globs && globs.length > 0 ? `_files -g "*.(${globs.join("|")})"` : `_files`;
     case "dir":
       return `_files -/`;

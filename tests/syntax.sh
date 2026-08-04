@@ -6,9 +6,9 @@
 #
 #     tests/syntax.sh [completions-directory] [--scripts-only]
 #
-# The installer and test lints do not read the completions directory, so a
-# second channel is checked with --scripts-only rather than repeating them,
-# which would mean a second cold PowerShell start.
+# The installer and test lints do not read the completions directory, so
+# every channel beyond the first is checked with --scripts-only rather than
+# repeating them, which would mean another cold PowerShell start.
 
 set -euo pipefail
 

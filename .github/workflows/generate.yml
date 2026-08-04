@@ -16,9 +16,9 @@ concurrency:
 jobs:
   # The dev channel needs an actual 99.9.9 source build: that is the version
   # Quarto's own kLocalDevelopment constant reports, and the one build where
-  # dev-call and the rest of the hidden surface introspect.ts seeds
-  # (src/introspect.ts) exist to be introspected. Neither the release nor the
-  # pre-release binary the generate job installs is that build.
+  # dev-call and the rest of the hidden surface src/introspect.ts seeds exist
+  # to be introspected. Neither the release nor the pre-release binary the
+  # generate job installs is that build.
   #
   # Built AND run in a job of its own, with no repository permissions and no
   # persisted checkout credentials: quarto-cli's main is a moving, third-party
@@ -60,6 +60,12 @@ jobs:
       - name: Generate dev completions
         working-directory: quarto-completions
         run: |
+          # The checkout above carries whatever dev channel was last
+          # committed. Removed first, so a file this run's generator stops
+          # producing is gone rather than uploaded as part of a "fresh"
+          # artifact, which would smuggle it straight past the generate job's
+          # own removal of its previous checkout.
+          rm -rf docs/completions/dev
           quarto="${{ github.workspace }}/quarto-cli/package/dist/bin/quarto"
           "${quarto}" run src/generate.ts --channel dev --quarto "${quarto}"
 

@@ -428,6 +428,88 @@ const tests: Record<string, () => void> = {
       "Builds all the javascript assets necessary for IDE support.",
     );
   },
+
+  // Command names, flags, and enum values come from `quarto --help` output,
+  // not from this repo, and the dev channel sources that from an unreviewed,
+  // third-party branch. Empirically verified against real bash and zsh (not
+  // only checked here): a crafted name run through the unfixed emitters wrote
+  // a marker file the moment the generated script was sourced or completed
+  // against; against the fixed ones, it never did, on both.
+
+  "bash escapes a name that would otherwise close its double-quoted candidate list"() {
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.commands.push({
+      path: ["call", 'evil"; touch pwned; echo "'],
+      description: "x",
+      options: [],
+      args: [],
+      commands: [],
+    });
+    const output = emitBash(enrich(spec));
+    assertIncludes(output, 'evil\\"; touch pwned; echo \\"');
+    assertExcludes(output, 'evil"; touch pwned; echo "');
+  },
+
+  "bash escapes a flag that would otherwise close its case pattern early"() {
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({ long: "--evil)touch pwned;(", description: "x", kind: "value" });
+    const output = emitBash(enrich(spec));
+    assertExcludes(output, "--evil)touch pwned;(:::");
+  },
+
+  "zsh escapes a name that would otherwise close its quoted array entry"() {
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.commands.push({
+      path: ["call", "evil'; touch pwned; echo '"],
+      description: "x",
+      options: [],
+      args: [],
+      commands: [],
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "evil'\\''; touch pwned; echo '\\''");
+    assertExcludes(output, "evil'; touch pwned; echo '");
+  },
+
+  "zsh escapes a name that would otherwise close its unquoted case pattern"() {
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.commands.push({
+      path: ["call", "evil'; touch pwned; echo '"],
+      description: "x",
+      options: [],
+      args: [],
+      commands: [],
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "evil\\'\\;\\ touch\\ pwned\\;\\ echo\\ \\'");
+  },
+
+  "zsh escapes a flag left unquoted for brace expansion"() {
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({
+      short: "-e",
+      long: "--evil';touch pwned;'",
+      description: "x",
+      kind: "value",
+    });
+    const output = emitZsh(enrich(spec));
+    assertExcludes(output, "{-e,--evil';touch pwned;'}");
+    assertIncludes(output, "\\'\\;touch\\ pwned\\;\\'");
+  },
+
+  "fish escapes a name that would otherwise close its quoted case pattern"() {
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.path = ["evil'; touch pwned; echo '"];
+    render.options.push({ long: "--to", description: "x", kind: "value" });
+    const output = emitFish(spec);
+    assertExcludes(output, "case 'evil'; touch pwned; echo '");
+  },
 };
 
 

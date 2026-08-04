@@ -106,7 +106,10 @@ function valuedCase(command: CommandSpec): string {
   if (consuming.length === 0) {
     return "";
   }
-  return `    case '${command.path.join(" ")}'\n      echo "${consuming.join(" ")}"`;
+  // quote(), not a bare '...': a command name comes from `quarto --help`
+  // output, which the dev channel sources from an unreviewed, third-party
+  // branch, and an unescaped ' would end the case pattern's string early.
+  return `    case ${quote(command.path.join(" "))}\n      echo ${quote(consuming.join(" "))}`;
 }
 
 function commandCompletions(command: CommandSpec): string[] {
@@ -133,9 +136,13 @@ function commandCompletions(command: CommandSpec): string[] {
   }
 
   for (const option of command.options) {
+    // Quoted: a flag spelling comes from `quarto --help` output, which the
+    // dev channel sources from an unreviewed, third-party branch. Left bare,
+    // a form carrying a space would hand `complete` an extra word where a
+    // flag of its own belongs.
     const forms = [
-      option.short ? `-s ${option.short.replace(/^-/, "")}` : "",
-      option.long ? `-l ${option.long.replace(/^--/, "")}` : "",
+      option.short ? `-s ${quote(option.short.replace(/^-/, ""))}` : "",
+      option.long ? `-l ${quote(option.long.replace(/^--/, ""))}` : "",
     ].filter(Boolean).join(" ");
     const value = option.kind === "none"
       ? "-f"

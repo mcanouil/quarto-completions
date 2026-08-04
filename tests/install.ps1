@@ -20,6 +20,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Unlike -Channel, there is no flag that can override this once the installer
+# reads it as '1': a developer with it exported would otherwise have it
+# inherited by every child pwsh Invoke-Installer starts below, silently
+# turning every "install succeeds" scenario into an uninstall. Cleared once,
+# here, rather than per call: nothing in this script sets it again.
+Remove-Item Env:\QUARTO_COMPLETIONS_UNINSTALL -ErrorAction SilentlyContinue
+
 $root = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 if (-not $Site) { $Site = Join-Path $root 'docs/_site' }
 $Site = (Resolve-Path -LiteralPath $Site).Path
@@ -77,16 +84,18 @@ function Assert-Count {
 }
 
 function Invoke-Installer {
-  param([string]$BaseUrl, [string[]]$Arguments = @())
+  param([string]$BaseUrl, [string[]]$Arguments = @(), [switch]$SkipChannelPin)
 
   $env:QUARTO_COMPLETIONS_PROFILE = $profilePath
-  # Pinned to 'stable' unless the caller already named a channel, on the
-  # command line or through the environment: PowerShell errors on a
-  # duplicate -Channel, so this must not add one when the test being run is
-  # itself exercising channel selection. Everywhere else, this keeps the
-  # suite from depending on whatever quarto happens to be on the machine
-  # running it; see tests/install.sh's equivalent for bash.
-  if ($Arguments -notcontains '-Channel' -and -not $env:QUARTO_COMPLETIONS_CHANNEL) {
+  # Pinned to 'stable' unconditionally, matching tests/install.sh's pin for
+  # bash, unless the caller already named a channel on the command line, or
+  # passes -SkipChannelPin because it is itself exercising
+  # QUARTO_COMPLETIONS_CHANNEL and needs the ambient environment to reach the
+  # installer untouched: PowerShell errors on a duplicate -Channel, so this
+  # must not add one on top of that test's own. Everywhere else, this keeps
+  # the suite from depending on whatever channel a developer's shell happens
+  # to have exported, or on whatever quarto happens to be on PATH.
+  if (-not $SkipChannelPin -and $Arguments -notcontains '-Channel') {
     $Arguments = @('-Channel', 'stable') + $Arguments
   }
   & pwsh -NoProfile -File $installer -BaseUrl $BaseUrl @Arguments 2>&1 | Out-String
@@ -164,7 +173,7 @@ try {
   # the environment has to be refused by the installer itself.
   $env:QUARTO_COMPLETIONS_CHANNEL = 'nonsense'
   try {
-    $output = Invoke-Installer -BaseUrl $baseUrl
+    $output = Invoke-Installer -BaseUrl $baseUrl -SkipChannelPin
     if ($LASTEXITCODE -ne 0 -and $output -match "'stable', 'prerelease', or 'dev'") {
       Test-Pass 'an unknown channel from the environment is refused'
     }
