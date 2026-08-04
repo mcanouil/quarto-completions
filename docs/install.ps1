@@ -42,9 +42,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Windows PowerShell 5.1 does not negotiate TLS 1.2 by default on older builds,
-# where every download would otherwise fail with a connection error.
-if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
+# Windows PowerShell 5.1 on an older build pins SecurityProtocol to an explicit
+# legacy set, Ssl3 and Tls, where every download fails with a connection error.
+# Adding Tls12 to that set is the fix.
+#
+# SystemDefault is left exactly as it is, which is what every current build
+# reports and what this used to overwrite: it means "let the platform
+# negotiate", already covers TLS 1.2, and is the only value that can reach TLS
+# 1.3, so replacing it with an explicit Tls12 opted out of the newer protocol
+# rather than enabling anything.
+if ([Net.ServicePointManager]::SecurityProtocol -ne [Net.SecurityProtocolType]::SystemDefault -and
+  [Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
   [Net.ServicePointManager]::SecurityProtocol =
     [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 }
