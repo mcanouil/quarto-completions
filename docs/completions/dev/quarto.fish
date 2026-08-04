@@ -2,7 +2,7 @@
 # Quarto 99.9.9 (dev channel).
 # Do not edit: https://github.com/mcanouil/quarto-completions
 
-set -g __quarto_nodes "render" "preview" "serve" "create" "use" "use template" "use binder" "use brand" "add" "update" "remove" "convert" "pandoc" "typst" "run" "list" "install" "uninstall" "tools" "tools install" "tools info" "tools uninstall" "tools update" "tools list" "publish" "check" "call" "call engine" "call build-ts-extension" "call typst-gather" "capabilities" "inspect" "editor-support" "editor-support crossref" "create-project" "completions" "completions bash" "completions fish" "completions zsh" "dev-call" "dev-call cli-info" "dev-call validate-yaml" "dev-call build-artifacts" "dev-call show-ast-trace" "dev-call make-ast-diagram" "dev-call pull-git-subtree" "dev-call typst-gather"
+set -g __quarto_nodes 'render' 'preview' 'serve' 'create' 'use' 'use template' 'use binder' 'use brand' 'add' 'update' 'remove' 'convert' 'pandoc' 'typst' 'run' 'list' 'install' 'uninstall' 'tools' 'tools install' 'tools info' 'tools uninstall' 'tools update' 'tools list' 'publish' 'check' 'call' 'call engine' 'call build-ts-extension' 'call typst-gather' 'capabilities' 'inspect' 'editor-support' 'editor-support crossref' 'create-project' 'completions' 'completions bash' 'completions fish' 'completions zsh' 'dev-call' 'dev-call cli-info' 'dev-call validate-yaml' 'dev-call build-artifacts' 'dev-call show-ast-trace' 'dev-call make-ast-diagram' 'dev-call pull-git-subtree' 'dev-call typst-gather'
 
 # Flags of a command that consume the word after them.
 function __quarto_valued --argument-names node

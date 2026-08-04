@@ -456,7 +456,11 @@ const tests: Record<string, () => void> = {
     const render = spec.root.commands[0];
     render.options.push({ long: "--evil)touch pwned;(", description: "x", kind: "value" });
     const output = emitBash(enrich(spec));
-    assertExcludes(output, "--evil)touch pwned;(:::");
+    // `:::` marks where the case pattern for this flag starts; escaped there
+    // is safe, since the same flag also appears unescaped and correctly so
+    // in the double-quoted contexts elsewhere in the same output.
+    assertIncludes(output, ":::--evil\\)touch\\ pwned\\;\\(");
+    assertExcludes(output, ":::--evil)touch pwned;(");
   },
 
   "zsh escapes a name that would otherwise close its quoted array entry"() {
@@ -509,6 +513,47 @@ const tests: Record<string, () => void> = {
     render.options.push({ long: "--to", description: "x", kind: "value" });
     const output = emitFish(spec);
     assertExcludes(output, "case 'evil'; touch pwned; echo '");
+  },
+
+  "fish escapes a name that would otherwise close its -n condition"() {
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.commands.push({
+      path: ["call", "evil'; touch pwned; echo '"],
+      description: "x",
+      options: [],
+      args: [],
+      commands: [
+        {
+          path: ["call", "evil'; touch pwned; echo '", "sub"],
+          description: "y",
+          options: [],
+          args: [],
+          commands: [],
+        },
+      ],
+    });
+    const output = emitFish(spec);
+    // The -n condition specifically, not the (already-escaped) -a candidate
+    // for the same malicious name a few lines above it: the vulnerable shape
+    // read `-n '__quarto_at "call evil'; touch pwned; echo '" 0'`, with the
+    // name's own unescaped ' ending the argument to `-n` right there.
+    assertIncludes(output, `-n '__quarto_at "call evil'\\''; touch pwned; echo '\\''" 0'`);
+    assertExcludes(output, `-n '__quarto_at "call evil'; touch pwned; echo '`);
+  },
+
+  "zsh escapes a placeholder that would otherwise close its quoted spec"() {
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({
+      long: "--evil",
+      description: "x",
+      kind: "value",
+      placeholder: "ev'; touch pwned; echo '",
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "ev'\\''; touch pwned; echo '\\''");
+    assertExcludes(output, ":ev'; touch pwned; echo ':");
   },
 };
 

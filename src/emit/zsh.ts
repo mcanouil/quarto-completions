@@ -140,7 +140,9 @@ function optionSpec(option: OptionSpec): string {
   const bareForms = spelled.map(bareWord);
   const flag = bareForms.length > 1 ? `{${bareForms.join(",")}}` : bareForms[0];
   const value = takesValue
-    ? `:${option.placeholder ?? "value"}:${argAction(option.kind, option.values, option.globs)}`
+    ? `:${singleQuote(option.placeholder ?? "value")}:${
+      argAction(option.kind, option.values, option.globs)
+    }`
     : "";
   return `'${exclusion}'${flag}'[${description}]${value}'`;
 }
