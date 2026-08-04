@@ -123,8 +123,9 @@ function Script:Remove-ManagedBlock {
 
   $kept = @()
   $inside = $false
+  $found = $false
   foreach ($line in (Get-Content -LiteralPath $Path)) {
-    if ($line -eq $script:BlockStart) { $inside = $true; continue }
+    if ($line -eq $script:BlockStart) { $inside = $true; $found = $true; continue }
     if ($line -eq $script:BlockEnd) { $inside = $false; continue }
     if (-not $inside) { $kept += $line }
   }
@@ -134,6 +135,11 @@ function Script:Remove-ManagedBlock {
   if ($inside) {
     throw "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
   }
+  # A profile carrying no block is not this installer's to rewrite: writing it
+  # back would normalise its line endings and re-encode it, adding a BOM on
+  # Windows PowerShell 5.1, for a file there is nothing to remove from. The
+  # POSIX installer guards the same way, with rc_block_present.
+  if (-not $found) { return }
   Set-Content -LiteralPath $Path -Value $kept -Encoding utf8
 }
 

@@ -293,6 +293,28 @@ try {
   # below start from a profile with no block rather than this crafted one.
   Set-Content -LiteralPath $profilePath -Value @() -Encoding utf8
 
+  # A profile that carries no block at all is not this installer's to rewrite.
+  # Reading it in and writing it back normalises its line endings and re-encodes
+  # it, which on Windows PowerShell 5.1 adds a BOM, for a file the run has
+  # nothing to change in. Compared byte for byte, since every difference here is
+  # one the content alone would not show.
+  $untouchedProfile = Join-Path $scratch 'untouched-profile.ps1'
+  [System.IO.File]::WriteAllText(
+    $untouchedProfile,
+    "# my own profile`r`nSet-Alias ll Get-ChildItem`r`n"
+  )
+  $before = (Get-FileHash -LiteralPath $untouchedProfile -Algorithm SHA256).Hash
+  $env:QUARTO_COMPLETIONS_PROFILE = $untouchedProfile
+  try {
+    & pwsh -NoProfile -File $installer -BaseUrl $baseUrl -Channel stable -Uninstall 2>&1 | Out-String | Out-Null
+  }
+  finally {
+    $env:QUARTO_COMPLETIONS_PROFILE = $profilePath
+  }
+  $after = (Get-FileHash -LiteralPath $untouchedProfile -Algorithm SHA256).Hash
+  if ($before -eq $after) { Test-Pass 'a profile with no block is left byte for byte alone' }
+  else { Test-Fail 'a profile with no block is left byte for byte alone' 'the profile was rewritten' }
+
   # -Channel dev fetches from the dev channel published alongside stable and
   # prerelease: generated from a 99.9.9 quarto-cli source build, and the only
   # one that carries the hidden commands (dev-call and the rest). The channel
