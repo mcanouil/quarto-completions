@@ -145,363 +145,507 @@ function __quarto_at --argument-names target index
   end
 end
 
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'render')" -d 'Render files or projects to various document types.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'preview')" -d 'Render and preview a document or website project.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'serve')" -d 'Serve a Shiny interactive document.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'create')" -d 'Create a Quarto project or extension'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'use')" -d 'Automate document or project setup tasks.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'add')" -d 'Add an extension to this folder or project'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'update')" -d 'Updates an extension or global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'remove')" -d 'Removes an extension.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'convert')" -d 'Convert documents to alternate representations.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'pandoc')" -d 'Run the version of Pandoc embedded within Quarto.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'typst')" -d 'Run the version of Typst embedded within Quarto.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'run')" -d 'Run a TypeScript, R, Python, or Lua script.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'list')" -d 'Lists an extension or global dependency.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'install')" -d 'Installs a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'uninstall')" -d 'Uninstalls a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'tools')" -d 'Display the status of Quarto installed dependencies'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'publish')" -d 'Publish a document or project to a provider.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'check')" -d 'Verify correct functioning of Quarto installation.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'call')" -d 'Access functions of Quarto subsystems such as its rendering engines.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'capabilities')" -d 'Query for current capabilities (formats, engines, kernels etc.)'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'inspect')" -d 'Inspect a Quarto project or input path.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'editor-support')" -d 'Miscellaneous tools to support Quarto editor modes'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'create-project')" -d 'Create a project for rendering multiple documents'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'completions')" -d 'Generate shell completions.'
-complete -c quarto -n '__quarto_at "" 0' -f -a "(__quarto_words 'dev-call')" -d 'Access internals of Quarto - this command is not intended for general use.'
-complete -c quarto -n '__quarto_at ""' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at ""' -s 'V' -l 'version' -f -d 'Show the version number for this program.'
-complete -c quarto -n '__quarto_at "render" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "render"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "render"' -s 't' -l 'to' -r -f -a "(__quarto_words 'html' 'pdf' 'docx' 'odt' 'rtf' 'revealjs' 'beamer' 'pptx' 'typst' 'dashboard' 'epub' 'gfm' 'commonmark' 'markdown' 'markua' 'hugo-md' 'docusaurus-md' 'jats' 'asciidoc' 'asciidoctor' 'ipynb' 'context' 'docbook' 'dokuwiki' 'jira' 'mediawiki' 'man' 'ms' 'muse' 'opml' 'org' 'rst' 'texinfo' 'textile' 'xwiki' 'zimwiki')" -d 'Specify output format(s).'
-complete -c quarto -n '__quarto_at "render"' -s 'o' -l 'output' -r -F -d 'Write output to FILE (use '\''--output -'\'' for stdout).'
-complete -c quarto -n '__quarto_at "render"' -l 'output-dir' -r -f -a "(__fish_complete_directories)" -d 'Write output to DIR (path is input/project relative)'
-complete -c quarto -n '__quarto_at "render"' -s 'M' -l 'metadata' -r -f -d 'Metadata value (KEY:VALUE).'
-complete -c quarto -n '__quarto_at "render"' -l 'site-url' -r -f -d 'Override site-url for website or book output'
-complete -c quarto -n '__quarto_at "render"' -l 'execute' -f -d 'Execute code (--no-execute to skip execution).'
-complete -c quarto -n '__quarto_at "render"' -s 'P' -l 'execute-param' -r -f -d 'Execution parameter (KEY:VALUE).'
-complete -c quarto -n '__quarto_at "render"' -l 'execute-params' -r -F -a "(__fish_complete_suffix .yml; __fish_complete_suffix .yaml; __fish_complete_suffix .json)" -d 'YAML file with execution parameters.'
-complete -c quarto -n '__quarto_at "render"' -l 'execute-dir' -r -f -a "(__fish_complete_directories)" -d 'Working directory for code execution.'
-complete -c quarto -n '__quarto_at "render"' -l 'execute-daemon' -r -f -d 'Keep Jupyter kernel alive (defaults to 300 seconds).'
-complete -c quarto -n '__quarto_at "render"' -l 'execute-daemon-restart' -f -d 'Restart keepalive Jupyter kernel before render.'
-complete -c quarto -n '__quarto_at "render"' -l 'execute-debug' -f -d 'Show debug output when executing computations.'
-complete -c quarto -n '__quarto_at "render"' -l 'use-freezer' -f -d 'Force use of frozen computations for an incremental file render.'
-complete -c quarto -n '__quarto_at "render"' -l 'cache' -f -d 'Cache execution output (--no-cache to prevent cache).'
-complete -c quarto -n '__quarto_at "render"' -l 'cache-refresh' -f -d 'Force refresh of execution cache.'
-complete -c quarto -n '__quarto_at "render"' -l 'no-clean' -f -d 'Do not clean project output-dir prior to render'
-complete -c quarto -n '__quarto_at "render"' -l 'debug' -f -d 'Leave intermediate files in place after render.'
-complete -c quarto -n '__quarto_at "render"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "render"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "render"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "render"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "render"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "render"' -l 'no-execute' -f -d 'Negated form of --execute.'
-complete -c quarto -n '__quarto_at "render"' -l 'no-cache' -f -d 'Negated form of --cache.'
-complete -c quarto -n '__quarto_at "render"' -l 'toc' -f -d 'Include an automatically generated table of contents.'
-complete -c quarto -n '__quarto_at "render"' -l 'toc-depth' -r -f -d 'Number of section levels in the table of contents.'
-complete -c quarto -n '__quarto_at "render"' -l 'number-sections' -f -d 'Number section headings.'
-complete -c quarto -n '__quarto_at "render"' -l 'number-offset' -r -f -d 'Offset for section headings.'
-complete -c quarto -n '__quarto_at "render"' -l 'top-level-division' -r -f -a "(__quarto_words 'default' 'section' 'chapter' 'part')" -d 'Treat top-level headings as this division.'
-complete -c quarto -n '__quarto_at "render"' -l 'standalone' -f -d 'Produce a standalone document.'
-complete -c quarto -n '__quarto_at "render"' -l 'template' -r -F -d 'Use FILE as a custom template.'
-complete -c quarto -n '__quarto_at "render"' -l 'css' -r -F -a "(__fish_complete_suffix .css)" -d 'Link to a CSS style sheet.'
-complete -c quarto -n '__quarto_at "render"' -l 'bibliography' -r -F -a "(__fish_complete_suffix .bib; __fish_complete_suffix .bibtex; __fish_complete_suffix .json; __fish_complete_suffix .yml; __fish_complete_suffix .yaml)" -d 'Bibliography file.'
-complete -c quarto -n '__quarto_at "render"' -l 'csl' -r -F -a "(__fish_complete_suffix .csl)" -d 'Citation Style Language file.'
-complete -c quarto -n '__quarto_at "render"' -l 'citeproc' -f -d 'Process citations with citeproc.'
-complete -c quarto -n '__quarto_at "render"' -l 'highlight-style' -r -f -d 'Syntax highlighting style.'
-complete -c quarto -n '__quarto_at "render"' -l 'pdf-engine' -r -f -a "(__quarto_words 'pdflatex' 'lualatex' 'xelatex' 'tectonic' 'latexmk' 'context' 'wkhtmltopdf' 'weasyprint' 'typst')" -d 'Engine used to produce PDF output.'
-complete -c quarto -n '__quarto_at "render"' -l 'mathjax' -f -d 'Render mathematics with MathJax.'
-complete -c quarto -n '__quarto_at "render"' -l 'katex' -f -d 'Render mathematics with KaTeX.'
-complete -c quarto -n '__quarto_at "render"' -l 'wrap' -r -f -a "(__quarto_words 'auto' 'none' 'preserve')" -d 'Text wrapping in the output.'
-complete -c quarto -n '__quarto_at "render"' -l 'reference-doc' -r -F -a "(__fish_complete_suffix .docx; __fish_complete_suffix .pptx; __fish_complete_suffix .odt)" -d 'Reference document for docx, pptx, or odt output.'
-complete -c quarto -n '__quarto_at "render"' -l 'shift-heading-level-by' -r -f -d 'Shift heading levels by this amount.'
-complete -c quarto -n '__quarto_at "preview" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "preview"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "preview"' -l 'port' -r -f -d 'Suggested port to listen on (defaults to random value between 3000 and 8000).'
-complete -c quarto -n '__quarto_at "preview"' -l 'host' -r -f -d 'Hostname to bind to (defaults to 127.0.0.1)'
-complete -c quarto -n '__quarto_at "preview"' -l 'render' -r -f -a "(__quarto_words 'all' 'html' 'pdf' 'docx' 'odt' 'rtf' 'revealjs' 'beamer' 'pptx' 'typst' 'dashboard' 'epub' 'gfm' 'commonmark' 'markdown' 'markua' 'hugo-md' 'docusaurus-md' 'jats' 'asciidoc' 'asciidoctor' 'ipynb' 'context' 'docbook' 'dokuwiki' 'jira' 'mediawiki' 'man' 'ms' 'muse' 'opml' 'org' 'rst' 'texinfo' 'textile' 'xwiki' 'zimwiki')" -d 'Render to the specified format(s) before previewing (Default: "none")'
-complete -c quarto -n '__quarto_at "preview"' -l 'no-serve' -f -d 'Don'\''t run a local preview web server (just monitor and re-render input files)'
-complete -c quarto -n '__quarto_at "preview"' -l 'no-navigate' -f -d 'Don'\''t navigate the browser automatically when outputs are updated.'
-complete -c quarto -n '__quarto_at "preview"' -l 'no-browser' -f -d 'Don'\''t open a browser to preview the site.'
-complete -c quarto -n '__quarto_at "preview"' -l 'no-watch-inputs' -f -d 'Do not re-render input files when they change.'
-complete -c quarto -n '__quarto_at "preview"' -l 'timeout' -r -f -d 'Time (in seconds) after which to exit if there are no active clients.'
-complete -c quarto -n '__quarto_at "preview"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "preview"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "preview"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "preview"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "preview"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "preview"' -l 'toc' -f -d 'Include an automatically generated table of contents.'
-complete -c quarto -n '__quarto_at "preview"' -l 'toc-depth' -r -f -d 'Number of section levels in the table of contents.'
-complete -c quarto -n '__quarto_at "preview"' -l 'number-sections' -f -d 'Number section headings.'
-complete -c quarto -n '__quarto_at "preview"' -l 'number-offset' -r -f -d 'Offset for section headings.'
-complete -c quarto -n '__quarto_at "preview"' -l 'top-level-division' -r -f -a "(__quarto_words 'default' 'section' 'chapter' 'part')" -d 'Treat top-level headings as this division.'
-complete -c quarto -n '__quarto_at "preview"' -l 'standalone' -f -d 'Produce a standalone document.'
-complete -c quarto -n '__quarto_at "preview"' -l 'template' -r -F -d 'Use FILE as a custom template.'
-complete -c quarto -n '__quarto_at "preview"' -l 'css' -r -F -a "(__fish_complete_suffix .css)" -d 'Link to a CSS style sheet.'
-complete -c quarto -n '__quarto_at "preview"' -l 'bibliography' -r -F -a "(__fish_complete_suffix .bib; __fish_complete_suffix .bibtex; __fish_complete_suffix .json; __fish_complete_suffix .yml; __fish_complete_suffix .yaml)" -d 'Bibliography file.'
-complete -c quarto -n '__quarto_at "preview"' -l 'csl' -r -F -a "(__fish_complete_suffix .csl)" -d 'Citation Style Language file.'
-complete -c quarto -n '__quarto_at "preview"' -l 'citeproc' -f -d 'Process citations with citeproc.'
-complete -c quarto -n '__quarto_at "preview"' -l 'highlight-style' -r -f -d 'Syntax highlighting style.'
-complete -c quarto -n '__quarto_at "preview"' -l 'pdf-engine' -r -f -a "(__quarto_words 'pdflatex' 'lualatex' 'xelatex' 'tectonic' 'latexmk' 'context' 'wkhtmltopdf' 'weasyprint' 'typst')" -d 'Engine used to produce PDF output.'
-complete -c quarto -n '__quarto_at "preview"' -l 'mathjax' -f -d 'Render mathematics with MathJax.'
-complete -c quarto -n '__quarto_at "preview"' -l 'katex' -f -d 'Render mathematics with KaTeX.'
-complete -c quarto -n '__quarto_at "preview"' -l 'wrap' -r -f -a "(__quarto_words 'auto' 'none' 'preserve')" -d 'Text wrapping in the output.'
-complete -c quarto -n '__quarto_at "preview"' -l 'reference-doc' -r -F -a "(__fish_complete_suffix .docx; __fish_complete_suffix .pptx; __fish_complete_suffix .odt)" -d 'Reference document for docx, pptx, or odt output.'
-complete -c quarto -n '__quarto_at "preview"' -l 'shift-heading-level-by' -r -f -d 'Shift heading levels by this amount.'
-complete -c quarto -n '__quarto_at "serve" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "serve"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "serve"' -l 'no-render' -f -d 'Do not render the document before serving.'
-complete -c quarto -n '__quarto_at "serve"' -s 'p' -l 'port' -r -f -d 'The TCP port that the application should listen on.'
-complete -c quarto -n '__quarto_at "serve"' -l 'host' -r -f -d 'Hostname to bind to (defaults to 127.0.0.1)'
-complete -c quarto -n '__quarto_at "serve"' -l 'browser' -f -d 'Open a browser to preview the site.'
-complete -c quarto -n '__quarto_at "serve"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "serve"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "serve"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "serve"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "serve"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "create" 0' -f -a "(__quarto_words 'project' 'extension')"
-complete -c quarto -n '__quarto_at "create"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "create"' -l 'open' -r -f -a "(__quarto_words 'positron' 'vscode' 'rstudio')" -d 'Open new artifact in this editor (positron, vscode, rstudio)'
-complete -c quarto -n '__quarto_at "create"' -l 'no-open' -f -d 'Do not open in an editor'
-complete -c quarto -n '__quarto_at "create"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "create"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "create"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "create"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "create"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "create"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "use" 0' -f -a "(__quarto_words 'template')" -d 'Use a Quarto template for this directory or project.'
-complete -c quarto -n '__quarto_at "use" 0' -f -a "(__quarto_words 'binder')" -d 'Configure the current project with Binder support.'
-complete -c quarto -n '__quarto_at "use" 0' -f -a "(__quarto_words 'brand')" -d 'Use a brand for this project.'
-complete -c quarto -n '__quarto_at "use"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "use"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "use template"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "use template"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "use template"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "use template"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "use template"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "use template"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "use binder"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "use binder"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "use binder"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "use binder"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "use binder"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "use binder"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "use brand"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "use brand"' -l 'force' -f -d 'Skip all prompts and confirmations'
-complete -c quarto -n '__quarto_at "use brand"' -l 'dry-run' -f -d 'Show what would happen without making changes'
-complete -c quarto -n '__quarto_at "use brand"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "use brand"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "use brand"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "use brand"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "use brand"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "add"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "add"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "add"' -l 'embed' -r -f -d 'Embed this extension within another extension (used when authoring extensions).'
-complete -c quarto -n '__quarto_at "add"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "add"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "add"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "add"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "add"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "update" 0+' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "update"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "update"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "update"' -l 'embed' -r -f -d 'Embed this extension within another extension (used when authoring extensions).'
-complete -c quarto -n '__quarto_at "update"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "update"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "update"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "update"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "update"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "remove"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "remove"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "remove"' -l 'embed' -r -f -d 'Remove this extension from within another extension (used when authoring extensions).'
-complete -c quarto -n '__quarto_at "remove"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "remove"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "remove"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "remove"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "remove"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "convert" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "convert"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "convert"' -s 'o' -l 'output' -r -F -d 'Write output to PATH.'
-complete -c quarto -n '__quarto_at "convert"' -l 'with-ids' -f -d 'Include ids in conversion'
-complete -c quarto -n '__quarto_at "convert"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "convert"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "convert"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "convert"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "convert"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "run" 0' -F -a "(__fish_complete_suffix .ts; __fish_complete_suffix .js; __fish_complete_suffix .py; __fish_complete_suffix .R; __fish_complete_suffix .r; __fish_complete_suffix .lua)"
-complete -c quarto -n '__quarto_at "run"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "run"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "run"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "run"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "run"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "run"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "list" 0' -f -a "(__quarto_words 'extensions' 'tools')"
-complete -c quarto -n '__quarto_at "list"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "list"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "list"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "list"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "list"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "list"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "install" 0+' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "install"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "install"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "install"' -l 'update-path' -f -d 'Update system path when a tool is installed'
-complete -c quarto -n '__quarto_at "install"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "install"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "install"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "install"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "install"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "uninstall" 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "uninstall"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'update-path' -f -d 'Update system path when a tool is installed'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "uninstall"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "tools" 0' -f -a "(__quarto_words 'install')" -d 'Installs a global dependency.'
-complete -c quarto -n '__quarto_at "tools" 0' -f -a "(__quarto_words 'info')" -d 'Shows the status of a global dependency.'
-complete -c quarto -n '__quarto_at "tools" 0' -f -a "(__quarto_words 'uninstall')" -d 'Uninstalls a global dependency.'
-complete -c quarto -n '__quarto_at "tools" 0' -f -a "(__quarto_words 'update')" -d 'Updates a global dependency.'
-complete -c quarto -n '__quarto_at "tools" 0' -f -a "(__quarto_words 'list')" -d 'Lists the status of every global dependency.'
-complete -c quarto -n '__quarto_at "tools"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "tools install" 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "tools install"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "tools info" 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "tools info"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "tools uninstall" 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "tools uninstall"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "tools update" 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
-complete -c quarto -n '__quarto_at "tools update"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "tools list"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "tools list"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "tools list"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "tools list"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "tools list"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "tools list"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "publish" 0' -f -a "(__quarto_words 'quarto-pub' 'gh-pages' 'connect' 'posit-connect-cloud' 'netlify' 'confluence' 'huggingface')"
-complete -c quarto -n '__quarto_at "publish" 1' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "publish"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "publish"' -l 'id' -r -f -d 'Identifier of content to publish'
-complete -c quarto -n '__quarto_at "publish"' -l 'server' -r -f -d 'Server to publish to'
-complete -c quarto -n '__quarto_at "publish"' -l 'token' -r -f -d 'Access token for publising provider'
-complete -c quarto -n '__quarto_at "publish"' -l 'no-render' -f -d 'Do not render before publishing.'
-complete -c quarto -n '__quarto_at "publish"' -l 'no-prompt' -f -d 'Do not prompt to confirm publishing destination'
-complete -c quarto -n '__quarto_at "publish"' -l 'no-browser' -f -d 'Do not open a browser to the site after publishing'
-complete -c quarto -n '__quarto_at "publish"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "publish"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "publish"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "publish"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "publish"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "check" 0' -f -a "(__quarto_words 'install' 'jupyter' 'knitr' 'versions' 'all')"
-complete -c quarto -n '__quarto_at "check"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "check"' -l 'output' -r -F -d 'Output as JSON to a file'
-complete -c quarto -n '__quarto_at "check"' -l 'no-strict' -f -d 'When set, will not fail if dependency versions don'\''t match precisely'
-complete -c quarto -n '__quarto_at "check"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "check"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "check"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "check"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "check"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "call" 0' -f -a "(__quarto_words 'engine')" -d 'Access functionality specific to quarto'\''s different rendering engines.'
-complete -c quarto -n '__quarto_at "call" 0' -f -a "(__quarto_words 'build-ts-extension')" -d 'Build TypeScript execution engine extensions.'
-complete -c quarto -n '__quarto_at "call" 0' -f -a "(__quarto_words 'typst-gather')" -d 'Gather Typst packages for a format extension.'
-complete -c quarto -n '__quarto_at "call"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "call engine" 0' -f -a "(__quarto_words 'jupyter' 'knitr' 'markdown' 'julia')"
-complete -c quarto -n '__quarto_at "call engine"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "call engine"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "call engine"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "call engine"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "call engine"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "call build-ts-extension" 0' -F -a "(__fish_complete_suffix .ts)"
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -l 'check' -f -d 'Type-check only (skip bundling)'
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -l 'init-config' -f -d 'Generate deno.json with absolute importMap path'
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "call build-ts-extension"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "call typst-gather"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "call typst-gather"' -l 'init-config' -f -d 'Generate a starter typst-gather.toml in current directory'
-complete -c quarto -n '__quarto_at "call typst-gather"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "call typst-gather"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "call typst-gather"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "call typst-gather"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "call typst-gather"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "capabilities"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "capabilities"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "capabilities"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "capabilities"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "capabilities"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "capabilities"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "inspect" 0' -F
-complete -c quarto -n '__quarto_at "inspect" 1' -F
-complete -c quarto -n '__quarto_at "inspect"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "inspect"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "inspect"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "inspect"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "inspect"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "inspect"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "editor-support" 0' -f -a "(__quarto_words 'crossref')" -d 'Index cross references for content'
-complete -c quarto -n '__quarto_at "editor-support"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -s 'i' -l 'input' -f -d 'Use FILE as input (default: stdin).'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -s 'o' -l 'output' -f -d 'Write output to FILE (default: stdout).'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "editor-support crossref"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "create-project" 0' -f -a "(__fish_complete_directories)"
-complete -c quarto -n '__quarto_at "create-project"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "create-project"' -l 'title' -r -f -d 'Project title'
-complete -c quarto -n '__quarto_at "create-project"' -l 'type' -r -f -a "(__quarto_words 'book' 'default' 'website' 'manuscript')" -d 'Project type (book, default, website, manuscript)'
-complete -c quarto -n '__quarto_at "create-project"' -l 'template' -r -f -d 'Use a specific project template'
-complete -c quarto -n '__quarto_at "create-project"' -l 'engine' -r -f -a "(__quarto_words 'jupyter' 'knitr' 'markdown' 'julia')" -d 'Use execution engine (jupyter, knitr, markdown, ...)'
-complete -c quarto -n '__quarto_at "create-project"' -l 'editor' -r -f -a "(__quarto_words 'source' 'visual')" -d 'Default editor for project ('\''source'\'' or '\''visual'\'')'
-complete -c quarto -n '__quarto_at "create-project"' -l 'with-venv' -r -f -d 'Create a virtualenv for this project'
-complete -c quarto -n '__quarto_at "create-project"' -l 'with-condaenv' -r -f -d 'Create a condaenv for this project'
-complete -c quarto -n '__quarto_at "create-project"' -l 'no-scaffold' -f -d 'Don'\''t create initial project file(s)'
-complete -c quarto -n '__quarto_at "create-project"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "create-project"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "create-project"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "create-project"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "create-project"' -l 'profile' -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "completions" 0' -f -a "(__quarto_words 'bash')" -d 'Generate shell completions for bash.'
-complete -c quarto -n '__quarto_at "completions" 0' -f -a "(__quarto_words 'fish')" -d 'Generate shell completions for fish.'
-complete -c quarto -n '__quarto_at "completions" 0' -f -a "(__quarto_words 'zsh')" -d 'Generate shell completions for zsh.'
-complete -c quarto -n '__quarto_at "completions"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "completions bash"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "completions bash"' -s 'n' -l 'name' -r -f -d 'The name of the main command.'
-complete -c quarto -n '__quarto_at "completions fish"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "completions fish"' -s 'n' -l 'name' -r -f -d 'The name of the main command.'
-complete -c quarto -n '__quarto_at "completions zsh"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "completions zsh"' -s 'n' -l 'name' -r -f -d 'The name of the main command. (Default: "quarto")'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'cli-info')" -d 'Generate JSON information about the Quarto CLI.'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'validate-yaml')" -d 'Validates a YAML file against Quarto'\''s schemas.'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'build-artifacts')" -d 'Builds all the javascript assets necessary for IDE support.'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'show-ast-trace')" -d 'Renders the document with AST tracing enabled and then shows the debugging output.'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'make-ast-diagram')" -d 'Creates a diagram of the Pandoc AST.'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'pull-git-subtree')" -d 'Pull configured git subtrees.'
-complete -c quarto -n '__quarto_at "dev-call" 0' -f -a "(__quarto_words 'typst-gather')" -d 'Gather Typst packages for offline/hermetic builds.'
-complete -c quarto -n '__quarto_at "dev-call"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call cli-info"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call cli-info"' -l 'log' -r -F -d 'Path to log file'
-complete -c quarto -n '__quarto_at "dev-call cli-info"' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
-complete -c quarto -n '__quarto_at "dev-call cli-info"' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
-complete -c quarto -n '__quarto_at "dev-call cli-info"' -l 'quiet' -f -d 'Suppress console output.'
-complete -c quarto -n '__quarto_at "dev-call validate-yaml" 0' -F -a "(__fish_complete_suffix .yml; __fish_complete_suffix .yaml)"
-complete -c quarto -n '__quarto_at "dev-call validate-yaml"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call validate-yaml"' -s 's' -l 'schema' -r -f -d 'Name of schema in Quarto'\''s definitions.yml. If string ends with .yml, it is treated as a file name for a new schema, which is validated, loaded, and then used.'
-complete -c quarto -n '__quarto_at "dev-call validate-yaml"' -l 'json' -f -d 'If set, output error messages in JSON format.'
-complete -c quarto -n '__quarto_at "dev-call build-artifacts"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call show-ast-trace" 0+' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "dev-call show-ast-trace"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call make-ast-diagram" 0+' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
-complete -c quarto -n '__quarto_at "dev-call make-ast-diagram"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call make-ast-diagram"' -s 'm' -l 'mode' -r -f -d 'Diagram mode (default: full)'
-complete -c quarto -n '__quarto_at "dev-call pull-git-subtree" 0' -f -a "(__quarto_words 'all' 'julia-engine' 'orange-book')"
-complete -c quarto -n '__quarto_at "dev-call pull-git-subtree"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call typst-gather"' -s 'h' -l 'help' -f -d 'Show this help.'
-complete -c quarto -n '__quarto_at "dev-call typst-gather"' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto --argument-names index
+  __quarto_at '' $index
+end
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'render')" -d 'Render files or projects to various document types.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'preview')" -d 'Render and preview a document or website project.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'serve')" -d 'Serve a Shiny interactive document.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'create')" -d 'Create a Quarto project or extension'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'use')" -d 'Automate document or project setup tasks.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'add')" -d 'Add an extension to this folder or project'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'update')" -d 'Updates an extension or global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'remove')" -d 'Removes an extension.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'convert')" -d 'Convert documents to alternate representations.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'pandoc')" -d 'Run the version of Pandoc embedded within Quarto.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'typst')" -d 'Run the version of Typst embedded within Quarto.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'run')" -d 'Run a TypeScript, R, Python, or Lua script.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'list')" -d 'Lists an extension or global dependency.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'install')" -d 'Installs a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'uninstall')" -d 'Uninstalls a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'tools')" -d 'Display the status of Quarto installed dependencies'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'publish')" -d 'Publish a document or project to a provider.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'check')" -d 'Verify correct functioning of Quarto installation.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'call')" -d 'Access functions of Quarto subsystems such as its rendering engines.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'capabilities')" -d 'Query for current capabilities (formats, engines, kernels etc.)'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'inspect')" -d 'Inspect a Quarto project or input path.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'editor-support')" -d 'Miscellaneous tools to support Quarto editor modes'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'create-project')" -d 'Create a project for rendering multiple documents'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'completions')" -d 'Generate shell completions.'
+complete -c quarto -n '__quarto_is_quarto 0' -f -a "(__quarto_words 'dev-call')" -d 'Access internals of Quarto - this command is not intended for general use.'
+complete -c quarto -n '__quarto_is_quarto' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto' -s 'V' -l 'version' -f -d 'Show the version number for this program.'
+function __quarto_is_quarto_render --argument-names index
+  __quarto_at 'render' $index
+end
+complete -c quarto -n '__quarto_is_quarto_render 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_render' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_render' -s 't' -l 'to' -r -f -a "(__quarto_words 'html' 'pdf' 'docx' 'odt' 'rtf' 'revealjs' 'beamer' 'pptx' 'typst' 'dashboard' 'epub' 'gfm' 'commonmark' 'markdown' 'markua' 'hugo-md' 'docusaurus-md' 'jats' 'asciidoc' 'asciidoctor' 'ipynb' 'context' 'docbook' 'dokuwiki' 'jira' 'mediawiki' 'man' 'ms' 'muse' 'opml' 'org' 'rst' 'texinfo' 'textile' 'xwiki' 'zimwiki')" -d 'Specify output format(s).'
+complete -c quarto -n '__quarto_is_quarto_render' -s 'o' -l 'output' -r -F -d 'Write output to FILE (use '\''--output -'\'' for stdout).'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'output-dir' -r -f -a "(__fish_complete_directories)" -d 'Write output to DIR (path is input/project relative)'
+complete -c quarto -n '__quarto_is_quarto_render' -s 'M' -l 'metadata' -r -f -d 'Metadata value (KEY:VALUE).'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'site-url' -r -f -d 'Override site-url for website or book output'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'execute' -f -d 'Execute code (--no-execute to skip execution).'
+complete -c quarto -n '__quarto_is_quarto_render' -s 'P' -l 'execute-param' -r -f -d 'Execution parameter (KEY:VALUE).'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'execute-params' -r -F -a "(__fish_complete_suffix .yml; __fish_complete_suffix .yaml; __fish_complete_suffix .json)" -d 'YAML file with execution parameters.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'execute-dir' -r -f -a "(__fish_complete_directories)" -d 'Working directory for code execution.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'execute-daemon' -r -f -d 'Keep Jupyter kernel alive (defaults to 300 seconds).'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'execute-daemon-restart' -f -d 'Restart keepalive Jupyter kernel before render.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'execute-debug' -f -d 'Show debug output when executing computations.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'use-freezer' -f -d 'Force use of frozen computations for an incremental file render.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'cache' -f -d 'Cache execution output (--no-cache to prevent cache).'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'cache-refresh' -f -d 'Force refresh of execution cache.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'no-clean' -f -d 'Do not clean project output-dir prior to render'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'debug' -f -d 'Leave intermediate files in place after render.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'profile' -r -f -d 'Active project profile(s)'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'no-execute' -f -d 'Negated form of --execute.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'no-cache' -f -d 'Negated form of --cache.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'toc' -f -d 'Include an automatically generated table of contents.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'toc-depth' -r -f -d 'Number of section levels in the table of contents.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'number-sections' -f -d 'Number section headings.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'number-offset' -r -f -d 'Offset for section headings.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'top-level-division' -r -f -a "(__quarto_words 'default' 'section' 'chapter' 'part')" -d 'Treat top-level headings as this division.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'standalone' -f -d 'Produce a standalone document.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'template' -r -F -d 'Use FILE as a custom template.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'css' -r -F -a "(__fish_complete_suffix .css)" -d 'Link to a CSS style sheet.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'bibliography' -r -F -a "(__fish_complete_suffix .bib; __fish_complete_suffix .bibtex; __fish_complete_suffix .json; __fish_complete_suffix .yml; __fish_complete_suffix .yaml)" -d 'Bibliography file.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'csl' -r -F -a "(__fish_complete_suffix .csl)" -d 'Citation Style Language file.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'citeproc' -f -d 'Process citations with citeproc.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'highlight-style' -r -f -d 'Syntax highlighting style.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'pdf-engine' -r -f -a "(__quarto_words 'pdflatex' 'lualatex' 'xelatex' 'tectonic' 'latexmk' 'context' 'wkhtmltopdf' 'weasyprint' 'typst')" -d 'Engine used to produce PDF output.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'mathjax' -f -d 'Render mathematics with MathJax.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'katex' -f -d 'Render mathematics with KaTeX.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'wrap' -r -f -a "(__quarto_words 'auto' 'none' 'preserve')" -d 'Text wrapping in the output.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'reference-doc' -r -F -a "(__fish_complete_suffix .docx; __fish_complete_suffix .pptx; __fish_complete_suffix .odt)" -d 'Reference document for docx, pptx, or odt output.'
+complete -c quarto -n '__quarto_is_quarto_render' -l 'shift-heading-level-by' -r -f -d 'Shift heading levels by this amount.'
+function __quarto_is_quarto_preview --argument-names index
+  __quarto_at 'preview' $index
+end
+complete -c quarto -n '__quarto_is_quarto_preview 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_preview' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'port' -r -f -d 'Suggested port to listen on (defaults to random value between 3000 and 8000).'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'host' -r -f -d 'Hostname to bind to (defaults to 127.0.0.1)'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'render' -r -f -a "(__quarto_words 'all' 'html' 'pdf' 'docx' 'odt' 'rtf' 'revealjs' 'beamer' 'pptx' 'typst' 'dashboard' 'epub' 'gfm' 'commonmark' 'markdown' 'markua' 'hugo-md' 'docusaurus-md' 'jats' 'asciidoc' 'asciidoctor' 'ipynb' 'context' 'docbook' 'dokuwiki' 'jira' 'mediawiki' 'man' 'ms' 'muse' 'opml' 'org' 'rst' 'texinfo' 'textile' 'xwiki' 'zimwiki')" -d 'Render to the specified format(s) before previewing (Default: "none")'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'no-serve' -f -d 'Don'\''t run a local preview web server (just monitor and re-render input files)'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'no-navigate' -f -d 'Don'\''t navigate the browser automatically when outputs are updated.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'no-browser' -f -d 'Don'\''t open a browser to preview the site.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'no-watch-inputs' -f -d 'Do not re-render input files when they change.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'timeout' -r -f -d 'Time (in seconds) after which to exit if there are no active clients.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'profile' -r -f -d 'Active project profile(s)'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'toc' -f -d 'Include an automatically generated table of contents.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'toc-depth' -r -f -d 'Number of section levels in the table of contents.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'number-sections' -f -d 'Number section headings.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'number-offset' -r -f -d 'Offset for section headings.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'top-level-division' -r -f -a "(__quarto_words 'default' 'section' 'chapter' 'part')" -d 'Treat top-level headings as this division.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'standalone' -f -d 'Produce a standalone document.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'template' -r -F -d 'Use FILE as a custom template.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'css' -r -F -a "(__fish_complete_suffix .css)" -d 'Link to a CSS style sheet.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'bibliography' -r -F -a "(__fish_complete_suffix .bib; __fish_complete_suffix .bibtex; __fish_complete_suffix .json; __fish_complete_suffix .yml; __fish_complete_suffix .yaml)" -d 'Bibliography file.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'csl' -r -F -a "(__fish_complete_suffix .csl)" -d 'Citation Style Language file.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'citeproc' -f -d 'Process citations with citeproc.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'highlight-style' -r -f -d 'Syntax highlighting style.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'pdf-engine' -r -f -a "(__quarto_words 'pdflatex' 'lualatex' 'xelatex' 'tectonic' 'latexmk' 'context' 'wkhtmltopdf' 'weasyprint' 'typst')" -d 'Engine used to produce PDF output.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'mathjax' -f -d 'Render mathematics with MathJax.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'katex' -f -d 'Render mathematics with KaTeX.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'wrap' -r -f -a "(__quarto_words 'auto' 'none' 'preserve')" -d 'Text wrapping in the output.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'reference-doc' -r -F -a "(__fish_complete_suffix .docx; __fish_complete_suffix .pptx; __fish_complete_suffix .odt)" -d 'Reference document for docx, pptx, or odt output.'
+complete -c quarto -n '__quarto_is_quarto_preview' -l 'shift-heading-level-by' -r -f -d 'Shift heading levels by this amount.'
+function __quarto_is_quarto_serve --argument-names index
+  __quarto_at 'serve' $index
+end
+complete -c quarto -n '__quarto_is_quarto_serve 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_serve' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'no-render' -f -d 'Do not render the document before serving.'
+complete -c quarto -n '__quarto_is_quarto_serve' -s 'p' -l 'port' -r -f -d 'The TCP port that the application should listen on.'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'host' -r -f -d 'Hostname to bind to (defaults to 127.0.0.1)'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'browser' -f -d 'Open a browser to preview the site.'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_serve' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_create --argument-names index
+  __quarto_at 'create' $index
+end
+complete -c quarto -n '__quarto_is_quarto_create 0' -f -a "(__quarto_words 'project' 'extension')"
+complete -c quarto -n '__quarto_is_quarto_create' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'open' -r -f -a "(__quarto_words 'positron' 'vscode' 'rstudio')" -d 'Open new artifact in this editor (positron, vscode, rstudio)'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'no-open' -f -d 'Do not open in an editor'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_create' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_use --argument-names index
+  __quarto_at 'use' $index
+end
+complete -c quarto -n '__quarto_is_quarto_use 0' -f -a "(__quarto_words 'template')" -d 'Use a Quarto template for this directory or project.'
+complete -c quarto -n '__quarto_is_quarto_use 0' -f -a "(__quarto_words 'binder')" -d 'Configure the current project with Binder support.'
+complete -c quarto -n '__quarto_is_quarto_use 0' -f -a "(__quarto_words 'brand')" -d 'Use a brand for this project.'
+complete -c quarto -n '__quarto_is_quarto_use' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_use' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+function __quarto_is_quarto_use_template --argument-names index
+  __quarto_at 'use template' $index
+end
+complete -c quarto -n '__quarto_is_quarto_use_template' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_use_template' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_use_template' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_use_template' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_use_template' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_use_template' -l 'quiet' -f -d 'Suppress console output.'
+function __quarto_is_quarto_use_binder --argument-names index
+  __quarto_at 'use binder' $index
+end
+complete -c quarto -n '__quarto_is_quarto_use_binder' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_use_binder' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_use_binder' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_use_binder' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_use_binder' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_use_binder' -l 'quiet' -f -d 'Suppress console output.'
+function __quarto_is_quarto_use_brand --argument-names index
+  __quarto_at 'use brand' $index
+end
+complete -c quarto -n '__quarto_is_quarto_use_brand' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'force' -f -d 'Skip all prompts and confirmations'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'dry-run' -f -d 'Show what would happen without making changes'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_use_brand' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_add --argument-names index
+  __quarto_at 'add' $index
+end
+complete -c quarto -n '__quarto_is_quarto_add' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'embed' -r -f -d 'Embed this extension within another extension (used when authoring extensions).'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_add' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_update --argument-names index
+  __quarto_at 'update' $index
+end
+complete -c quarto -n '__quarto_is_quarto_update 0+' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_update' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'embed' -r -f -d 'Embed this extension within another extension (used when authoring extensions).'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_update' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_remove --argument-names index
+  __quarto_at 'remove' $index
+end
+complete -c quarto -n '__quarto_is_quarto_remove' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'embed' -r -f -d 'Remove this extension from within another extension (used when authoring extensions).'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_remove' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_convert --argument-names index
+  __quarto_at 'convert' $index
+end
+complete -c quarto -n '__quarto_is_quarto_convert 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_convert' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_convert' -s 'o' -l 'output' -r -F -d 'Write output to PATH.'
+complete -c quarto -n '__quarto_is_quarto_convert' -l 'with-ids' -f -d 'Include ids in conversion'
+complete -c quarto -n '__quarto_is_quarto_convert' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_convert' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_convert' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_convert' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_convert' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_pandoc --argument-names index
+  __quarto_at 'pandoc' $index
+end
+function __quarto_is_quarto_typst --argument-names index
+  __quarto_at 'typst' $index
+end
+function __quarto_is_quarto_run --argument-names index
+  __quarto_at 'run' $index
+end
+complete -c quarto -n '__quarto_is_quarto_run 0' -F -a "(__fish_complete_suffix .ts; __fish_complete_suffix .js; __fish_complete_suffix .py; __fish_complete_suffix .R; __fish_complete_suffix .r; __fish_complete_suffix .lua)"
+complete -c quarto -n '__quarto_is_quarto_run' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_run' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_run' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_run' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_run' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_run' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_list --argument-names index
+  __quarto_at 'list' $index
+end
+complete -c quarto -n '__quarto_is_quarto_list 0' -f -a "(__quarto_words 'extensions' 'tools')"
+complete -c quarto -n '__quarto_is_quarto_list' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_list' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_list' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_list' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_list' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_list' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_install --argument-names index
+  __quarto_at 'install' $index
+end
+complete -c quarto -n '__quarto_is_quarto_install 0+' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_install' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'update-path' -f -d 'Update system path when a tool is installed'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_install' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_uninstall --argument-names index
+  __quarto_at 'uninstall' $index
+end
+complete -c quarto -n '__quarto_is_quarto_uninstall 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_uninstall' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'no-prompt' -f -d 'Do not prompt to confirm actions'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'update-path' -f -d 'Update system path when a tool is installed'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_uninstall' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_tools --argument-names index
+  __quarto_at 'tools' $index
+end
+complete -c quarto -n '__quarto_is_quarto_tools 0' -f -a "(__quarto_words 'install')" -d 'Installs a global dependency.'
+complete -c quarto -n '__quarto_is_quarto_tools 0' -f -a "(__quarto_words 'info')" -d 'Shows the status of a global dependency.'
+complete -c quarto -n '__quarto_is_quarto_tools 0' -f -a "(__quarto_words 'uninstall')" -d 'Uninstalls a global dependency.'
+complete -c quarto -n '__quarto_is_quarto_tools 0' -f -a "(__quarto_words 'update')" -d 'Updates a global dependency.'
+complete -c quarto -n '__quarto_is_quarto_tools 0' -f -a "(__quarto_words 'list')" -d 'Lists the status of every global dependency.'
+complete -c quarto -n '__quarto_is_quarto_tools' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_tools_install --argument-names index
+  __quarto_at 'tools install' $index
+end
+complete -c quarto -n '__quarto_is_quarto_tools_install 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_tools_install' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_tools_info --argument-names index
+  __quarto_at 'tools info' $index
+end
+complete -c quarto -n '__quarto_is_quarto_tools_info 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_tools_info' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_tools_uninstall --argument-names index
+  __quarto_at 'tools uninstall' $index
+end
+complete -c quarto -n '__quarto_is_quarto_tools_uninstall 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_tools_uninstall' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_tools_update --argument-names index
+  __quarto_at 'tools update' $index
+end
+complete -c quarto -n '__quarto_is_quarto_tools_update 0' -f -a "(__quarto_words 'tinytex' 'chrome-headless-shell' 'verapdf')"
+complete -c quarto -n '__quarto_is_quarto_tools_update' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_tools_list --argument-names index
+  __quarto_at 'tools list' $index
+end
+complete -c quarto -n '__quarto_is_quarto_tools_list' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_tools_list' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_tools_list' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_tools_list' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_tools_list' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_tools_list' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_publish --argument-names index
+  __quarto_at 'publish' $index
+end
+complete -c quarto -n '__quarto_is_quarto_publish 0' -f -a "(__quarto_words 'quarto-pub' 'gh-pages' 'connect' 'posit-connect-cloud' 'netlify' 'confluence' 'huggingface')"
+complete -c quarto -n '__quarto_is_quarto_publish 1' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_publish' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'id' -r -f -d 'Identifier of content to publish'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'server' -r -f -d 'Server to publish to'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'token' -r -f -d 'Access token for publising provider'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'no-render' -f -d 'Do not render before publishing.'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'no-prompt' -f -d 'Do not prompt to confirm publishing destination'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'no-browser' -f -d 'Do not open a browser to the site after publishing'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_publish' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_check --argument-names index
+  __quarto_at 'check' $index
+end
+complete -c quarto -n '__quarto_is_quarto_check 0' -f -a "(__quarto_words 'install' 'jupyter' 'knitr' 'versions' 'all')"
+complete -c quarto -n '__quarto_is_quarto_check' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'output' -r -F -d 'Output as JSON to a file'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'no-strict' -f -d 'When set, will not fail if dependency versions don'\''t match precisely'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_check' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_call --argument-names index
+  __quarto_at 'call' $index
+end
+complete -c quarto -n '__quarto_is_quarto_call 0' -f -a "(__quarto_words 'engine')" -d 'Access functionality specific to quarto'\''s different rendering engines.'
+complete -c quarto -n '__quarto_is_quarto_call 0' -f -a "(__quarto_words 'build-ts-extension')" -d 'Build TypeScript execution engine extensions.'
+complete -c quarto -n '__quarto_is_quarto_call 0' -f -a "(__quarto_words 'typst-gather')" -d 'Gather Typst packages for a format extension.'
+complete -c quarto -n '__quarto_is_quarto_call' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_call_engine --argument-names index
+  __quarto_at 'call engine' $index
+end
+complete -c quarto -n '__quarto_is_quarto_call_engine 0' -f -a "(__quarto_words 'jupyter' 'knitr' 'markdown' 'julia')"
+complete -c quarto -n '__quarto_is_quarto_call_engine' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_call_engine' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_call_engine' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_call_engine' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_call_engine' -l 'quiet' -f -d 'Suppress console output.'
+function __quarto_is_quarto_call_build_ts_extension --argument-names index
+  __quarto_at 'call build-ts-extension' $index
+end
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension 0' -F -a "(__fish_complete_suffix .ts)"
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -l 'check' -f -d 'Type-check only (skip bundling)'
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -l 'init-config' -f -d 'Generate deno.json with absolute importMap path'
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_call_build_ts_extension' -l 'quiet' -f -d 'Suppress console output.'
+function __quarto_is_quarto_call_typst_gather --argument-names index
+  __quarto_at 'call typst-gather' $index
+end
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -l 'init-config' -f -d 'Generate a starter typst-gather.toml in current directory'
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_call_typst_gather' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_capabilities --argument-names index
+  __quarto_at 'capabilities' $index
+end
+complete -c quarto -n '__quarto_is_quarto_capabilities' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_capabilities' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_capabilities' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_capabilities' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_capabilities' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_capabilities' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_inspect --argument-names index
+  __quarto_at 'inspect' $index
+end
+complete -c quarto -n '__quarto_is_quarto_inspect 0' -F
+complete -c quarto -n '__quarto_is_quarto_inspect 1' -F
+complete -c quarto -n '__quarto_is_quarto_inspect' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_inspect' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_inspect' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_inspect' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_inspect' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_inspect' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_editor_support --argument-names index
+  __quarto_at 'editor-support' $index
+end
+complete -c quarto -n '__quarto_is_quarto_editor_support 0' -f -a "(__quarto_words 'crossref')" -d 'Index cross references for content'
+complete -c quarto -n '__quarto_is_quarto_editor_support' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_editor_support_crossref --argument-names index
+  __quarto_at 'editor-support crossref' $index
+end
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -s 'i' -l 'input' -f -d 'Use FILE as input (default: stdin).'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -s 'o' -l 'output' -f -d 'Write output to FILE (default: stdout).'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_editor_support_crossref' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_create_project --argument-names index
+  __quarto_at 'create-project' $index
+end
+complete -c quarto -n '__quarto_is_quarto_create_project 0' -f -a "(__fish_complete_directories)"
+complete -c quarto -n '__quarto_is_quarto_create_project' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'title' -r -f -d 'Project title'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'type' -r -f -a "(__quarto_words 'book' 'default' 'website' 'manuscript')" -d 'Project type (book, default, website, manuscript)'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'template' -r -f -d 'Use a specific project template'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'engine' -r -f -a "(__quarto_words 'jupyter' 'knitr' 'markdown' 'julia')" -d 'Use execution engine (jupyter, knitr, markdown, ...)'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'editor' -r -f -a "(__quarto_words 'source' 'visual')" -d 'Default editor for project ('\''source'\'' or '\''visual'\'')'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'with-venv' -r -f -d 'Create a virtualenv for this project'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'with-condaenv' -r -f -d 'Create a condaenv for this project'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'no-scaffold' -f -d 'Don'\''t create initial project file(s)'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'quiet' -f -d 'Suppress console output.'
+complete -c quarto -n '__quarto_is_quarto_create_project' -l 'profile' -r -f -d 'Active project profile(s)'
+function __quarto_is_quarto_completions --argument-names index
+  __quarto_at 'completions' $index
+end
+complete -c quarto -n '__quarto_is_quarto_completions 0' -f -a "(__quarto_words 'bash')" -d 'Generate shell completions for bash.'
+complete -c quarto -n '__quarto_is_quarto_completions 0' -f -a "(__quarto_words 'fish')" -d 'Generate shell completions for fish.'
+complete -c quarto -n '__quarto_is_quarto_completions 0' -f -a "(__quarto_words 'zsh')" -d 'Generate shell completions for zsh.'
+complete -c quarto -n '__quarto_is_quarto_completions' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_completions_bash --argument-names index
+  __quarto_at 'completions bash' $index
+end
+complete -c quarto -n '__quarto_is_quarto_completions_bash' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_completions_bash' -s 'n' -l 'name' -r -f -d 'The name of the main command.'
+function __quarto_is_quarto_completions_fish --argument-names index
+  __quarto_at 'completions fish' $index
+end
+complete -c quarto -n '__quarto_is_quarto_completions_fish' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_completions_fish' -s 'n' -l 'name' -r -f -d 'The name of the main command.'
+function __quarto_is_quarto_completions_zsh --argument-names index
+  __quarto_at 'completions zsh' $index
+end
+complete -c quarto -n '__quarto_is_quarto_completions_zsh' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_completions_zsh' -s 'n' -l 'name' -r -f -d 'The name of the main command. (Default: "quarto")'
+function __quarto_is_quarto_dev_call --argument-names index
+  __quarto_at 'dev-call' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'cli-info')" -d 'Generate JSON information about the Quarto CLI.'
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'validate-yaml')" -d 'Validates a YAML file against Quarto'\''s schemas.'
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'build-artifacts')" -d 'Builds all the javascript assets necessary for IDE support.'
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'show-ast-trace')" -d 'Renders the document with AST tracing enabled and then shows the debugging output.'
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'make-ast-diagram')" -d 'Creates a diagram of the Pandoc AST.'
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'pull-git-subtree')" -d 'Pull configured git subtrees.'
+complete -c quarto -n '__quarto_is_quarto_dev_call 0' -f -a "(__quarto_words 'typst-gather')" -d 'Gather Typst packages for offline/hermetic builds.'
+complete -c quarto -n '__quarto_is_quarto_dev_call' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_dev_call_cli_info --argument-names index
+  __quarto_at 'dev-call cli-info' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_cli_info' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_dev_call_cli_info' -l 'log' -r -F -d 'Path to log file'
+complete -c quarto -n '__quarto_is_quarto_dev_call_cli_info' -l 'log-level' -r -f -a "(__quarto_words 'debug' 'info' 'warning' 'error' 'critical')" -d 'Log level (debug, info, warning, error, critical)'
+complete -c quarto -n '__quarto_is_quarto_dev_call_cli_info' -l 'log-format' -r -f -a "(__quarto_words 'plain' 'json-stream')" -d 'Log format (plain, json-stream)'
+complete -c quarto -n '__quarto_is_quarto_dev_call_cli_info' -l 'quiet' -f -d 'Suppress console output.'
+function __quarto_is_quarto_dev_call_validate_yaml --argument-names index
+  __quarto_at 'dev-call validate-yaml' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_validate_yaml 0' -F -a "(__fish_complete_suffix .yml; __fish_complete_suffix .yaml)"
+complete -c quarto -n '__quarto_is_quarto_dev_call_validate_yaml' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_dev_call_validate_yaml' -s 's' -l 'schema' -r -f -d 'Name of schema in Quarto'\''s definitions.yml. If string ends with .yml, it is treated as a file name for a new schema, which is validated, loaded, and then used.'
+complete -c quarto -n '__quarto_is_quarto_dev_call_validate_yaml' -l 'json' -f -d 'If set, output error messages in JSON format.'
+function __quarto_is_quarto_dev_call_build_artifacts --argument-names index
+  __quarto_at 'dev-call build-artifacts' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_build_artifacts' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_dev_call_show_ast_trace --argument-names index
+  __quarto_at 'dev-call show-ast-trace' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_show_ast_trace 0+' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_dev_call_show_ast_trace' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_dev_call_make_ast_diagram --argument-names index
+  __quarto_at 'dev-call make-ast-diagram' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_make_ast_diagram 0+' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
+complete -c quarto -n '__quarto_is_quarto_dev_call_make_ast_diagram' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_dev_call_make_ast_diagram' -s 'm' -l 'mode' -r -f -d 'Diagram mode (default: full)'
+function __quarto_is_quarto_dev_call_pull_git_subtree --argument-names index
+  __quarto_at 'dev-call pull-git-subtree' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_pull_git_subtree 0' -f -a "(__quarto_words 'all' 'julia-engine' 'orange-book')"
+complete -c quarto -n '__quarto_is_quarto_dev_call_pull_git_subtree' -s 'h' -l 'help' -f -d 'Show this help.'
+function __quarto_is_quarto_dev_call_typst_gather --argument-names index
+  __quarto_at 'dev-call typst-gather' $index
+end
+complete -c quarto -n '__quarto_is_quarto_dev_call_typst_gather' -s 'h' -l 'help' -f -d 'Show this help.'
+complete -c quarto -n '__quarto_is_quarto_dev_call_typst_gather' -l 'profile' -r -f -d 'Active project profile(s)'

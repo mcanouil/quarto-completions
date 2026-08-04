@@ -215,7 +215,9 @@ const tests: Record<string, () => void> = {
   "fish resolves the command path before completing"() {
     const output = emitFish(fixtureSpec());
     assertIncludes(output, "function __quarto_at");
-    assertIncludes(output, `__quarto_at "render"`);
+    assertIncludes(output, "function __quarto_is_quarto_render --argument-names index");
+    assertIncludes(output, "__quarto_at 'render' $index");
+    assertIncludes(output, "-n '__quarto_is_quarto_render'");
   },
 
   "fish filters files one suffix at a time"() {
@@ -571,7 +573,11 @@ const tests: Record<string, () => void> = {
       kind: "value",
     });
     const output = emitZsh(enrich(spec));
-    assertExcludes(output, "{-e,--evil';touch pwned;'}");
+    // The trailing '=' is bareWord()'s own addition for a valued long form,
+    // so it belongs in the string this excludes, or the check can never
+    // match the real output either way and would pass regardless of whether
+    // the escaping it is meant to guard is even present.
+    assertExcludes(output, "{-e,--evil';touch pwned;'=}");
     assertIncludes(output, "\\'\\;touch\\ pwned\\;\\'");
   },
 
@@ -584,31 +590,47 @@ const tests: Record<string, () => void> = {
     assertExcludes(output, "case 'evil'; touch pwned; echo '");
   },
 
-  "fish escapes a name that would otherwise close its -n condition"() {
+  "fish keeps every -n condition free of untrusted text, whatever it contains"() {
+    // -n is parsed twice: once as this file is sourced, again when
+    // `complete` evaluates it as a condition command, through `eval` or its
+    // equivalent -- and that second pass turned out to have its own,
+    // apparently undocumented rules for a backslash next to a quote,
+    // different enough from ordinary fish parsing that no quoting scheme
+    // tried here survived embedding path directly in the condition text: a
+    // name combining the two ran a command the moment `complete` looked at
+    // it, regardless of whether path was double-quoted or single-quoted
+    // first. path instead sits once, as an ordinary string literal, in a
+    // per-command wrapper function's body -- source parsed only when the
+    // file is sourced -- and -n calls the function by its safe, sanitised
+    // name. A structural check, not a pattern that can be escaped around:
+    // the vulnerable shape was ever putting path in -n's own text at all.
     const spec = fixtureSpec();
     const call = spec.root.commands.find((command) => command.path[0] === "call")!;
     call.commands.push({
-      path: ["call", "evil'; touch pwned; echo '"],
+      path: ["call", 'a\\"; touch pwned; #'],
       description: "x",
-      options: [],
+      options: [{ long: "--z", description: "d", kind: "none" }],
       args: [],
-      commands: [
-        {
-          path: ["call", "evil'; touch pwned; echo '", "sub"],
-          description: "y",
-          options: [],
-          args: [],
-          commands: [],
-        },
-      ],
+      commands: [],
     });
     const output = emitFish(spec);
-    // The -n condition specifically, not the (already-escaped) -a candidate
-    // for the same malicious name a few lines above it: the vulnerable shape
-    // read `-n '__quarto_at "call evil'; touch pwned; echo '" 0'`, with the
-    // name's own unescaped ' ending the argument to `-n` right there.
-    assertIncludes(output, `-n '__quarto_at "call evil'\\''; touch pwned; echo '\\''" 0'`);
-    assertExcludes(output, `-n '__quarto_at "call evil'; touch pwned; echo '`);
+    assertIncludes(output, `__quarto_at 'call a\\"; touch pwned; #' $index`);
+    let checked = 0;
+    for (const line of output.split("\n")) {
+      if (!line.startsWith("complete -c quarto -n ")) {
+        continue;
+      }
+      const match = /-n '([^']*)'/.exec(line);
+      if (!match) {
+        throw new Error(`no -n value found in: ${line}`);
+      }
+      assert(
+        /^__quarto_is_[A-Za-z0-9_]+( \d+\+?)?$/.test(match[1]),
+        `-n value is not a bare, safe function call: ${match[1]}`,
+      );
+      checked++;
+    }
+    assert(checked > 0, "no complete -n lines were found to check");
   },
 
   "fish routes -a candidates through a function rather than a literal list"() {

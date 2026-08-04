@@ -9,7 +9,7 @@
  */
 
 import type { ArgSpec, CommandSpec, Spec } from "../spec.ts";
-import { commandName } from "../spec.ts";
+import { commandName, nodeId } from "../spec.ts";
 import {
   banner,
   nodes,
@@ -129,24 +129,29 @@ function valuedCase(command: CommandSpec): string {
 
 function commandCompletions(command: CommandSpec): string[] {
   const path = command.path.join(" ");
-  // The whole -n argument is parsed twice: once as this file is sourced,
-  // once more when `complete` evaluates it as a condition command. The outer
-  // '...' only has to survive the first pass, where fish reads \, ", and $
-  // as plain characters; the "..." inside it is what the second pass needs,
-  // to keep an empty or multi-word path as the one argument __quarto_at
-  // reads it as today, and to keep anything path carries from being read as
-  // fish syntax then. singleQuote() guards only the outer layer, escaping a
-  // literal ' that would otherwise end it during the first pass; it leaves
-  // \, ", and $ alone; those need doubleQuoted() for the second.
-  const at = (index?: string) =>
-    `'__quarto_at "${singleQuote(doubleQuoted(path))}"${
-      index === undefined ? "" : ` ${index}`
-    }'`;
-  const lines: string[] = [];
+  // A -n condition is parsed twice: once as this file is sourced, again
+  // when `complete` evaluates it as a condition command, through `eval` or
+  // its equivalent -- and that second pass has its own, apparently
+  // undocumented rules for a backslash next to a quote, different enough
+  // from ordinary fish parsing that no quoting scheme embedding path
+  // directly in the condition text survived real testing. path instead sits
+  // once, as an ordinary string literal, in this function's body: source
+  // parsed only when the file is sourced, the same as every other
+  // command name or flag already baked into this script rather than
+  // rebuilt from text at completion time. -n conditions below call it by
+  // this safe, sanitised name and a trusted index, neither of which is
+  // untrusted text that needs escaping at all.
+  const conditionFn = `__quarto_is_${nodeId(command.path)}`;
+  const lines: string[] = [
+    `function ${conditionFn} --argument-names index`,
+    `  __quarto_at ${quote(path)} $index`,
+    `end`,
+  ];
+  const at = (index?: string) => `${conditionFn}${index === undefined ? "" : ` ${index}`}`;
 
   for (const child of command.commands) {
     lines.push(
-      `complete -c quarto -n ${at("0")} -f -a "(__quarto_words ${
+      `complete -c quarto -n '${at("0")}' -f -a "(__quarto_words ${
         quote(commandName(child))
       })" -d ${quote(oneLine(child.description))}`,
     );
@@ -160,7 +165,7 @@ function commandCompletions(command: CommandSpec): string[] {
     }
     const last = index === args.length - 1;
     const slot = last && trailingIsVariadic(command) ? `${index}+` : `${index}`;
-    lines.push(`complete -c quarto -n ${at(slot)} ${action}`);
+    lines.push(`complete -c quarto -n '${at(slot)}' ${action}`);
   }
 
   for (const option of command.options) {
@@ -176,7 +181,7 @@ function commandCompletions(command: CommandSpec): string[] {
       ? "-f"
       : `-r ${argumentAction(option.kind, option.values, option.globs) ?? "-f"}`;
     lines.push(
-      `complete -c quarto -n ${at()} ${forms} ${value} -d ${
+      `complete -c quarto -n '${at()}' ${forms} ${value} -d ${
         quote(oneLine(option.description))
       }`,
     );
@@ -205,16 +210,6 @@ function argumentAction(
     default:
       return undefined;
   }
-}
-
-/**
- * Escapes text for a fish double-quoted string. Only `\`, `"`, and `$` carry
- * meaning there; unlike single quotes, fish does not use `(...)` command
- * substitution or backtick substitution inside double quotes either, so
- * neither needs escaping.
- */
-function doubleQuoted(text: string): string {
-  return text.replace(/([\\"$])/g, "\\$1");
 }
 
 function quote(text: string): string {
