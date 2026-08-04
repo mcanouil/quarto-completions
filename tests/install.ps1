@@ -20,6 +20,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
+# Unlike -Channel, there is no flag that can override this once the installer
+# reads it as '1': a developer with it exported would otherwise have it
+# inherited by every child pwsh Invoke-Installer starts below, silently
+# turning every "install succeeds" scenario into an uninstall. Cleared once,
+# here, rather than per call: nothing in this script sets it again.
+Remove-Item Env:\QUARTO_COMPLETIONS_UNINSTALL -ErrorAction SilentlyContinue
+
 $root = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
 if (-not $Site) { $Site = Join-Path $root 'docs/_site' }
 $Site = (Resolve-Path -LiteralPath $Site).Path
@@ -77,9 +84,20 @@ function Assert-Count {
 }
 
 function Invoke-Installer {
-  param([string]$BaseUrl, [string[]]$Arguments = @())
+  param([string]$BaseUrl, [string[]]$Arguments = @(), [switch]$SkipChannelPin)
 
   $env:QUARTO_COMPLETIONS_PROFILE = $profilePath
+  # Pinned to 'stable' unconditionally, matching tests/install.sh's pin for
+  # bash, unless the caller already named a channel on the command line, or
+  # passes -SkipChannelPin because it is itself exercising
+  # QUARTO_COMPLETIONS_CHANNEL and needs the ambient environment to reach the
+  # installer untouched: PowerShell errors on a duplicate -Channel, so this
+  # must not add one on top of that test's own. Everywhere else, this keeps
+  # the suite from depending on whatever channel a developer's shell happens
+  # to have exported, or on whatever quarto happens to be on PATH.
+  if (-not $SkipChannelPin -and $Arguments -notcontains '-Channel') {
+    $Arguments = @('-Channel', 'stable') + $Arguments
+  }
   & pwsh -NoProfile -File $installer -BaseUrl $BaseUrl @Arguments 2>&1 | Out-String
 }
 
@@ -155,8 +173,8 @@ try {
   # the environment has to be refused by the installer itself.
   $env:QUARTO_COMPLETIONS_CHANNEL = 'nonsense'
   try {
-    $output = Invoke-Installer -BaseUrl $baseUrl
-    if ($LASTEXITCODE -ne 0 -and $output -match "'stable' or 'prerelease'") {
+    $output = Invoke-Installer -BaseUrl $baseUrl -SkipChannelPin
+    if ($LASTEXITCODE -ne 0 -and $output -match "'stable', 'prerelease', or 'dev'") {
       Test-Pass 'an unknown channel from the environment is refused'
     }
     else {
@@ -173,7 +191,10 @@ try {
   Add-Content -LiteralPath (Join-Path $tampered 'completions/stable/quarto.ps1') -Value '# tampered'
   $tamperedServer = Start-Site -Directory $tampered -On ($Port + 1)
   try {
-    $output = Invoke-Installer -BaseUrl "http://127.0.0.1:$($Port + 1)"
+    # -Channel stable is explicit here: this asserts on the file tampered
+    # above, and the default channel would otherwise follow whatever quarto
+    # happens to be on the machine running the suite.
+    $output = Invoke-Installer -BaseUrl "http://127.0.0.1:$($Port + 1)" -Arguments @('-Channel', 'stable')
     if ($LASTEXITCODE -ne 0 -and $output -match 'Checksum mismatch') {
       Test-Pass 'a checksum mismatch is refused'
     }
@@ -188,6 +209,17 @@ try {
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall') | Out-Null
   Assert-FileMissing 'script removed' $completionPath
   Assert-Count 'managed block removed' $profilePath '>>> quarto completions >>>' 0
+
+  # -Channel dev fetches from the dev channel published alongside stable and
+  # prerelease: generated from a 99.9.9 quarto-cli source build, and the only
+  # one that carries the hidden commands (dev-call and the rest). The channel
+  # only changes which URL is fetched, not where the script is installed, so
+  # this lands at the same $completionPath as every install above.
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev')
+  if ($LASTEXITCODE -eq 0) { Test-Pass 'a dev channel install succeeds' }
+  else { Test-Fail 'a dev channel install succeeds' $output }
+  Assert-FilePresent 'dev channel: script installed' $completionPath
+  Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev', '-Uninstall') | Out-Null
 }
 finally {
   Stop-Process -Id $server.Id -ErrorAction SilentlyContinue

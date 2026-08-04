@@ -30,6 +30,86 @@ import type { ArgSpec, CommandSpec, OptionSpec, Spec, ValueKind } from "./spec.t
 const kSkippedCommands = new Set(["help"]);
 
 /**
+ * Commands Cliffy marks `.hidden()`, which keeps them out of their parent's
+ * `--help` output and out of ordinary recursion, even though each still
+ * answers `--help` itself. Only surfaced on the `dev` channel: a release
+ * binary hides them exactly as it hides `dev-call`, so completing them for
+ * `stable` or `prerelease` would offer commands their users cannot see.
+ */
+const kHiddenCommands: string[][] = [
+  ["capabilities"],
+  ["inspect"],
+  ["editor-support"],
+  ["create-project"],
+  ["completions"],
+  ["dev-call"],
+  ["tools", "install"],
+  ["tools", "info"],
+  ["tools", "uninstall"],
+  ["tools", "update"],
+  ["tools", "list"],
+  ["dev-call", "validate-yaml"],
+  ["dev-call", "build-artifacts"],
+  ["dev-call", "show-ast-trace"],
+  ["dev-call", "make-ast-diagram"],
+  ["dev-call", "pull-git-subtree"],
+  ["dev-call", "typst-gather"],
+];
+
+/** Names hidden directly below `path`, on the `dev` channel only. */
+export function hiddenChildrenFor(path: string[], channel: Spec["channel"]): string[] {
+  if (channel !== "dev") {
+    return [];
+  }
+  return kHiddenCommands
+    .filter((hidden) => isChildOf(hidden, path))
+    .map((hidden) => hidden[hidden.length - 1]);
+}
+
+/** Whether `candidate` names a command directly below `path`. */
+function isChildOf(candidate: string[], path: string[]): boolean {
+  return candidate.length === path.length + 1 &&
+    path.every((segment, index) => segment === candidate[index]);
+}
+
+/**
+ * Fallback descriptions for hidden commands whose own `--help` declares none
+ * at all, such as every `tools` subcommand. Applied only when the command's
+ * own help output is silent, so a hidden command that does describe itself
+ * keeps its own words.
+ */
+const kHiddenDescriptions: Record<string, string> = {
+  "tools install": "Installs a global dependency.",
+  "tools info": "Shows the status of a global dependency.",
+  "tools uninstall": "Uninstalls a global dependency.",
+  "tools update": "Updates a global dependency.",
+  "tools list": "Lists the status of every global dependency.",
+};
+
+/** What Quarto's own `kLocalDevelopment` reports for an unreleased source build. */
+export const kDevVersion = "99.9.9";
+
+/**
+ * Fails fast when the channel and the binary's version disagree, before the
+ * tree walk that would otherwise spend one cold Quarto start per command only
+ * to fail confusingly partway through: `dev` seeds commands that do not exist
+ * outside a source build, and `stable`/`prerelease` must never seed them.
+ */
+export function assertChannelMatchesVersion(channel: Spec["channel"], quartoVersion: string): void {
+  const isDevBuild = quartoVersion === kDevVersion;
+  if (channel === "dev" && !isDevBuild) {
+    throw new Error(
+      `--channel dev needs a ${kDevVersion} source build, got Quarto ${quartoVersion}`,
+    );
+  }
+  if (channel !== "dev" && isDevBuild) {
+    throw new Error(
+      `Quarto ${kDevVersion} is a source build; generate it with --channel dev, not '${channel}'`,
+    );
+  }
+}
+
+/**
  * Help invocations in flight at once, across the whole tree. Each one is a
  * cold Quarto start, so the cap is on total processes rather than per level.
  */
@@ -44,14 +124,13 @@ export interface IntrospectOptions {
 export async function introspect(options: IntrospectOptions): Promise<Spec> {
   const permits = new Semaphore(kConcurrency);
   const rootHelp = await permits.run(() => run(options.quarto, ["--help"]));
-  const root = await introspectCommand(options.quarto, [], rootHelp, permits);
-  return {
-    // Help output reports the version itself, which saves a cold start that
-    // `quarto --version` would otherwise cost before anything else can begin.
-    quartoVersion: /^Version:\s+(\S+)/m.exec(rootHelp)?.[1] ?? "unknown",
-    channel: options.channel,
-    root,
-  };
+  // Help output reports the version itself, which saves a cold start that
+  // `quarto --version` would otherwise cost before anything else can begin,
+  // and lets the channel be checked against it before any other command runs.
+  const quartoVersion = /^Version:\s+(\S+)/m.exec(rootHelp)?.[1] ?? "unknown";
+  assertChannelMatchesVersion(options.channel, quartoVersion);
+  const root = await introspectCommand(options.quarto, [], rootHelp, permits, options.channel);
+  return { quartoVersion, channel: options.channel, root };
 }
 
 /** Caps how many Quarto processes run at once, without batching barriers. */
@@ -100,7 +179,7 @@ export function parseHelp(
   return {
     command: {
       path,
-      description: (sections.get("Description") ?? []).map((l) => l.trim()).join(" ").trim(),
+      description: descriptionText(sections.get("Description") ?? []),
       options,
       args,
       commands: [],
@@ -109,25 +188,82 @@ export function parseHelp(
   };
 }
 
+/**
+ * Joins the description's lines, stopping before an `Arguments:` block.
+ *
+ * Cliffy renders a command's own argument table inside its description when
+ * one is declared that way, which `dev-call pull-git-subtree` does. Nothing
+ * marks that block off from an ordinary heading, since it sits indented
+ * inside the section `splitSections` already carved out; without the cut, a
+ * one-line description would swallow the whole table.
+ */
+function descriptionText(lines: string[]): string {
+  const cut = lines.findIndex((line) => line.trim() === "Arguments:");
+  return (cut === -1 ? lines : lines.slice(0, cut)).map((l) => l.trim()).join(" ").trim();
+}
+
+/**
+ * A seeded child keeps whatever its own help output carries, unlike a
+ * discovered one, which is always overwritten with the short phrase from its
+ * parent's command table (see the `visit` branch below). Cliffy's own
+ * `Description:` block is prose, not that short phrase, so it is cut to its
+ * first sentence to match the length every other command in the tree has.
+ */
+export function firstSentence(text: string): string {
+  const end = text.indexOf(". ");
+  return end === -1 ? text : text.slice(0, end + 1);
+}
+
 async function introspectCommand(
   quarto: string,
   path: string[],
   help: string,
   permits: Semaphore,
+  channel: Spec["channel"],
 ): Promise<CommandSpec> {
   const { command: parsed, children } = parseHelp(help, path);
 
   const visit = children.filter((child) => !kSkippedCommands.has(child.name));
-  const commands = await Promise.all(
-    visit.map(async (child) => {
+  const known = new Set(children.map((child) => child.name));
+  // Hidden children have no entry in the parent's own command table, so there
+  // is no description to override theirs with; they keep the one their own
+  // help output carries.
+  const seeded = hiddenChildrenFor(path, channel).filter((name) => !known.has(name));
+
+  const commands = await Promise.all([
+    ...visit.map(async (child) => {
       const childPath = [...path, child.name];
       const childHelp = await permits.run(() => run(quarto, [...childPath, "--help"]));
-      const command = await introspectCommand(quarto, childPath, childHelp, permits);
+      const command = await introspectCommand(quarto, childPath, childHelp, permits, channel);
       return { ...command, description: child.description };
     }),
-  );
+    ...seeded.map(async (name): Promise<CommandSpec | undefined> => {
+      const childPath = [...path, name];
+      let childHelp: string;
+      try {
+        childHelp = await permits.run(() => run(quarto, [...childPath, "--help"]));
+      } catch {
+        // Seeded paths are a hardcoded list checked against a moving branch of
+        // quarto-cli: one renamed or removed hidden command must not fail the
+        // whole tree, the way a genuinely broken discovered command should.
+        console.error(
+          `warning: 'quarto ${childPath.join(" ")}' no longer answers --help; dropped from the dev channel`,
+        );
+        return undefined;
+      }
+      const command = await introspectCommand(quarto, childPath, childHelp, permits, channel);
+      return {
+        ...command,
+        description: firstSentence(command.description) ||
+          kHiddenDescriptions[childPath.join(" ")] || "",
+      };
+    }),
+  ]);
 
-  return { ...parsed, commands };
+  return {
+    ...parsed,
+    commands: commands.filter((command): command is CommandSpec => command !== undefined),
+  };
 }
 
 /**

@@ -56,7 +56,7 @@ export interface Spec {
   /** Version reported by the binary that was introspected. */
   quartoVersion: string;
   /** Release channel the binary came from. */
-  channel: "stable" | "prerelease";
+  channel: "stable" | "prerelease" | "dev";
   root: CommandSpec;
 }
 

@@ -9,7 +9,7 @@
  */
 
 import type { ArgSpec, CommandSpec, Spec } from "../spec.ts";
-import { commandName } from "../spec.ts";
+import { commandName, nodeId } from "../spec.ts";
 import {
   banner,
   nodes,
@@ -22,14 +22,29 @@ import {
 
 export function emitFish(spec: Spec): string {
   const all = nodes(spec);
+  // quote(), not a bare "...": a command name comes from `quarto --help`
+  // output, which the dev channel sources from an unreviewed, third-party
+  // branch, and this is literal source read the moment the file is sourced,
+  // not only when a completion runs.
   const paths = all
     .filter((command) => command.path.length > 0)
-    .map((command) => `"${command.path.join(" ")}"`)
+    .map((command) => quote(command.path.join(" ")))
     .join(" ");
 
   return `${banner(spec, "#")}
 
 set -g __quarto_nodes ${paths}
+
+# fish re-expands a literal -a candidate list at completion time, running
+# any (...) a candidate carries rather than treating it as inert text --
+# this is fish's own documented mechanism for generating candidates from a
+# command's output, e.g. 'complete -a "(ls)"', and applies to every word in
+# the list, not only one spelled as the whole argument. Verified against
+# real fish. Candidates instead reach this as ordinary, already-quoted
+# arguments to a function call, which is not re-evaluated the same way.
+function __quarto_words
+  printf '%s\n' $argv
+end
 
 # Flags of a command that consume the word after them.
 function __quarto_valued --argument-names node
@@ -106,18 +121,39 @@ function valuedCase(command: CommandSpec): string {
   if (consuming.length === 0) {
     return "";
   }
-  return `    case '${command.path.join(" ")}'\n      echo "${consuming.join(" ")}"`;
+  // quote(), not a bare '...': a command name comes from `quarto --help`
+  // output, which the dev channel sources from an unreviewed, third-party
+  // branch, and an unescaped ' would end the case pattern's string early.
+  return `    case ${quote(command.path.join(" "))}\n      echo ${quote(consuming.join(" "))}`;
 }
 
 function commandCompletions(command: CommandSpec): string[] {
   const path = command.path.join(" ");
-  const lines: string[] = [];
+  // A -n condition is parsed twice: once as this file is sourced, again
+  // when `complete` evaluates it as a condition command, through `eval` or
+  // its equivalent -- and that second pass has its own, apparently
+  // undocumented rules for a backslash next to a quote, different enough
+  // from ordinary fish parsing that no quoting scheme embedding path
+  // directly in the condition text survived real testing. path instead sits
+  // once, as an ordinary string literal, in this function's body: source
+  // parsed only when the file is sourced, the same as every other
+  // command name or flag already baked into this script rather than
+  // rebuilt from text at completion time. -n conditions below call it by
+  // this safe, sanitised name and a trusted index, neither of which is
+  // untrusted text that needs escaping at all.
+  const conditionFn = `__quarto_is_${nodeId(command.path)}`;
+  const lines: string[] = [
+    `function ${conditionFn} --argument-names index`,
+    `  __quarto_at ${quote(path)} $index`,
+    `end`,
+  ];
+  const at = (index?: string) => `${conditionFn}${index === undefined ? "" : ` ${index}`}`;
 
   for (const child of command.commands) {
     lines.push(
-      `complete -c quarto -n '__quarto_at "${path}" 0' -f -a ${quote(commandName(child))} -d ${
-        quote(oneLine(child.description))
-      }`,
+      `complete -c quarto -n '${at("0")}' -f -a "(__quarto_words ${
+        quote(commandName(child))
+      })" -d ${quote(oneLine(child.description))}`,
     );
   }
 
@@ -129,19 +165,23 @@ function commandCompletions(command: CommandSpec): string[] {
     }
     const last = index === args.length - 1;
     const slot = last && trailingIsVariadic(command) ? `${index}+` : `${index}`;
-    lines.push(`complete -c quarto -n '__quarto_at "${path}" ${slot}' ${action}`);
+    lines.push(`complete -c quarto -n '${at(slot)}' ${action}`);
   }
 
   for (const option of command.options) {
+    // Quoted: a flag spelling comes from `quarto --help` output, which the
+    // dev channel sources from an unreviewed, third-party branch. Left bare,
+    // a form carrying a space would hand `complete` an extra word where a
+    // flag of its own belongs.
     const forms = [
-      option.short ? `-s ${option.short.replace(/^-/, "")}` : "",
-      option.long ? `-l ${option.long.replace(/^--/, "")}` : "",
+      option.short ? `-s ${quote(option.short.replace(/^-/, ""))}` : "",
+      option.long ? `-l ${quote(option.long.replace(/^--/, ""))}` : "",
     ].filter(Boolean).join(" ");
     const value = option.kind === "none"
       ? "-f"
       : `-r ${argumentAction(option.kind, option.values, option.globs) ?? "-f"}`;
     lines.push(
-      `complete -c quarto -n '__quarto_at "${path}"' ${forms} ${value} -d ${
+      `complete -c quarto -n '${at()}' ${forms} ${value} -d ${
         quote(oneLine(option.description))
       }`,
     );
@@ -157,7 +197,7 @@ function argumentAction(
 ): string | undefined {
   switch (kind) {
     case "enum":
-      return `-f -a ${quote((values ?? []).join(" "))}`;
+      return `-f -a "(__quarto_words ${(values ?? []).map(quote).join(" ")})"`;
     case "file":
       // One call per suffix: fish only accepts several suffixes in one call
       // from 3.6 on, and older versions read the second argument as the token

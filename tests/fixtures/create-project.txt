@@ -1,0 +1,44 @@
+
+Usage:   quarto create-project [dir]
+Version: 99.9.9                     
+
+Description:
+
+  Create a project for rendering multiple documents
+
+Options:
+
+  -h, --help                   - Show this help.                                       
+  --title          <title>     - Project title                                         
+  --type           <type>      - Project type (book, default, website, manuscript)     
+  --template       <type>      - Use a specific project template                       
+  --engine         <engine>    - Use execution engine (jupyter, knitr, markdown, ...)  
+  --editor         <editor>    - Default editor for project ('source' or 'visual')     
+  --with-venv      [packages]  - Create a virtualenv for this project                  
+  --with-condaenv  [packages]  - Create a condaenv for this project                    
+  --no-scaffold                - Don't create initial project file(s)                  
+  --log            <file>      - Path to log file                                      
+  --log-level      <level>     - Log level (debug, info, warning, error, critical)     
+  --log-format     <format>    - Log format (plain, json-stream)                       
+  --quiet                      - Suppress console output.                              
+  --profile                    - Active project profile(s)                             
+
+Commands:
+
+  help  [command]  - Show this help or the help of a sub-command.
+
+Examples:
+
+  Create a project in the current directory:         quarto create-project                                                             
+  Create a project in the 'myproject' directory:     quarto create-project myproject                                                   
+  Create a website project:                          quarto create-project mysite --type website                                       
+  Create a blog project:                             quarto create-project mysite --type website --template blog                       
+  Create a book project:                             quarto create-project mybook --type book                                          
+  Create a website project with jupyter:             quarto create-project mysite --type website --engine jupyter                      
+  Create a website project with jupyter + kernel:    quarto create-project mysite --type website --engine jupyter:python3              
+  Create a book project with knitr:                  quarto create-project mybook --type book --engine knitr                           
+  Create jupyter project with virtualenv:            quarto create-project myproject --engine jupyter --with-venv                      
+  Create jupyter project with virtualenv + packages: quarto create-project myproject --engine jupyter --with-venv pandas,matplotlib    
+  Create jupyter project with condaenv :             quarto create-project myproject --engine jupyter --with-condaenv                  
+  Create jupyter project with condaenv + packages:   quarto create-project myproject --engine jupyter --with-condaenv pandas,matplotlib
+

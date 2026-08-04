@@ -1,12 +1,20 @@
 /**
  * Generates the completion scripts.
  *
- *     quarto run src/generate.ts [--quarto <path>] [--channel stable|prerelease]
+ *     quarto run src/generate.ts [--quarto <path>] [--channel stable|prerelease|dev]
  *                                [--out <dir>] [--check]
  *
  * `--check` writes nothing and exits non-zero when the committed output differs
  * from what the installed Quarto would produce, which is what CI runs to notice
  * that the CLI surface moved.
+ *
+ * The `dev` channel only ever comes from a 99.9.9 source build: that is the
+ * version Quarto's own `kLocalDevelopment` constant reports, and it is the one
+ * build where `dev-call` and the rest of the hidden surface `introspect.ts`
+ * seeds exist to be introspected. `introspect()` fails fast when the channel
+ * and the binary's version disagree, before spending a cold Quarto start per
+ * command on a tree walk that would otherwise fail confusingly partway
+ * through.
  */
 
 import { enrich } from "./enrich.ts";
@@ -38,8 +46,8 @@ function parseArgs(args: string[]): Options {
         break;
       case "--channel": {
         const channel = args[++index];
-        if (channel !== "stable" && channel !== "prerelease") {
-          throw new Error(`--channel must be stable or prerelease, got '${channel}'`);
+        if (channel !== "stable" && channel !== "prerelease" && channel !== "dev") {
+          throw new Error(`--channel must be stable, prerelease, or dev, got '${channel}'`);
         }
         options.channel = channel;
         break;

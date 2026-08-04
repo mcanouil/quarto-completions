@@ -141,12 +141,17 @@ Add-Content -Path $PROFILE.CurrentUserAllHosts -Value ". `"$directory\quarto.ps1
 
 ## Channels
 
-Every script is published for two channels:
+Every script is published for three channels:
 
 - `stable`, generated from the current Quarto release.
 - `prerelease`, generated from the current Quarto prerelease.
+- `dev`, generated from a Quarto source build at `quarto-dev/quarto-cli`'s `main`.
 
-Swap `stable` for `prerelease` in any URL above, or pass `--channel prerelease` to the installer.
+Swap `stable` for `prerelease` or `dev` in any URL above, or pass `--channel prerelease` or `--channel dev` to the installer.
+The installer also selects `dev` on its own, with no flag needed, when the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports and a release never does.
+
+The `dev` channel additionally completes the commands Quarto hides from its own `--help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`.
+Several of those exist on release builds too, just hidden from view, so installing `--channel dev` deliberately on a release Quarto is a reasonable choice; its surface then tracks `quarto-cli`'s `main` rather than the release you run.
 
 Each channel also publishes a `manifest.json`, carrying the Quarto version the scripts were generated from and a SHA-256 for each file.
 The installers verify that checksum before writing anything, which catches a truncated or corrupted download.

@@ -96,13 +96,24 @@ mkdir -p "${HOME_DIR}"
 # HOMEBREW_PREFIX is pointed at a directory that does not exist for the same
 # reason: it is authoritative when set, so this keeps a developer's real
 # /opt/homebrew out of every scenario but the one that asks for it.
+#
+# -u QUARTO_COMPLETIONS_UNINSTALL: unlike --channel, --shell, and --base-url,
+# there is no flag that overrides this once the installer reads it as "1", so
+# a developer with it exported would otherwise have every "install succeeds"
+# scenario below silently uninstall instead, with no argument able to say
+# otherwise.
+#
+# --channel stable is a default, not a fixed value: the installer keeps the
+# last --channel it sees, so a caller appending its own after "$@" still
+# overrides it. Without this, every scenario below would silently follow
+# whatever quarto happens to be on the machine running the suite.
 install_run() {
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${HOME_DIR}" \
     HOMEBREW_PREFIX="${HOME_DIR}/no-brew" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
     XDG_CONFIG_HOME="${HOME_DIR}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
 }
 
 # A dry run reports without touching anything.
@@ -155,13 +166,17 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
+# --channel stable is explicit rather than relying on the default: this test
+# asserts on the file tampered above, and the default channel would otherwise
+# follow whatever quarto happens to be on the machine running the suite.
 tampered_output="$(
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${TAMPERED_HOME}" \
     HOMEBREW_PREFIX="${TAMPERED_HOME}/no-brew" \
     XDG_DATA_HOME="${TAMPERED_HOME}/.local/share" \
     XDG_CONFIG_HOME="${TAMPERED_HOME}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" --shell fish 2>&1
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" \
+    --shell fish --channel stable 2>&1
 )" && tampered_status=0 || tampered_status=1
 kill "${TAMPERED_PID}" 2>/dev/null || true
 
@@ -191,16 +206,17 @@ scenario_home() {
   printf '%s' "${home}"
 }
 
+# --channel stable is a default, not a fixed value; see install_run above.
 scenario_run() {
   # $1: home, then installer arguments
   local home="$1"
   shift
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${home}" \
     HOMEBREW_PREFIX="${home}/no-brew" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
 }
 
 # The same, with a Homebrew prefix that exists. Its site-functions directory is
@@ -209,12 +225,12 @@ brew_run() {
   # $1: home, $2: prefix, then installer arguments
   local home="$1" prefix="$2"
   shift 2
-  env -u ZSH -u ZSH_CUSTOM \
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
     HOME="${home}" \
     HOMEBREW_PREFIX="${prefix}" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
 }
 
 # Oh My Zsh already puts its custom completions directory on fpath and runs
@@ -351,7 +367,7 @@ OUTSIDE="$(scenario_home outside)"
 SANDBOX="$(scenario_home sandbox)"
 mkdir -p "${OUTSIDE}/.oh-my-zsh/custom/completions"
 printf 'not ours to delete\n' >"${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
-env ZSH="${OUTSIDE}/.oh-my-zsh" \
+env -u QUARTO_COMPLETIONS_UNINSTALL ZSH="${OUTSIDE}/.oh-my-zsh" \
   HOME="${SANDBOX}" \
   HOMEBREW_PREFIX="${SANDBOX}/no-brew" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
@@ -361,13 +377,13 @@ env ZSH="${OUTSIDE}/.oh-my-zsh" \
 expect_file "an out-of-home ZSH is not followed on uninstall" \
   "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
 
-env ZSH="${OUTSIDE}/.oh-my-zsh" \
+env -u QUARTO_COMPLETIONS_UNINSTALL ZSH="${OUTSIDE}/.oh-my-zsh" \
   HOME="${SANDBOX}" \
   HOMEBREW_PREFIX="${SANDBOX}/no-brew" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
   XDG_CONFIG_HOME="${SANDBOX}/.config" \
   bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
-  --shell zsh >/dev/null
+  --shell zsh --channel stable >/dev/null
 expect_file "an out-of-home ZSH is not followed on install" \
   "${SANDBOX}/.zfunc/_quarto"
 expect_count "the out-of-home file is still untouched" \
@@ -470,5 +486,17 @@ EOF
 else
   skip "zsh: the managed block makes completions work" "zsh not installed"
 fi
+
+# --channel dev fetches from the dev channel published alongside stable and
+# prerelease: generated from a 99.9.9 quarto-cli source build, and the only
+# one that carries the hidden commands (dev-call and the rest).
+DEV_HOME="$(scenario_home dev-channel)"
+if scenario_run "${DEV_HOME}" --shell fish --channel dev >/dev/null; then
+  pass "a dev channel install succeeds"
+else
+  fail "a dev channel install succeeds" "installer exited non-zero"
+fi
+expect_file "dev channel: script installed" \
+  "${DEV_HOME}/.config/fish/completions/quarto.fish"
 
 summary

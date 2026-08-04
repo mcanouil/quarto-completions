@@ -33,8 +33,24 @@ ${banner(spec, "#")}
 _quarto_nodes="${ids}"
 
 _quarto_words() {
-  # shellcheck disable=SC2207
-  COMPREPLY+=( $(compgen -W "$1" -- "$cur") )
+  # Not compgen -W: it re-expands its wordlist, running any $(...) or \`...\`
+  # a candidate carries rather than treating it as inert text, even one
+  # that arrived here already escaped for this file's own parsing. Verified
+  # against real bash. A plain, unquoted word-split of "$1" does not.
+  #
+  # set -f around it for the same reason: unquoted word-splitting still
+  # performs pathname expansion, so a candidate that happens to look like a
+  # glob, such as a real flag spelled with brackets, would otherwise be
+  # replaced by whatever files match it in the current directory. Verified:
+  # "P*" listed unrelated local files instead of completing as itself.
+  local word
+  set -f
+  for word in $1; do
+    case "$word" in
+      "$cur"*) COMPREPLY+=("$word") ;;
+    esac
+  done
+  set +f
 }
 
 _quarto_files() {
@@ -172,7 +188,7 @@ function valuedCase(command: CommandSpec): string {
   if (consuming.length === 0) {
     return "";
   }
-  return `    ${nodeId(command.path)}) vals="${consuming.join(" ")}" ;;`;
+  return `    ${nodeId(command.path)}) vals="${doubleQuoted(consuming.join(" "))}" ;;`;
 }
 
 function valueCases(command: CommandSpec): string {
@@ -180,7 +196,7 @@ function valueCases(command: CommandSpec): string {
   return valuedOptions(command)
     .map((option) => {
       const patterns = optionFlags(option)
-        .map((flag) => `${id}:::${flag}`)
+        .map((flag) => `${id}:::${casePattern(flag)}`)
         .join("|");
       return `    ${patterns}) ${completer(option.kind, option.values, option.globs)} return ;;`;
     })
@@ -188,7 +204,9 @@ function valueCases(command: CommandSpec): string {
 }
 
 function flagCase(command: CommandSpec): string {
-  return `      ${nodeId(command.path)}) _quarto_words "${flags(command).join(" ")}"; return ;;`;
+  return `      ${nodeId(command.path)}) _quarto_words "${
+    doubleQuoted(flags(command).join(" "))
+  }"; return ;;`;
 }
 
 function subcommandCase(command: CommandSpec): string {
@@ -196,7 +214,32 @@ function subcommandCase(command: CommandSpec): string {
     return "";
   }
   const names = command.commands.map(commandName).join(" ");
-  return `      ${nodeId(command.path)}) _quarto_words "${names}" ;;`;
+  return `      ${nodeId(command.path)}) _quarto_words "${doubleQuoted(names)}" ;;`;
+}
+
+/**
+ * Escapes text bound for a double-quoted bash string literal in the
+ * generated script. Command names, flags, and enum values come from `quarto
+ * --help` output, which the dev channel sources from an unreviewed,
+ * third-party branch; without this, a value carrying a `"` would end the
+ * literal early and the rest would be read as script source, not data.
+ */
+function doubleQuoted(text: string): string {
+  return text.replace(/(["\\$`])/g, "\\$1");
+}
+
+/**
+ * Escapes text bound for a bash `case` pattern in the generated script. The
+ * pattern sits unquoted in the source, so it undergoes ordinary shell
+ * tokenising as the file is parsed, not just pattern matching: an unescaped
+ * `"` or `'` opens real quoting there and swallows everything up to the next
+ * one, `)` ends the pattern list early, and `$` or a backtick expands.
+ * Backslash-escaping every character outside a safe allowlist, rather than
+ * enumerating the dangerous ones, is what closed an earlier, incomplete
+ * version of this function that escaped glob characters but not quotes.
+ */
+function casePattern(text: string): string {
+  return text.replace(/[^A-Za-z0-9_./-]/g, "\\$&");
 }
 
 function positionalCases(command: CommandSpec): string[] {
@@ -219,9 +262,9 @@ function completer(
 ): string {
   switch (kind) {
     case "enum":
-      return `_quarto_words "${(values ?? []).join(" ")}";`;
+      return `_quarto_words "${doubleQuoted((values ?? []).join(" "))}";`;
     case "file":
-      return `_quarto_files "${(globs ?? []).join("|")}";`;
+      return `_quarto_files "${doubleQuoted((globs ?? []).join("|"))}";`;
     case "dir":
       return `_quarto_dirs;`;
     default:
