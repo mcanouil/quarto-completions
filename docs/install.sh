@@ -483,7 +483,10 @@ remove_rc_block() {
   # file is often a symlink into a dotfiles checkout, and mv would replace the
   # link with a plain file carrying mktemp's 0600 mode. The redirect names the
   # file on failure; set -e alone would stop with a bare permission error.
-  cat "${temporary}" >"$1" || fail "could not write $1: fix its permissions and re-run"
+  if ! cat "${temporary}" >"$1"; then
+    rm -f "${temporary}"
+    fail "could not write $1: fix its permissions and re-run"
+  fi
   rm -f "${temporary}"
 }
 
