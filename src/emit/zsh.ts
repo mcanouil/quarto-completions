@@ -29,6 +29,16 @@ export function emitZsh(spec: Spec): string {
   return `#compdef quarto
 ${banner(spec, "#")}
 
+# _arguments re-evaluates a literal (a b c) action list at completion time,
+# running any $(...) or \`...\` an enum value carries rather than treating it
+# as inert text; verified against real zsh. Values instead reach compadd as
+# ordinary, already-quoted arguments to this function, which is not
+# re-evaluated the same way.
+_quarto_enum() {
+  local -a candidates=("$@")
+  _describe '' candidates
+}
+
 ${all.map(commandFunction).join("\n\n")}
 
 _quarto "$@"
@@ -59,7 +69,9 @@ function commandFunction(command: CommandSpec): string {
         const last = index === args.length - 1;
         const slot = last && trailingIsVariadic(command) ? "*" : `${index + 1}`;
         specs.push(
-          `'${slot}:${singleQuote(arg.name)}:${argAction(arg.kind, arg.values, arg.globs)}'`,
+          `'${slot}:${singleQuote(arg.name)}:${
+            singleQuote(argAction(arg.kind, arg.values, arg.globs))
+          }'`,
         );
       }
     }
@@ -141,7 +153,7 @@ function optionSpec(option: OptionSpec): string {
   const flag = bareForms.length > 1 ? `{${bareForms.join(",")}}` : bareForms[0];
   const value = takesValue
     ? `:${singleQuote(option.placeholder ?? "value")}:${
-      argAction(option.kind, option.values, option.globs)
+      singleQuote(argAction(option.kind, option.values, option.globs))
     }`
     : "";
   return `'${exclusion}'${flag}'[${description}]${value}'`;
@@ -154,7 +166,7 @@ function argAction(
 ): string {
   switch (kind) {
     case "enum":
-      return `(${(values ?? []).map(singleQuote).join(" ")})`;
+      return `_quarto_enum ${(values ?? []).map((value) => `'${singleQuote(value)}'`).join(" ")}`;
     case "file":
       // Globs are never attacker-controlled: they always come from this
       // repo's own overlay.ts constants, never from quarto --help text, so

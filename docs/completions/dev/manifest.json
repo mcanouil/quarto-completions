@@ -3,8 +3,8 @@
   "channel": "dev",
   "generated": "2026-08-04",
   "files": {
-    "quarto.bash": "8cbdc3c31b2cbeb5018c112a62d40f3730c11dd993636674847021e36e77af3f",
-    "_quarto": "6325d3493ce8283a28c5aca9956617c01e75819568757974ebf5daabda0856e4",
+    "quarto.bash": "5feb5e50e273e7f2c8fab57cf556dac2da0c534d619364ff1c7718437718fafb",
+    "_quarto": "b219aafe8eb2cfd85aa024737355915384daa435cb7e044201122d578364f082",
     "quarto.fish": "6a134996077eb703e24c1f4c1f42bdd5f040dc28e7d5d3a42eabb4728d2bb3f6",
     "quarto.ps1": "5ced2f78045b6bd2b19c204c7c415e947b5a4a772a08be3dc2f2ec47e4b4c85d",
     "spec.json": "46af7f96db4e608d6d3b1d6a2dab2a8674d2f0327228596a846d2464abd42ab1"

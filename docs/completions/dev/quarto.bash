@@ -6,8 +6,16 @@
 _quarto_nodes="quarto quarto_render quarto_preview quarto_serve quarto_create quarto_use quarto_use_template quarto_use_binder quarto_use_brand quarto_add quarto_update quarto_remove quarto_convert quarto_pandoc quarto_typst quarto_run quarto_list quarto_install quarto_uninstall quarto_tools quarto_tools_install quarto_tools_info quarto_tools_uninstall quarto_tools_update quarto_tools_list quarto_publish quarto_check quarto_call quarto_call_engine quarto_call_build_ts_extension quarto_call_typst_gather quarto_capabilities quarto_inspect quarto_editor_support quarto_editor_support_crossref quarto_create_project quarto_completions quarto_completions_bash quarto_completions_fish quarto_completions_zsh quarto_dev_call quarto_dev_call_cli_info quarto_dev_call_validate_yaml quarto_dev_call_build_artifacts quarto_dev_call_show_ast_trace quarto_dev_call_make_ast_diagram quarto_dev_call_pull_git_subtree quarto_dev_call_typst_gather"
 
 _quarto_words() {
-  # shellcheck disable=SC2207
-  COMPREPLY+=( $(compgen -W "$1" -- "$cur") )
+  # Not compgen -W: it re-expands its wordlist, running any $(...) or `...`
+  # a candidate carries rather than treating it as inert text, even one
+  # that arrived here already escaped for this file's own parsing. Verified
+  # against real bash. A plain, unquoted word-split of "$1" does not.
+  local word
+  for word in $1; do
+    case "$word" in
+      "$cur"*) COMPREPLY+=("$word") ;;
+    esac
+  done
 }
 
 _quarto_files() {

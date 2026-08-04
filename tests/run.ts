@@ -287,6 +287,17 @@ const tests: Record<string, () => void> = {
     assertIncludes(output, `-*=*) continue ;;`);
   },
 
+  "bash routes candidate words through a plain loop rather than compgen -W"() {
+    // compgen -W re-expands its wordlist, running any $(...) or `...` a
+    // candidate carries rather than treating it as inert text, even one
+    // that arrived here already escaped for this file's own parsing.
+    // Verified against real bash. A structural check, not a pattern that
+    // can be escaped around: the vulnerable shape was any use of
+    // `compgen -W` at all, whatever quoting surrounded it.
+    const output = emitBash(enrich(fixtureSpec()));
+    assertExcludes(output, 'compgen -W "');
+  },
+
   "zsh accepts a value attached with = on long options"() {
     const output = emitZsh(enrich(fixtureSpec()));
     assertIncludes(output, "--to=");
@@ -554,6 +565,26 @@ const tests: Record<string, () => void> = {
     const output = emitZsh(enrich(spec));
     assertIncludes(output, "ev'\\''; touch pwned; echo '\\''");
     assertExcludes(output, ":ev'; touch pwned; echo ':");
+  },
+
+  "zsh routes enum values through a function rather than a literal action list"() {
+    // _arguments re-evaluates a literal (a b) action list at completion time,
+    // running a $(...) or `...` an enum value carries; verified against real
+    // zsh. Values must reach compadd as arguments to a call instead, which is
+    // not re-evaluated the same way, so this is a structural check, not a
+    // pattern that can be escaped around: the vulnerable shape was `(a
+    // $(touch pwned))`, whatever quoting surrounded it.
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({
+      long: "--evil-enum",
+      description: "x",
+      kind: "enum",
+      values: ["a", "$(touch pwned)"],
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "_quarto_enum '\\''a'\\'' '\\''$(touch pwned)'\\'''");
+    assertExcludes(output, "(a $(touch pwned))");
   },
 };
 

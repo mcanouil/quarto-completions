@@ -33,8 +33,16 @@ ${banner(spec, "#")}
 _quarto_nodes="${ids}"
 
 _quarto_words() {
-  # shellcheck disable=SC2207
-  COMPREPLY+=( $(compgen -W "$1" -- "$cur") )
+  # Not compgen -W: it re-expands its wordlist, running any $(...) or \`...\`
+  # a candidate carries rather than treating it as inert text, even one
+  # that arrived here already escaped for this file's own parsing. Verified
+  # against real bash. A plain, unquoted word-split of "$1" does not.
+  local word
+  for word in $1; do
+    case "$word" in
+      "$cur"*) COMPREPLY+=("$word") ;;
+    esac
+  done
 }
 
 _quarto_files() {
