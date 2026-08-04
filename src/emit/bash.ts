@@ -6,7 +6,9 @@
  *
  * Words typed so far are walked once, which resolves three things at the same
  * time: the command path, how many positionals have been supplied, and which
- * words were consumed as flag values rather than positionals.
+ * words were consumed as flag values rather than positionals. Before the walk,
+ * words that readline split on '=' or ':' (both in COMP_WORDBREAKS) are glued
+ * back together, so '--to=html' and 'key:value' each count as one word.
  */
 
 import type { ArgSpec, CommandSpec, Spec } from "../spec.ts";
@@ -71,40 +73,54 @@ ${all.map(valuedCase).filter(Boolean).join("\n")}
 }
 
 _quarto() {
-  local cur prev cmd word key vals i pos skip
+  local cur prev cmd word key vals i pos skip words cword raw
   COMPREPLY=()
-  cur="\${COMP_WORDS[COMP_CWORD]}"
+
+  # '=' and ':' are both in COMP_WORDBREAKS, so '--to=html' arrives as the
+  # three words '--to', '=', 'html', and 'key:value' is split the same way.
+  # Reassemble once; everything below reads the glued words.
+  words=("\${COMP_WORDS[0]}")
+  cword=0
+  for (( i=1; i <= COMP_CWORD; i++ )); do
+    raw="\${COMP_WORDS[i]}"
+    if [[ "$raw" == [=:] ]] || [[ "\${COMP_WORDS[i-1]}" == [=:] ]]; then
+      words[\${#words[@]}-1]="\${words[\${#words[@]}-1]}\${raw}"
+    else
+      words[\${#words[@]}]="$raw"
+    fi
+    if [ "$i" -eq "$COMP_CWORD" ]; then
+      cword=$(( \${#words[@]} - 1 ))
+    fi
+  done
+
+  cur="\${words[cword]}"
   # bash 3.2 rejects a negative array subscript, so guard the first word.
   prev=""
-  if [ "$COMP_CWORD" -gt 0 ]; then
-    prev="\${COMP_WORDS[COMP_CWORD-1]}"
+  if [ "$cword" -gt 0 ]; then
+    prev="\${words[cword-1]}"
   fi
-
-  # '=' is in COMP_WORDBREAKS, so '--to=html' arrives as the three words
-  # '--to', '=', 'html'. Reunite them: the value dispatch below keys on the
-  # flag, and the '=' itself is never the word being completed.
-  if [ "$cur" = "=" ]; then
-    cur=""
-  elif [ "$prev" = "=" ] && [ "$COMP_CWORD" -ge 2 ]; then
-    prev="\${COMP_WORDS[COMP_CWORD-2]}"
-  fi
+  # A flag with its value attached dispatches on the flag; the part after '='
+  # is the word being completed.
+  case "$cur" in
+    -*=*)
+      prev="\${cur%%=*}"
+      cur="\${cur#*=}"
+      ;;
+  esac
 
   cmd="quarto"
   _quarto_valued "$cmd"
   pos=0
   skip=0
-  for (( i=1; i < COMP_CWORD; i++ )); do
-    word="\${COMP_WORDS[i]}"
+  for (( i=1; i < cword; i++ )); do
+    word="\${words[i]}"
     if [ "$skip" = "1" ]; then
       skip=0
-      # A valued flag written '--to=html' consumes two words here, the '='
-      # and the value, not one.
-      if [ "$word" = "=" ]; then
-        skip=1
-      fi
       continue
     fi
     case "$word" in
+      # A value attached with '=' travels inside the flag's own word.
+      -*=*) continue ;;
       -*)
         case " $vals " in
           *" $word "*) skip=1 ;;

@@ -61,6 +61,11 @@ test_bash() {
   expect_contains "bash: a value attached with = is not counted as a positional" \
     "$(bash_complete quarto render --to = html '')" "report.qmd"
 
+  # ':' is a wordbreak too, so 'quarto render --metadata key:value' arrives
+  # with the metadata split over three words.
+  expect_contains "bash: a flag value containing : is not counted as positionals" \
+    "$(bash_complete quarto render --metadata foo : bar '')" "report.qmd"
+
   local inputs
   inputs="$(bash_complete quarto render '')"
   expect_contains "bash: input documents" "${inputs}" "report.qmd"
@@ -114,6 +119,7 @@ source ${COMPLETIONS}/quarto.fish
 function quarto; end
 echo "COMMANDS:"(complete -C 'quarto ')
 echo "FORMATS:"(complete -C 'quarto render --to ')
+echo "FORMATS_EQ:"(complete -C 'quarto render --to=')
 echo "PROVIDERS:"(complete -C 'quarto publish ')
 echo "AFTER:"(complete -C 'quarto publish gh-pages ')
 cd ${SCRATCH}/fixtures
@@ -124,6 +130,10 @@ EOF
 
   expect_contains "fish: top-level commands" "${output}" "render"
   expect_contains "fish: formats for --to" "${output}" "revealjs"
+  # Pins the premise that fish handles '--to=value' natively, which is why the
+  # emitter does nothing special for it.
+  expect_contains "fish: formats for --to= (equals form)" \
+    "$(printf '%s' "${output}" | grep '^FORMATS_EQ:' || true)" "revealjs"
   expect_contains "fish: publish providers" "${output}" "gh-pages"
   expect_missing "fish: provider not offered twice" \
     "$(printf '%s' "${output}" | grep '^AFTER:' || true)" "quarto-pub"

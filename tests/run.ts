@@ -270,15 +270,15 @@ const tests: Record<string, () => void> = {
 
   "bash guards the word before the first argument"() {
     const output = emitBash(enrich(fixtureSpec()));
-    assertIncludes(output, `if [ "$COMP_CWORD" -gt 0 ]; then`);
+    assertIncludes(output, `if [ "$cword" -gt 0 ]; then`);
   },
 
-  "bash reunites a flag split on = with its value"() {
-    // bash keeps '=' in COMP_WORDBREAKS, so '--to=html' reaches the function
-    // as three words and the script has to put them back together.
+  "bash reassembles words split on wordbreak characters"() {
+    // bash keeps '=' and ':' in COMP_WORDBREAKS, so '--to=html' and
+    // 'key:value' reach the function in pieces and are glued back together.
     const output = emitBash(enrich(fixtureSpec()));
-    assertIncludes(output, `if [ "$cur" = "=" ]; then`);
-    assertIncludes(output, `elif [ "$prev" = "=" ]`);
+    assertIncludes(output, `[[ "$raw" == [=:] ]]`);
+    assertIncludes(output, `-*=*) continue ;;`);
   },
 
   "zsh accepts a value attached with = on long options"() {
