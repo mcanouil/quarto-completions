@@ -499,4 +499,90 @@ fi
 expect_file "dev channel: script installed" \
   "${DEV_HOME}/.config/fish/completions/quarto.fish"
 
+# The version advisory compares the manifest's Quarto version against
+# whatever is on PATH. QUARTO_SHIM is prepended ahead of the real quarto
+# test.yml installs for the rest of the suite, so each case controls exactly
+# what version is seen; path_without_real_quarto strips that real one out
+# entirely, standing in for a machine with none.
+QUARTO_SHIM="${SCRATCH}/quarto-shim"
+mkdir -p "${QUARTO_SHIM}"
+
+set_quarto_shim_version() {
+  # $1: version the shim reports
+  cat >"${QUARTO_SHIM}/quarto" <<SHIM
+#!/usr/bin/env sh
+printf '%s\n' "$1"
+SHIM
+  chmod +x "${QUARTO_SHIM}/quarto"
+}
+
+path_without_real_quarto() {
+  local real_dir="" entry result=""
+  if command -v quarto >/dev/null 2>&1; then
+    real_dir="$(dirname "$(command -v quarto)")"
+  fi
+  IFS=':' read -r -a entries <<<"${PATH}"
+  for entry in "${entries[@]}"; do
+    if [ -n "${real_dir}" ] && [ "${entry}" = "${real_dir}" ]; then
+      continue
+    fi
+    result="${result:+${result}:}${entry}"
+  done
+  printf '%s' "${result}"
+}
+
+advisory_run() {
+  # $1: home, $2: PATH to run with, then installer arguments
+  local home="$1" run_path="$2"
+  shift 2
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
+    HOME="${home}" \
+    HOMEBREW_PREFIX="${home}/no-brew" \
+    XDG_DATA_HOME="${home}/.local/share" \
+    XDG_CONFIG_HOME="${home}/.config" \
+    PATH="${run_path}" \
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
+}
+
+STABLE_QUARTO_VERSION="$(sed -n 's/.*"quartoVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+  "${SITE}/completions/stable/manifest.json" | head -n 1)"
+STABLE_MAJOR="${STABLE_QUARTO_VERSION%%.*}"
+STABLE_MINOR="${STABLE_QUARTO_VERSION#*.}"
+STABLE_MINOR="${STABLE_MINOR%%.*}"
+if [ "${STABLE_MINOR}" -gt 0 ]; then
+  LOWER_VERSION="${STABLE_MAJOR}.$((STABLE_MINOR - 1)).0"
+else
+  LOWER_VERSION="$((STABLE_MAJOR - 1)).9.0"
+fi
+
+MATCH_HOME="$(scenario_home advisory-match)"
+set_quarto_shim_version "${STABLE_MAJOR}.${STABLE_MINOR}.0"
+match_output="$(advisory_run "${MATCH_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_missing "advisory: a matching major.minor says nothing" "${match_output}" "than these completions"
+
+PATCH_HOME="$(scenario_home advisory-patch)"
+set_quarto_shim_version "${STABLE_MAJOR}.${STABLE_MINOR}.99"
+patch_output="$(advisory_run "${PATCH_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_missing "advisory: a patch-only difference says nothing" "${patch_output}" "than these completions"
+
+NEWER_HOME="$(scenario_home advisory-newer)"
+set_quarto_shim_version "${STABLE_MAJOR}.$((STABLE_MINOR + 1)).0"
+newer_output="$(advisory_run "${NEWER_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_contains "advisory: a newer Quarto names --channel prerelease" "${newer_output}" "--channel prerelease"
+
+OLDER_HOME="$(scenario_home advisory-older)"
+set_quarto_shim_version "${LOWER_VERSION}"
+older_output="$(advisory_run "${OLDER_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_contains "advisory: an older Quarto is called out" "${older_output}" "older than these completions"
+
+DEVVER_HOME="$(scenario_home advisory-devver)"
+set_quarto_shim_version "99.9.9"
+devver_output="$(advisory_run "${DEVVER_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_missing "advisory: the dev sentinel says nothing" "${devver_output}" "than these completions"
+
+NOPATH_HOME="$(scenario_home advisory-nopath)"
+rm -f "${QUARTO_SHIM}/quarto"
+nopath_output="$(advisory_run "${NOPATH_HOME}" "$(path_without_real_quarto)" --shell fish)"
+expect_missing "advisory: no quarto on PATH says nothing" "${nopath_output}" "than these completions"
+
 summary

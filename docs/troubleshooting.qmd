@@ -64,7 +64,8 @@ An error there means bash was started with `--norc` or without `bash-completion`
 ## The completions are out of date
 
 They are generated from a released Quarto, so a flag added after that release is not there yet.
-Check which version yours came from:
+The installer already checks this each time it runs: if the `quarto` on your `PATH` and the completions it is about to install disagree by major or minor version, it says so, adding `--channel prerelease` to the message when your Quarto is newer than a `stable` install.
+To check an install done earlier, or without running the installer again, look at which version yours came from:
 
 ```bash
 grep -m1 Quarto ~/.local/share/quarto-completions/quarto.bash

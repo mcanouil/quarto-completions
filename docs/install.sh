@@ -106,6 +106,18 @@ parse_args() {
   fi
 }
 
+# The quarto on PATH's reported version, or empty when there is none or it
+# does not answer. Read once and shared by the dev auto-detect below and the
+# version advisory in do_install, so an install spawns quarto at most once.
+LOCAL_QUARTO_VERSION=""
+detect_local_quarto_version() {
+  if command -v quarto >/dev/null 2>&1; then
+    # head -n 1: a wrapper or a build with extra banner output on stdout must
+    # not sink the comparison below by trailing text the real version lacks.
+    LOCAL_QUARTO_VERSION="$(quarto --version 2>/dev/null | head -n 1)"
+  fi
+}
+
 # Fills in a channel nothing named explicitly, then validates whatever the
 # result is. Only a quarto on PATH reporting exactly '99.9.9' selects 'dev':
 # that is the version Quarto's own kLocalDevelopment constant reports for an
@@ -117,10 +129,7 @@ resolve_channel() {
     CHANNEL="stable"
   fi
   if [ -z "${CHANNEL}" ]; then
-    # head -n 1: a wrapper or a build with extra banner output on stdout must
-    # not sink the comparison below by trailing text the real version lacks.
-    if command -v quarto >/dev/null 2>&1 &&
-      [ "$(quarto --version 2>/dev/null | head -n 1)" = "99.9.9" ]; then
+    if [ "${LOCAL_QUARTO_VERSION}" = "99.9.9" ]; then
       CHANNEL="dev"
     else
       CHANNEL="stable"
@@ -176,6 +185,48 @@ manifest_sha() {
   local key
   key="$(printf '%s' "$2" | sed 's/[.[\*^$]/\\&/g')"
   sed -n "s/.*\"${key}\"[[:space:]]*:[[:space:]]*\"\([0-9a-f]\{64\}\)\".*/\1/p" "$1" | head -n 1
+}
+
+# The "<major>.<minor>" prefix of a version string, or empty when it does not
+# start with one.
+version_major_minor() {
+  printf '%s' "$1" | sed -n 's/^\([0-9][0-9]*\)\.\([0-9][0-9]*\).*/\1.\2/p'
+}
+
+# True when major.minor $1 is newer than major.minor $2. Plain integer
+# comparison rather than `sort -V`, which macOS's BSD sort does not have.
+version_newer() {
+  local major1="${1%%.*}" minor1="${1#*.}" major2="${2%%.*}" minor2="${2#*.}"
+  if [ "${major1}" -ne "${major2}" ]; then
+    [ "${major1}" -gt "${major2}" ]
+  else
+    [ "${minor1}" -gt "${minor2}" ]
+  fi
+}
+
+# The one advisory line for a Quarto that does not match what these
+# completions were generated from, or nothing when there is nothing useful to
+# say. Never fails the install; a mismatch is only ever a note.
+version_advice() {
+  # $1: manifest quartoVersion, $2: local quarto version (may be empty), $3: channel
+  local manifest_mm local_mm
+  [ -n "$2" ] || return 0
+  [ "$2" != "99.9.9" ] || return 0
+  [ "$3" != "dev" ] || return 0
+  manifest_mm="$(version_major_minor "$1")"
+  local_mm="$(version_major_minor "$2")"
+  [ -n "${manifest_mm}" ] && [ -n "${local_mm}" ] || return 0
+  [ "${manifest_mm}" != "${local_mm}" ] || return 0
+
+  if version_newer "${local_mm}" "${manifest_mm}"; then
+    if [ "$3" = "stable" ]; then
+      log "Your Quarto is $2, newer than these completions. Run again with --channel prerelease if you are on a Quarto prerelease."
+    else
+      log "Your Quarto is $2, newer than these completions; flags added since then are not completed yet."
+    fi
+  else
+    log "Your Quarto is $2, older than these completions; some completions may name flags your Quarto does not have."
+  fi
 }
 
 script_name_for() {
@@ -588,6 +639,7 @@ do_install() {
   manifest="$(sed -n 's/.*"quartoVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${TEMPORARY}/manifest.json" | head -n 1)"
   log ""
   log "Quarto ${manifest} completions for ${TARGET_SHELL} (${CHANNEL} channel)."
+  version_advice "${manifest}" "${LOCAL_QUARTO_VERSION}" "${CHANNEL}"
   log "Start a new shell, or run: exec ${TARGET_SHELL} -l"
 }
 
@@ -624,6 +676,9 @@ do_uninstall() {
 
 main() {
   parse_args "$@"
+  if [ "${ACTION}" = "install" ]; then
+    detect_local_quarto_version
+  fi
   resolve_channel
   detect_shell
 

@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - feat: publish a `stable` and a `prerelease` channel, generated from the two Quarto release channels, each with a manifest carrying the Quarto version and a checksum per file.
 - feat: generate the scripts by walking `quarto <command> --help` over the whole command tree, run with `quarto run src/generate.ts`. The generator uses Quarto's own embedded runtime, so an installed Quarto is its only dependency.
 - feat: publish a third `dev` channel, generated from a Quarto source build, completing the commands Quarto hides from `quarto --help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`. Hidden commands cannot be discovered by walking help output, so they are seeded by path and introspected directly, only when the channel is `dev`. Both installers select this channel automatically, with no flag needed, when the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports and a release never does.
+- feat: warn when the `quarto` on `PATH` does not match the completions being installed. Both installers compare major and minor versions only, reusing the same `quarto` probe already made for the `dev` channel when no channel was given explicitly; a patch difference, the `dev` sentinel, or no `quarto` on `PATH` at all says nothing, and the install always succeeds regardless of what it finds.
 
 ### Bug Fixes
 

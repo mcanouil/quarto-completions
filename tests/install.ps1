@@ -101,6 +101,52 @@ function Invoke-Installer {
   & pwsh -NoProfile -File $installer -BaseUrl $BaseUrl @Arguments 2>&1 | Out-String
 }
 
+# Writes a fake `quarto` to $Directory that ignores its arguments and always
+# reports $Version, the way the bash suite's shim does. A .cmd on Windows,
+# since Get-Command -CommandType Application only finds files PATHEXT names;
+# an extension-less script works everywhere else. -Encoding ascii avoids a BOM
+# that would otherwise corrupt the first line either shell reads.
+function Write-QuartoShimVersion {
+  param([string]$Directory, [string]$Version)
+
+  if ($IsWindows) {
+    Set-Content -LiteralPath (Join-Path $Directory 'quarto.cmd') -Value "@echo $Version" -Encoding ascii
+  }
+  else {
+    $path = Join-Path $Directory 'quarto'
+    Set-Content -LiteralPath $path -Value @('#!/usr/bin/env sh', "printf '%s\n' '$Version'") -Encoding ascii
+    & chmod +x $path
+  }
+}
+
+# Runs the installer with PATH pointed at $QuartoPath ahead of whatever real
+# quarto the runner already has (test.yml installs one for the rest of the
+# suite), or with that real one stripped out entirely when $QuartoPath is
+# empty, standing in for a machine with none.
+function Invoke-InstallerWithQuarto {
+  param([string]$BaseUrl, [string]$QuartoPath, [string[]]$Arguments = @())
+
+  $separator = [System.IO.Path]::PathSeparator
+  $original = $env:PATH
+  try {
+    if ($QuartoPath) {
+      $env:PATH = "$QuartoPath$separator$original"
+    }
+    else {
+      $real = Get-Command quarto -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+      if ($real) {
+        $realDirectory = Split-Path -Parent $real.Source
+        $env:PATH = (($original -split [regex]::Escape($separator)) |
+            Where-Object { $_ -ne $realDirectory }) -join $separator
+      }
+    }
+    Invoke-Installer -BaseUrl $BaseUrl -Arguments $Arguments
+  }
+  finally {
+    $env:PATH = $original
+  }
+}
+
 function Get-Python {
   # Windows runners ship `python`; Linux and macOS ship `python3`.
   foreach ($name in @('python3', 'python')) {
@@ -220,6 +266,39 @@ try {
   else { Test-Fail 'a dev channel install succeeds' $output }
   Assert-FilePresent 'dev channel: script installed' $completionPath
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev', '-Uninstall') | Out-Null
+
+  # The version advisory compares the manifest's Quarto version against
+  # whatever quarto reports on PATH. Mirrors the shim-based cases in
+  # tests/install.sh; the older-version and patch-only-difference cases are
+  # covered there and not repeated here.
+  $quartoShimDirectory = Join-Path $scratch 'quarto-shim'
+  New-Item -ItemType Directory -Path $quartoShimDirectory -Force | Out-Null
+
+  $stableManifest = Get-Content -Raw (Join-Path $Site 'completions/stable/manifest.json') | ConvertFrom-Json
+  $stableParts = $stableManifest.quartoVersion -split '\.'
+  $stableMajor = [int]$stableParts[0]
+  $stableMinor = [int]$stableParts[1]
+
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$stableMinor.0"
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
+  if ($output -notmatch 'than these completions') { Test-Pass 'advisory: a matching major.minor says nothing' }
+  else { Test-Fail 'advisory: a matching major.minor says nothing' $output }
+
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$($stableMinor + 1).0"
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
+  if ($output -match [regex]::Escape('-Channel prerelease')) { Test-Pass 'advisory: a newer Quarto names -Channel prerelease' }
+  else { Test-Fail 'advisory: a newer Quarto names -Channel prerelease' $output }
+
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '99.9.9'
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
+  if ($output -notmatch 'than these completions') { Test-Pass 'advisory: the dev sentinel says nothing' }
+  else { Test-Fail 'advisory: the dev sentinel says nothing' $output }
+
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath '' -Arguments @('-Channel', 'stable')
+  if ($output -notmatch 'than these completions') { Test-Pass 'advisory: no quarto on PATH says nothing' }
+  else { Test-Fail 'advisory: no quarto on PATH says nothing' $output }
+
+  Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall') | Out-Null
 }
 finally {
   Stop-Process -Id $server.Id -ErrorAction SilentlyContinue
