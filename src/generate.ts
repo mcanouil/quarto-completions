@@ -32,20 +32,33 @@ interface Options {
   check: boolean;
 }
 
-function parseArgs(args: string[]): Options {
+export function parseArgs(args: string[]): Options {
   const options: Options = {
     quarto: "quarto",
     channel: "stable",
     out: "docs/completions",
     check: false,
   };
+  /**
+   * The argument after `index`, or a failure naming the flag that wanted one.
+   * Read unchecked, a flag written last hands back undefined and fails much
+   * later: on spawning a binary called "undefined", or reporting a channel of
+   * "undefined" that nothing on the command line ever named.
+   */
+  const value = (index: number): string => {
+    const next = args[index];
+    if (next === undefined) {
+      throw new Error(`${args[index - 1]} needs a value`);
+    }
+    return next;
+  };
   for (let index = 0; index < args.length; index++) {
     switch (args[index]) {
       case "--quarto":
-        options.quarto = args[++index];
+        options.quarto = value(++index);
         break;
       case "--channel": {
-        const channel = args[++index];
+        const channel = value(++index);
         if (channel !== "stable" && channel !== "prerelease" && channel !== "dev") {
           throw new Error(`--channel must be stable, prerelease, or dev, got '${channel}'`);
         }
@@ -53,7 +66,7 @@ function parseArgs(args: string[]): Options {
         break;
       }
       case "--out":
-        options.out = args[++index];
+        options.out = value(++index);
         break;
       case "--check":
         options.check = true;

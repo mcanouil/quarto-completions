@@ -17,7 +17,7 @@ import {
   parseHelp,
 } from "../src/introspect.ts";
 import { enrich } from "../src/enrich.ts";
-import { render } from "../src/generate.ts";
+import { parseArgs, render } from "../src/generate.ts";
 import { emitBash } from "../src/emit/bash.ts";
 import { emitFish } from "../src/emit/fish.ts";
 import { emitPwsh } from "../src/emit/pwsh.ts";
@@ -192,6 +192,35 @@ const tests: Record<string, () => void> = {
       }
       assertExcludes(output, "generated 2", `${name} stamps a date into every run`);
     }
+  },
+
+  "a flag given no value is refused by name"() {
+    // Without this, the missing value arrives as undefined and surfaces much
+    // later: '--quarto' as the last argument fails when the binary is spawned,
+    // and '--channel' reports "got 'undefined'".
+    for (const flag of ["--quarto", "--channel", "--out"]) {
+      let message = "";
+      try {
+        parseArgs([flag]);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      assertIncludes(message, flag, `'${flag}' alone was not refused by name`);
+      assertIncludes(message, "needs a value", `'${flag}' alone was not refused by name`);
+    }
+  },
+
+  "a complete argument list still parses"() {
+    assertEquals(
+      parseArgs(["--quarto", "/tmp/quarto", "--channel", "dev", "--out", "elsewhere", "--check"]),
+      { quarto: "/tmp/quarto", channel: "dev", out: "elsewhere", check: true },
+    );
+    assertEquals(parseArgs([]), {
+      quarto: "quarto",
+      channel: "stable",
+      out: "docs/completions",
+      check: false,
+    });
   },
 
   "bash registers a completion function"() {
