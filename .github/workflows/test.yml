@@ -50,6 +50,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes fish shellcheck zsh
           curl -fsSL https://github.com/mvdan/sh/releases/download/v3.13.1/shfmt_v3.13.1_linux_amd64 -o /usr/local/bin/shfmt
+          echo "fb096c5d1ac6beabbdbaa2874d025badb03ee07929f0c9ff67563ce8c75398b1  /usr/local/bin/shfmt" | sha256sum --check
           chmod +x /usr/local/bin/shfmt
 
       - name: Install fish and shell linters
