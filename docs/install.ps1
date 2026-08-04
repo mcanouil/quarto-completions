@@ -47,6 +47,11 @@ if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
 # Promoted to script scope so the functions below read one binding rather than
 # closing over the parameters.
 $script:Channel = $Channel
+# ValidateSet does not run on default values, so a channel arriving through the
+# environment variable would otherwise sail through and fail later as a 404.
+if ($script:Channel -notin @('stable', 'prerelease')) {
+  throw "Channel must be 'stable' or 'prerelease', got '$($script:Channel)'"
+}
 $script:BaseUrl = $BaseUrl.TrimEnd('/')
 $script:DryRun = [bool]$DryRun
 $script:Uninstall = [bool]$Uninstall -or ($env:QUARTO_COMPLETIONS_UNINSTALL -eq '1')
@@ -126,19 +131,27 @@ function Script:Install-QuartoCompletion {
   }
 
   $temporary = Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName())
-  Invoke-WebRequest -Uri $url -OutFile $temporary -UseBasicParsing
+  try {
+    Invoke-WebRequest -Uri $url -OutFile $temporary -UseBasicParsing
 
-  $actual = (Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash.ToLowerInvariant()
-  if ($actual -ne $expected.ToLowerInvariant()) {
-    Remove-Item -LiteralPath $temporary -Force
-    throw "Checksum mismatch for quarto.ps1: expected $expected, got $actual"
-  }
+    $actual = (Get-FileHash -LiteralPath $temporary -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -ne $expected.ToLowerInvariant()) {
+      throw "Checksum mismatch for quarto.ps1: expected $expected, got $actual"
+    }
 
-  $directory = Split-Path -Parent $script:CompletionPath
-  if (-not (Test-Path -LiteralPath $directory)) {
-    New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    $directory = Split-Path -Parent $script:CompletionPath
+    if (-not (Test-Path -LiteralPath $directory)) {
+      New-Item -ItemType Directory -Path $directory -Force | Out-Null
+    }
+    Move-Item -LiteralPath $temporary -Destination $script:CompletionPath -Force
   }
-  Move-Item -LiteralPath $temporary -Destination $script:CompletionPath -Force
+  finally {
+    # Gone already when the move above succeeded; left behind by a failed
+    # download or a mismatch, which is what this sweeps up.
+    if (Test-Path -LiteralPath $temporary) {
+      Remove-Item -LiteralPath $temporary -Force -ErrorAction SilentlyContinue
+    }
+  }
   Script:Write-Log "Installed $($script:CompletionPath)"
 
   Script:Set-ManagedBlock -Path $script:ProfilePath -Body ". `"$($script:CompletionPath)`""
