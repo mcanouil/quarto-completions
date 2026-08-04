@@ -4,8 +4,11 @@
 #
 #     curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash
 #
-# Everything is written under the user's home directory. Nothing needs root,
-# and nothing outside the paths reported by --dry-run is touched.
+# Everything is written under the user's home directory, save for zsh on a
+# machine with Homebrew, where the completion goes in the prefix's own
+# site-functions directory when that is already writable. Nothing needs root,
+# nothing is written with sudo, and nothing outside the paths reported by
+# --dry-run is touched.
 
 set -euo pipefail
 
@@ -182,36 +185,65 @@ omz_custom() {
   echo "${HOME}/.oh-my-zsh/custom"
 }
 
-# Where the completion file belongs, and which rc file (if any) needs a line
-# added so the shell picks it up.
-resolve_target() {
+# Homebrew's completion directory, when this machine has one, and nothing when
+# it does not.
+#
+# Homebrew's own shell setup puts this on fpath, so a file written here needs no
+# managed block. `brew --prefix` is not run to find it: a `curl | bash` pipe
+# frequently has no brew on PATH, and starting it costs a second for an answer
+# three directory tests give. $HOMEBREW_PREFIX is authoritative when set, since
+# a machine that has moved its prefix has also exported this.
+brew_site_functions() {
+  local prefix
+  if [ -n "${HOMEBREW_PREFIX:-}" ]; then
+    if [ -d "${HOMEBREW_PREFIX}/share/zsh/site-functions" ]; then
+      printf '%s' "${HOMEBREW_PREFIX}/share/zsh/site-functions"
+    fi
+    return 0
+  fi
+  for prefix in /opt/homebrew /usr/local; do
+    if [ -d "${prefix}/share/zsh/site-functions" ]; then
+      printf '%s' "${prefix}/share/zsh/site-functions"
+      return 0
+    fi
+  done
+}
+
+# What the given location needs beyond the file itself, as RC_FILE and RC_BODY.
+#
+# Keyed on the location rather than on the machine's layout, because the two can
+# disagree: an install already in ~/.zfunc is kept there even once Oh My Zsh
+# appears, and it still needs its fpath line.
+configure_target() {
+  # $1: the completion file
+  local directory omz brew
+  TARGET_FILE="$1"
+  RC_FILE=""
+  RC_BODY=""
+  directory="$(dirname "$1")"
+
   case "${TARGET_SHELL}" in
     bash)
-      local bash_completion_dir
-      bash_completion_dir="$(data_home)/bash-completion/completions"
-      if [ -d "${bash_completion_dir}" ]; then
-        # bash-completion loads this directory lazily; no rc edit needed.
-        TARGET_FILE="${bash_completion_dir}/quarto"
-        RC_FILE=""
-      else
-        TARGET_FILE="$(data_home)/quarto-completions/quarto.bash"
+      # bash-completion loads its own directory lazily. Anywhere else has to be
+      # sourced.
+      if [ "${directory}" != "$(data_home)/bash-completion/completions" ]; then
         RC_FILE="${HOME}/.bashrc"
-        RC_BODY="[ -r \"${TARGET_FILE}\" ] && . \"${TARGET_FILE}\""
+        RC_BODY="[ -r \"$1\" ] && . \"$1\""
       fi
       ;;
     zsh)
-      local omz site_functions
-      omz="$(omz_custom)"
-      if [ -d "${omz}" ]; then
-        # Oh My Zsh puts $ZSH_CUSTOM/completions on fpath and calls compinit
-        # itself, both before .zshrc reaches anything appended to it, so the
-        # file on its own is enough and a managed block would only run too late.
-        TARGET_FILE="${omz}/completions/_quarto"
-        RC_FILE=""
-        return
+      # Oh My Zsh puts $ZSH_CUSTOM/completions on fpath and calls compinit
+      # itself, both before .zshrc reaches anything appended to it, so a file
+      # there is enough and a managed block would only run too late. Homebrew's
+      # directory is on fpath by the same argument.
+      omz="$(omz_custom)/completions"
+      brew="$(brew_site_functions)"
+      if [ "${directory}" = "${omz}" ]; then
+        return 0
       fi
-      site_functions="$(data_home)/zsh/site-functions"
-      TARGET_FILE="${site_functions}/_quarto"
+      if [ -n "${brew}" ] && [ "${directory}" = "${brew}" ]; then
+        return 0
+      fi
       RC_FILE="${HOME}/.zshrc"
       # `compinit -i`, not `-C`. `-C` omits the check for new completion
       # functions and reuses the dump when one exists, and one always does
@@ -219,23 +251,58 @@ resolve_target() {
       # calls, so `_quarto` would never be picked up. `-i` keeps that check and
       # only skips the warning about insecure directories, which the user's own
       # call has already reported if there was anything to report.
-      RC_BODY="fpath=(\"${site_functions}\" \$fpath)
+      RC_BODY="fpath=(\"${directory}\" \$fpath)
 autoload -Uz compinit && compinit -i"
       ;;
     fish)
       # fish autoloads this directory, so there is nothing to add to config.
-      TARGET_FILE="$(config_home)/fish/completions/quarto.fish"
-      RC_FILE=""
       ;;
   esac
 }
 
-# Every location this installer has ever written for a shell. Which one
-# `resolve_target` picks depends on what is installed on the machine, and that
-# changes: adding bash-completion, or Oh My Zsh, moves the answer. Re-running
-# has to clear out whatever an earlier run left behind, or the old copy is
-# silently kept up to date by nothing.
+# Where a first install goes, given what this machine has installed.
+default_location() {
+  local omz brew
+  case "${TARGET_SHELL}" in
+    bash)
+      if [ -d "$(data_home)/bash-completion/completions" ]; then
+        printf '%s' "$(data_home)/bash-completion/completions/quarto"
+      else
+        printf '%s' "$(data_home)/quarto-completions/quarto.bash"
+      fi
+      ;;
+    zsh)
+      omz="$(omz_custom)"
+      if [ -d "${omz}" ]; then
+        printf '%s' "${omz}/completions/_quarto"
+        return 0
+      fi
+      # Writability is asked of Homebrew's directory and of nothing else: it is
+      # the one candidate outside the user's home, and a prefix installed by
+      # another user must not turn an install into a permission error.
+      brew="$(brew_site_functions)"
+      if [ -n "${brew}" ] && [ -w "${brew}" ]; then
+        printf '%s' "${brew}/_quarto"
+        return 0
+      fi
+      printf '%s' "${HOME}/.zfunc/_quarto"
+      ;;
+    fish)
+      printf '%s' "$(config_home)/fish/completions/quarto.fish"
+      ;;
+  esac
+}
+
+# Every location this installer has ever written for a shell, and the ones a
+# reader of the documentation would have written by hand, in the order an
+# install prefers them.
+#
+# Two jobs. Re-running clears out whatever an earlier run left behind, or the
+# old copy is silently kept up to date by nothing; and an install takes the
+# first of these that already exists, so a location chosen deliberately is not
+# moved by installing Oh My Zsh or Homebrew afterwards.
 known_targets_for() {
+  local brew
   case "$1" in
     bash)
       printf '%s\n' \
@@ -243,14 +310,76 @@ known_targets_for() {
         "$(data_home)/quarto-completions/quarto.bash"
       ;;
     zsh)
+      brew="$(brew_site_functions)"
+      printf '%s\n' "$(omz_custom)/completions/_quarto"
+      if [ -n "${brew}" ]; then
+        printf '%s\n' "${brew}/_quarto"
+      fi
+      # ~/.zfunc is where an install goes when nothing else applies; the XDG
+      # directory is where this installer and the manual instructions on the
+      # website pointed before, and is listed so that a file left there is
+      # found and swept rather than kept to shadow this one.
       printf '%s\n' \
-        "$(omz_custom)/completions/_quarto" \
+        "${HOME}/.zfunc/_quarto" \
         "$(data_home)/zsh/site-functions/_quarto"
       ;;
     fish)
       printf '%s\n' "$(config_home)/fish/completions/quarto.fish"
       ;;
   esac
+}
+
+# Places a file is only ever cleaned out of, never written to.
+#
+# Somewhere an earlier version of this installer, or of the instructions on the
+# website, put the script. A file found there is swept so it cannot shadow the
+# one being maintained, and it is never chosen: choosing it would keep the
+# install on the very layout this is moving it off.
+sweep_only_for() {
+  case "$1" in
+    zsh) printf '%s\n' "$(data_home)/zsh/site-functions/_quarto" ;;
+  esac
+}
+
+sweep_only() {
+  # $1: location
+  local location
+  while IFS= read -r location; do
+    if [ -n "${location}" ] && [ "${location}" = "$1" ]; then
+      return 0
+    fi
+  done <<EOF
+$(sweep_only_for "${TARGET_SHELL}")
+EOF
+  return 1
+}
+
+# The first location that already holds a file and can be written to again, and
+# nothing when none does.
+existing_location() {
+  local location
+  while IFS= read -r location; do
+    if [ -n "${location}" ] && [ -f "${location}" ] && ! sweep_only "${location}"; then
+      printf '%s' "${location}"
+      return 0
+    fi
+  done <<EOF
+$(known_targets_for "${TARGET_SHELL}")
+EOF
+}
+
+# Where the completion file belongs, and which rc file (if any) needs a line
+# added so the shell picks it up.
+resolve_target() {
+  local existing
+  existing="$(existing_location)"
+  if [ -n "${existing}" ]; then
+    TARGET_EXISTING=1
+    configure_target "${existing}"
+    return 0
+  fi
+  TARGET_EXISTING=0
+  configure_target "$(default_location)"
 }
 
 # The rc file a shell would ever carry a managed block in, whether or not the
@@ -360,7 +489,11 @@ do_install() {
 
   if [ "${DRY_RUN}" = "1" ]; then
     log "Would download ${url}"
-    log "Would write    ${TARGET_FILE}"
+    if [ "${TARGET_EXISTING}" = "1" ]; then
+      log "Would update   ${TARGET_FILE} (existing install)"
+    else
+      log "Would write    ${TARGET_FILE}"
+    fi
     if [ -n "${RC_FILE}" ]; then
       log "Would update   ${RC_FILE} (managed block)"
     fi
@@ -368,21 +501,34 @@ do_install() {
     return 0
   fi
 
+  if [ "${TARGET_EXISTING}" = "1" ]; then
+    log "Updating existing install at ${TARGET_FILE}"
+  fi
+
   TEMPORARY="$(mktemp -d)"
 
   fetch "${manifest_url}" "${TEMPORARY}/manifest.json"
-  fetch "${url}" "${TEMPORARY}/${name}"
-
   expected="$(manifest_sha "${TEMPORARY}/manifest.json" "${name}")"
   [ -n "${expected}" ] || fail "no checksum for ${name} in ${manifest_url}"
-  actual="$(sha256_of "${TEMPORARY}/${name}")"
-  if [ "${expected}" != "${actual}" ]; then
-    fail "checksum mismatch for ${name}: expected ${expected}, got ${actual}"
-  fi
 
-  mkdir -p "$(dirname "${TARGET_FILE}")"
-  mv "${TEMPORARY}/${name}" "${TARGET_FILE}"
-  log "Installed ${TARGET_FILE}"
+  # The manifest alone answers whether there is anything to download: a file
+  # already matching the published checksum is the file that would be written.
+  # Saying so, and leaving it alone, keeps a re-run over an unchanged release
+  # quiet. The rc block and the stale sweep still run below, since the layout
+  # can have moved even when the script has not.
+  if [ -f "${TARGET_FILE}" ] && [ "$(sha256_of "${TARGET_FILE}")" = "${expected}" ]; then
+    log "Already current ${TARGET_FILE}"
+  else
+    fetch "${url}" "${TEMPORARY}/${name}"
+    actual="$(sha256_of "${TEMPORARY}/${name}")"
+    if [ "${expected}" != "${actual}" ]; then
+      fail "checksum mismatch for ${name}: expected ${expected}, got ${actual}"
+    fi
+
+    mkdir -p "$(dirname "${TARGET_FILE}")"
+    mv "${TEMPORARY}/${name}" "${TARGET_FILE}"
+    log "Installed ${TARGET_FILE}"
+  fi
 
   if [ -n "${RC_FILE}" ]; then
     write_rc_block "${RC_FILE}" "${RC_BODY}"
@@ -435,6 +581,7 @@ main() {
   TARGET_FILE=""
   RC_FILE=""
   RC_BODY=""
+  TARGET_EXISTING=0
   resolve_target
 
   case "${ACTION}" in
