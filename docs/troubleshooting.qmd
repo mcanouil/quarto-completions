@@ -49,7 +49,7 @@ exec zsh -l
 
 ## bash offers every file, not just documents
 
-Filtering to `.qmd`, `.ipynb`, `.md`, and `.Rmd` needs the `extglob` shell option.
+Filtering to `.qmd`, `.ipynb`, `.md`, `.Rmd`, and `.markdown` needs the `extglob` shell option.
 The script enables it around the one call that needs it, so this should not happen.
 It will, however, fall back to offering every file if `compgen` is not available, which is the case in a shell built without programmable completion.
 
@@ -65,13 +65,20 @@ An error there means bash was started with `--norc` or without `bash-completion`
 
 They are generated from a released Quarto, so a flag added after that release is not there yet.
 The installer already checks this each time it runs: if the `quarto` on your `PATH` and the completions it is about to install disagree by major or minor version, it says so, adding `--channel prerelease` to the message when your Quarto is newer than a `stable` install.
-To check an install done earlier, or without running the installer again, look at which version yours came from:
+To check an install done earlier, or without running the installer again, ask where the file is:
 
 ```bash
-grep -m1 Quarto ~/.local/share/quarto-completions/quarto.bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --dry-run
+```
+
+Then read the version out of the path it reported:
+
+```bash
+grep -m1 Quarto <path>
 ```
 
 Every script carries that line in its header.
+The path is worth asking for rather than assuming: where the file goes depends on what else the machine has installed, so it differs between shells and between machines.
 If you run a Quarto prerelease, install the matching channel:
 
 ```bash
