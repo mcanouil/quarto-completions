@@ -22,7 +22,7 @@ powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completi
 ```
 
 The shell is detected from `$SHELL`; pass `--shell bash|zsh|fish` to override it.
-Everything is written under your home directory, and nothing needs root.
+Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory; nothing needs root.
 Add `--dry-run` to see the paths first, or `--uninstall` to remove it all.
 
 ## How it works

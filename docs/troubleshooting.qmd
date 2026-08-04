@@ -37,7 +37,7 @@ If something later in `~/.zshrc` calls `compinit -C`, or replaces `fpath` outrig
 Move the block below it, or delete the block and put this above your own `compinit`:
 
 ```zsh
-fpath=("$HOME/.local/share/zsh/site-functions" $fpath)
+fpath=("$HOME/.zfunc" $fpath)
 ```
 
 Then remove the stale completion cache and start a new shell:

@@ -84,9 +84,14 @@ mkdir -p "${HOME_DIR}"
 # would otherwise have the installer reach out of the throwaway home and write
 # into their own ~/.oh-my-zsh. Every scenario that wants that layout builds it
 # under its own home instead.
+#
+# HOMEBREW_PREFIX is pointed at a directory that does not exist for the same
+# reason: it is authoritative when set, so this keeps a developer's real
+# /opt/homebrew out of every scenario but the one that asks for it.
 install_run() {
   env -u ZSH -u ZSH_CUSTOM \
     HOME="${HOME_DIR}" \
+    HOMEBREW_PREFIX="${HOME_DIR}/no-brew" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
     XDG_CONFIG_HOME="${HOME_DIR}/.config" \
     bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
@@ -94,7 +99,7 @@ install_run() {
 
 # A dry run reports without touching anything.
 install_run --shell zsh --dry-run >/dev/null
-expect_absent "dry run writes nothing" "${HOME_DIR}/.local/share/zsh/site-functions/_quarto"
+expect_absent "dry run writes nothing" "${HOME_DIR}/.zfunc/_quarto"
 expect_absent "dry run leaves the rc file alone" "${HOME_DIR}/.zshrc"
 
 for shell in bash zsh fish; do
@@ -106,7 +111,7 @@ for shell in bash zsh fish; do
 done
 
 expect_file "bash: script installed" "${HOME_DIR}/.local/share/quarto-completions/quarto.bash"
-expect_file "zsh: script installed" "${HOME_DIR}/.local/share/zsh/site-functions/_quarto"
+expect_file "zsh: script installed" "${HOME_DIR}/.zfunc/_quarto"
 expect_file "fish: script installed" "${HOME_DIR}/.config/fish/completions/quarto.fish"
 expect_file "bash: rc block written" "${HOME_DIR}/.bashrc"
 expect_file "zsh: rc block written" "${HOME_DIR}/.zshrc"
@@ -126,6 +131,12 @@ fi
 
 # A download that no longer matches the manifest is refused. Serve a copy of
 # the site whose fish script has been altered after the checksums were written.
+#
+# Into a home of its own, because a script already installed and already
+# matching the manifest is not downloaded again, and this has to reach the
+# download to say anything about it.
+TAMPERED_HOME="${SCRATCH}/tampered-home"
+mkdir -p "${TAMPERED_HOME}"
 TAMPERED="${SCRATCH}/tampered"
 cp -R "${SITE}" "${TAMPERED}"
 printf '\n# tampered\n' >>"${TAMPERED}/completions/stable/quarto.fish"
@@ -138,9 +149,10 @@ done
 
 tampered_output="$(
   env -u ZSH -u ZSH_CUSTOM \
-    HOME="${HOME_DIR}" \
-    XDG_DATA_HOME="${HOME_DIR}/.local/share" \
-    XDG_CONFIG_HOME="${HOME_DIR}/.config" \
+    HOME="${TAMPERED_HOME}" \
+    HOMEBREW_PREFIX="${TAMPERED_HOME}/no-brew" \
+    XDG_DATA_HOME="${TAMPERED_HOME}/.local/share" \
+    XDG_CONFIG_HOME="${TAMPERED_HOME}/.config" \
     bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" --shell fish 2>&1
 )" && tampered_status=0 || tampered_status=1
 kill "${TAMPERED_PID}" 2>/dev/null || true
@@ -156,7 +168,7 @@ for shell in bash zsh fish; do
 done
 
 expect_absent "bash: script removed" "${HOME_DIR}/.local/share/quarto-completions/quarto.bash"
-expect_absent "zsh: script removed" "${HOME_DIR}/.local/share/zsh/site-functions/_quarto"
+expect_absent "zsh: script removed" "${HOME_DIR}/.zfunc/_quarto"
 expect_absent "fish: script removed" "${HOME_DIR}/.config/fish/completions/quarto.fish"
 expect_count "zsh: rc block removed" "${HOME_DIR}/.zshrc" ">>> quarto completions >>>" 0
 expect_count "bash: rc block removed" "${HOME_DIR}/.bashrc" ">>> quarto completions >>>" 0
@@ -177,6 +189,21 @@ scenario_run() {
   shift
   env -u ZSH -u ZSH_CUSTOM \
     HOME="${home}" \
+    HOMEBREW_PREFIX="${home}/no-brew" \
+    XDG_DATA_HOME="${home}/.local/share" \
+    XDG_CONFIG_HOME="${home}/.config" \
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+}
+
+# The same, with a Homebrew prefix that exists. Its site-functions directory is
+# on fpath already, so the file goes there and .zshrc is left alone.
+brew_run() {
+  # $1: home, $2: prefix, then installer arguments
+  local home="$1" prefix="$2"
+  shift 2
+  env -u ZSH -u ZSH_CUSTOM \
+    HOME="${home}" \
+    HOMEBREW_PREFIX="${prefix}" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
     bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
@@ -191,41 +218,111 @@ expect_file "oh-my-zsh: script installed in the custom directory" \
   "${OMZ_HOME}/.oh-my-zsh/custom/completions/_quarto"
 expect_absent "oh-my-zsh: no rc file written" "${OMZ_HOME}/.zshrc"
 
-# Installing Oh My Zsh after the fact moves where the file belongs. The run
-# that notices has to take the old one with it, block included, or the machine
-# keeps a copy that nothing updates.
-MIGRATE_HOME="$(scenario_home migrate-zsh)"
-scenario_run "${MIGRATE_HOME}" --shell zsh >/dev/null
-expect_file "zsh migration: starts in site-functions" \
-  "${MIGRATE_HOME}/.local/share/zsh/site-functions/_quarto"
-mkdir -p "${MIGRATE_HOME}/.oh-my-zsh/custom"
-scenario_run "${MIGRATE_HOME}" --shell zsh >/dev/null
-expect_file "zsh migration: moves to the custom directory" \
-  "${MIGRATE_HOME}/.oh-my-zsh/custom/completions/_quarto"
-expect_absent "zsh migration: the old script is gone" \
-  "${MIGRATE_HOME}/.local/share/zsh/site-functions/_quarto"
-expect_count "zsh migration: the old rc block is gone" \
-  "${MIGRATE_HOME}/.zshrc" ">>> quarto completions >>>" 0
+# An install already on disk is updated where it is. Installing Oh My Zsh
+# afterwards changes where a first install would go, and changes nothing for a
+# machine that already has one: moving the file would undo a location the user
+# may have chosen, and the fpath line that reaches it is still in .zshrc.
+STICKY_HOME="$(scenario_home sticky-zsh)"
+scenario_run "${STICKY_HOME}" --shell zsh >/dev/null
+expect_file "zsh: a first install goes to ~/.zfunc" "${STICKY_HOME}/.zfunc/_quarto"
+mkdir -p "${STICKY_HOME}/.oh-my-zsh/custom"
+sticky_output="$(scenario_run "${STICKY_HOME}" --shell zsh)"
+expect_file "zsh: the existing install is kept where it is" \
+  "${STICKY_HOME}/.zfunc/_quarto"
+expect_absent "zsh: the newly applicable location is left empty" \
+  "${STICKY_HOME}/.oh-my-zsh/custom/completions/_quarto"
+expect_contains "zsh: an existing install is reported as one" \
+  "${sticky_output}" "Updating existing install"
+expect_count "zsh: the rc block that reaches it is kept" \
+  "${STICKY_HOME}/.zshrc" ">>> quarto completions >>>" 1
 
-# The same shape for bash, and the case that was broken before any of this:
-# installing bash-completion later switches the branch, and the previous run's
-# script and rc block were both left behind.
-MIGRATE_BASH="$(scenario_home migrate-bash)"
-scenario_run "${MIGRATE_BASH}" --shell bash >/dev/null
-expect_file "bash migration: starts in quarto-completions" \
-  "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
-mkdir -p "${MIGRATE_BASH}/.local/share/bash-completion/completions"
-scenario_run "${MIGRATE_BASH}" --shell bash >/dev/null
-expect_file "bash migration: moves to bash-completion" \
-  "${MIGRATE_BASH}/.local/share/bash-completion/completions/quarto"
-expect_absent "bash migration: the old script is gone" \
-  "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
-expect_count "bash migration: the old rc block is gone" \
-  "${MIGRATE_BASH}/.bashrc" ">>> quarto completions >>>" 0
+# The same shape for bash: installing bash-completion later does not move a
+# script that is already installed and already sourced.
+STICKY_BASH="$(scenario_home sticky-bash)"
+scenario_run "${STICKY_BASH}" --shell bash >/dev/null
+expect_file "bash: a first install goes to quarto-completions" \
+  "${STICKY_BASH}/.local/share/quarto-completions/quarto.bash"
+mkdir -p "${STICKY_BASH}/.local/share/bash-completion/completions"
+scenario_run "${STICKY_BASH}" --shell bash >/dev/null
+expect_file "bash: the existing install is kept where it is" \
+  "${STICKY_BASH}/.local/share/quarto-completions/quarto.bash"
+expect_absent "bash: the newly applicable location is left empty" \
+  "${STICKY_BASH}/.local/share/bash-completion/completions/quarto"
+
+# Two locations holding a file is what an install made by an earlier version,
+# followed by one made by hand, leaves behind. The higher-precedence one wins
+# and the other goes, so nothing is left to shadow the file that is maintained.
+SWEEP_HOME="$(scenario_home sweep-zsh)"
+mkdir -p "${SWEEP_HOME}/.oh-my-zsh/custom/completions" \
+  "${SWEEP_HOME}/.local/share/zsh/site-functions"
+touch "${SWEEP_HOME}/.oh-my-zsh/custom/completions/_quarto" \
+  "${SWEEP_HOME}/.local/share/zsh/site-functions/_quarto"
+scenario_run "${SWEEP_HOME}" --shell zsh >/dev/null
+expect_file "zsh: the highest-precedence install is the one updated" \
+  "${SWEEP_HOME}/.oh-my-zsh/custom/completions/_quarto"
+expect_absent "zsh: the 0.1.x location is swept" \
+  "${SWEEP_HOME}/.local/share/zsh/site-functions/_quarto"
+
+# The XDG directory is swept, never kept: a file there is what an earlier
+# version of these instructions produced, and an install that settled on it
+# would stay exactly where it is meant to move off.
+MIGRATE_XDG="$(scenario_home migrate-xdg)"
+mkdir -p "${MIGRATE_XDG}/.local/share/zsh/site-functions"
+touch "${MIGRATE_XDG}/.local/share/zsh/site-functions/_quarto"
+scenario_run "${MIGRATE_XDG}" --shell zsh >/dev/null
+expect_file "zsh: a file in the old directory is moved to ~/.zfunc" \
+  "${MIGRATE_XDG}/.zfunc/_quarto"
+expect_absent "zsh: the old directory is not settled on" \
+  "${MIGRATE_XDG}/.local/share/zsh/site-functions/_quarto"
+
+# A stale copy in a directory nobody can write to, which is what Homebrew's
+# prefix or a system package leaves behind. The install has otherwise worked,
+# so it says what it could not remove and still succeeds.
+UNREMOVABLE="$(scenario_home unremovable)"
+mkdir -p "${UNREMOVABLE}/.local/share/zsh/site-functions"
+touch "${UNREMOVABLE}/.local/share/zsh/site-functions/_quarto"
+chmod 500 "${UNREMOVABLE}/.local/share/zsh/site-functions"
+if unremovable_output="$(scenario_run "${UNREMOVABLE}" --shell zsh 2>&1)"; then
+  pass "an unremovable stale copy does not fail the install"
+else
+  fail "an unremovable stale copy does not fail the install" "${unremovable_output}"
+fi
+expect_file "the install still lands" "${UNREMOVABLE}/.zfunc/_quarto"
+expect_contains "it says what it could not remove" \
+  "${unremovable_output}" "Could not remove"
+chmod 700 "${UNREMOVABLE}/.local/share/zsh/site-functions"
+
+# Homebrew's site-functions directory is on fpath already, so a file written
+# there needs no managed block. $HOMEBREW_PREFIX is authoritative when set.
+BREW_HOME="$(scenario_home brew)"
+BREW_PREFIX="${SCRATCH}/brew"
+mkdir -p "${BREW_PREFIX}/share/zsh/site-functions"
+brew_run "${BREW_HOME}" "${BREW_PREFIX}" --shell zsh >/dev/null
+expect_file "homebrew: script installed in the prefix" \
+  "${BREW_PREFIX}/share/zsh/site-functions/_quarto"
+expect_absent "homebrew: no rc file written" "${BREW_HOME}/.zshrc"
+expect_absent "homebrew: nothing written to ~/.zfunc" "${BREW_HOME}/.zfunc/_quarto"
+brew_run "${BREW_HOME}" "${BREW_PREFIX}" --shell zsh --uninstall >/dev/null
+expect_absent "homebrew: uninstall removes it from the prefix" \
+  "${BREW_PREFIX}/share/zsh/site-functions/_quarto"
+
+# A second install over an unchanged release downloads the script for nothing
+# and rewrites a file that is already right. The manifest says so before the
+# download, so it is skipped and said out loud.
+CURRENT_HOME="$(scenario_home already-current)"
+scenario_run "${CURRENT_HOME}" --shell fish >/dev/null
+current_output="$(scenario_run "${CURRENT_HOME}" --shell fish)"
+expect_contains "an unchanged script is not rewritten" \
+  "${current_output}" "Already current"
 
 # Uninstalling sweeps every location, not only the one that resolves now. Put a
 # file back in the branch that no longer resolves, so that removing just the
 # resolved one would leave something behind.
+MIGRATE_BASH="$(scenario_home uninstall-bash)"
+mkdir -p "${MIGRATE_BASH}/.local/share/bash-completion/completions"
+scenario_run "${MIGRATE_BASH}" --shell bash >/dev/null
+expect_file "uninstall: the resolved location is written first" \
+  "${MIGRATE_BASH}/.local/share/bash-completion/completions/quarto"
 mkdir -p "${MIGRATE_BASH}/.local/share/quarto-completions"
 touch "${MIGRATE_BASH}/.local/share/quarto-completions/quarto.bash"
 printf '%s\n%s\n%s\n' \
@@ -248,6 +345,7 @@ mkdir -p "${OUTSIDE}/.oh-my-zsh/custom/completions"
 printf 'not ours to delete\n' >"${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto"
 env ZSH="${OUTSIDE}/.oh-my-zsh" \
   HOME="${SANDBOX}" \
+  HOMEBREW_PREFIX="${SANDBOX}/no-brew" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
   XDG_CONFIG_HOME="${SANDBOX}/.config" \
   bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
@@ -257,12 +355,13 @@ expect_file "an out-of-home ZSH is not followed on uninstall" \
 
 env ZSH="${OUTSIDE}/.oh-my-zsh" \
   HOME="${SANDBOX}" \
+  HOMEBREW_PREFIX="${SANDBOX}/no-brew" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
   XDG_CONFIG_HOME="${SANDBOX}/.config" \
   bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
   --shell zsh >/dev/null
 expect_file "an out-of-home ZSH is not followed on install" \
-  "${SANDBOX}/.local/share/zsh/site-functions/_quarto"
+  "${SANDBOX}/.zfunc/_quarto"
 expect_count "the out-of-home file is still untouched" \
   "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto" "not ours to delete" 1
 
