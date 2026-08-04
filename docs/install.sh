@@ -142,11 +142,13 @@ resolve_channel() {
   esac
 }
 
+# Fills in the shell nothing named explicitly, then validates whatever the
+# result is. The validation is deliberately outside the detection: a shell
+# named by --shell or QUARTO_COMPLETIONS_SHELL used to skip it entirely, so a
+# typo reached the download with an empty file name and died on a checksum
+# error, and an uninstall exited zero having removed nothing at all.
 detect_shell() {
-  if [ -n "${TARGET_SHELL}" ]; then
-    return
-  fi
-  if [ -n "${SHELL:-}" ]; then
+  if [ -z "${TARGET_SHELL}" ] && [ -n "${SHELL:-}" ]; then
     TARGET_SHELL="$(basename "${SHELL}")"
   fi
   case "${TARGET_SHELL}" in

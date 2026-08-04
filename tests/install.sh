@@ -148,6 +148,34 @@ else
   pass "an unknown channel is refused"
 fi
 
+# A shell named explicitly is validated exactly as a detected one is. Without
+# that, the run reaches the download with an empty file name and dies on a
+# checksum error that says nothing about the real mistake.
+if shell_output="$(install_run --shell nonsense 2>&1)"; then
+  fail "an unknown shell is refused" "installer exited zero: ${shell_output}"
+else
+  expect_contains "an unknown shell is refused" "${shell_output}" "pass --shell bash|zsh|fish"
+fi
+
+# Uninstalling never reaches a download, so a typo here used to exit zero after
+# reporting "Nothing to remove", which reads as "nothing was installed" rather
+# than "that is not a shell".
+if shell_output="$(install_run --shell nonsense --uninstall 2>&1)"; then
+  fail "an unknown shell is refused on uninstall" "installer exited zero: ${shell_output}"
+else
+  expect_contains "an unknown shell is refused on uninstall" \
+    "${shell_output}" "pass --shell bash|zsh|fish"
+fi
+
+# The environment equivalent, which is the only form the piped `curl | bash`
+# invocation can use, is validated the same way.
+if shell_output="$(QUARTO_COMPLETIONS_SHELL=weird install_run 2>&1)"; then
+  fail "an unknown shell from the environment is refused" "installer exited zero: ${shell_output}"
+else
+  expect_contains "an unknown shell from the environment is refused" \
+    "${shell_output}" "pass --shell bash|zsh|fish"
+fi
+
 # A download that no longer matches the manifest is refused. Serve a copy of
 # the site whose fish script has been altered after the checksums were written.
 #
