@@ -355,11 +355,14 @@ EOF
 }
 
 # The first location that already holds a file and can be written to again, and
-# nothing when none does.
+# nothing when none does. Writability is asked of the directory, which is what
+# replacing the file needs: a copy in a prefix that has since become someone
+# else's would otherwise be chosen and then die on the mv, after the download.
 existing_location() {
   local location
   while IFS= read -r location; do
-    if [ -n "${location}" ] && [ -f "${location}" ] && ! sweep_only "${location}"; then
+    if [ -n "${location}" ] && [ -f "${location}" ] && [ -w "$(dirname "${location}")" ] &&
+      ! sweep_only "${location}"; then
       printf '%s' "${location}"
       return 0
     fi
@@ -476,18 +479,28 @@ remove_rc_block() {
   local temporary
   temporary="$(mktemp)"
   sed "/^${BLOCK_START}\$/,/^${BLOCK_END}\$/d" "$1" >"${temporary}"
-  mv "${temporary}" "$1"
+  # Written back through the existing file rather than moved over it: an rc
+  # file is often a symlink into a dotfiles checkout, and mv would replace the
+  # link with a plain file carrying mktemp's 0600 mode. The redirect names the
+  # file on failure; set -e alone would stop with a bare permission error.
+  if ! cat "${temporary}" >"$1"; then
+    rm -f "${temporary}"
+    fail "could not write $1: fix its permissions and re-run"
+  fi
+  rm -f "${temporary}"
 }
 
 write_rc_block() {
   # $1: rc file, $2: body
   remove_rc_block "$1"
   mkdir -p "$(dirname "$1")"
+  # The same message as the rewrite in remove_rc_block: a first install into
+  # an existing rc file without a block reaches this append directly.
   {
     printf '%s\n' "${BLOCK_START}"
     printf '%s\n' "$2"
     printf '%s\n' "${BLOCK_END}"
-  } >>"$1"
+  } >>"$1" || fail "could not write $1: fix its permissions and re-run"
 }
 
 do_install() {

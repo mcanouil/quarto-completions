@@ -65,26 +65,54 @@ _quarto_valued() {
 }
 
 _quarto() {
-  local cur prev cmd word key vals i pos skip
+  local cur prev cmd word key vals i pos skip words cword raw
   COMPREPLY=()
-  cur="${COMP_WORDS[COMP_CWORD]}"
+
+  # '=' and ':' are both in COMP_WORDBREAKS, so '--to=html' arrives as the
+  # three words '--to', '=', 'html', and 'key:value' is split the same way.
+  # Reassemble once; everything below reads the glued words.
+  words=("${COMP_WORDS[0]}")
+  cword=0
+  for (( i=1; i <= COMP_CWORD; i++ )); do
+    raw="${COMP_WORDS[i]}"
+    if [[ "$raw" == [=:] ]] || [[ "${COMP_WORDS[i-1]}" == [=:] ]]; then
+      words[${#words[@]}-1]="${words[${#words[@]}-1]}${raw}"
+    else
+      words[${#words[@]}]="$raw"
+    fi
+    if [ "$i" -eq "$COMP_CWORD" ]; then
+      cword=$(( ${#words[@]} - 1 ))
+    fi
+  done
+
+  cur="${words[cword]}"
   # bash 3.2 rejects a negative array subscript, so guard the first word.
   prev=""
-  if [ "$COMP_CWORD" -gt 0 ]; then
-    prev="${COMP_WORDS[COMP_CWORD-1]}"
+  if [ "$cword" -gt 0 ]; then
+    prev="${words[cword-1]}"
   fi
+  # A flag with its value attached dispatches on the flag; the part after '='
+  # is the word being completed.
+  case "$cur" in
+    -*=*)
+      prev="${cur%%=*}"
+      cur="${cur#*=}"
+      ;;
+  esac
 
   cmd="quarto"
   _quarto_valued "$cmd"
   pos=0
   skip=0
-  for (( i=1; i < COMP_CWORD; i++ )); do
-    word="${COMP_WORDS[i]}"
+  for (( i=1; i < cword; i++ )); do
+    word="${words[i]}"
     if [ "$skip" = "1" ]; then
       skip=0
       continue
     fi
     case "$word" in
+      # A value attached with '=' travels inside the flag's own word.
+      -*=*) continue ;;
       -*)
         case " $vals " in
           *" $word "*) skip=1 ;;

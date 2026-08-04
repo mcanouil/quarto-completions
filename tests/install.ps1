@@ -151,6 +151,22 @@ try {
   Invoke-Installer -BaseUrl $baseUrl | Out-Null
   Assert-Count 'managed block is not duplicated' $profilePath '>>> quarto completions >>>' 1
 
+  # ValidateSet does not run on default values, so a channel arriving through
+  # the environment has to be refused by the installer itself.
+  $env:QUARTO_COMPLETIONS_CHANNEL = 'nonsense'
+  try {
+    $output = Invoke-Installer -BaseUrl $baseUrl
+    if ($LASTEXITCODE -ne 0 -and $output -match "'stable' or 'prerelease'") {
+      Test-Pass 'an unknown channel from the environment is refused'
+    }
+    else {
+      Test-Fail 'an unknown channel from the environment is refused' $output
+    }
+  }
+  finally {
+    Remove-Item Env:\QUARTO_COMPLETIONS_CHANNEL -ErrorAction SilentlyContinue
+  }
+
   # A download that no longer matches the manifest is refused.
   $tampered = Join-Path $scratch 'tampered'
   Copy-Item -Recurse -LiteralPath $Site -Destination $tampered

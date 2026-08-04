@@ -15,7 +15,7 @@ import {
   oneLine,
   positionals,
   trailingIsVariadic,
-  valuedFlags,
+  valuedOptions,
 } from "./common.ts";
 
 export function emitPwsh(spec: Spec): string {
@@ -34,19 +34,21 @@ function Script:Resolve-QuartoNode {
   $path = @()
   $position = 0
   $skip = $false
-  $valued = $script:QuartoCompletionSpec[''].Valued
+  # Values is keyed by every flag that consumes the next word, so its key set
+  # doubles as the valued-flag list.
+  $valued = $script:QuartoCompletionSpec[''].Values
 
   foreach ($word in $Words) {
     if ($skip) { $skip = $false; continue }
     if ($word.StartsWith('-')) {
-      if ($valued -contains $word) { $skip = $true }
+      if ($valued.ContainsKey($word)) { $skip = $true }
       continue
     }
     $candidate = (($path + $word) -join ' ')
     if ($script:QuartoCompletionSpec.ContainsKey($candidate)) {
       $path += $word
       $position = 0
-      $valued = $script:QuartoCompletionSpec[$candidate].Valued
+      $valued = $script:QuartoCompletionSpec[$candidate].Values
       continue
     }
     $position++
@@ -139,22 +141,21 @@ function nodeEntry(command: CommandSpec): string {
     `      ${quote(commandName(child))} = ${quote(oneLine(child.description))}`
   );
 
-  const values = command.options
-    .filter((option) => option.kind === "enum")
+  // Keyed by every flag that consumes a value, not only the enums: a flag
+  // whose candidates are unknown maps to an empty list, so the completer
+  // returns nothing and PowerShell falls back to path completion rather than
+  // offering subcommands as the flag's value.
+  const values = valuedOptions(command)
     .flatMap((option) =>
-      optionFlags(option).map((flag) =>
-        `      ${quote(flag)} = @(${(option.values ?? []).map(quote).join(", ")})`
-      )
+      optionFlags(option).map((flag) => `      ${quote(flag)} = @(${enumCandidates(option)})`)
     );
-
-  const valued = valuedFlags(command);
 
   // Keyed by index rather than emitted as a nested array, which PowerShell
   // would flatten. File and directory positionals are left as empty slots on
   // purpose: PowerShell falls back to path completion when a native completer
   // returns nothing.
   const slots = positionals(command).map((arg, index) =>
-    `      ${index} = @(${(arg.kind === "enum" ? arg.values ?? [] : []).map(quote).join(", ")})`
+    `      ${index} = @(${enumCandidates(arg)})`
   );
 
   return `  ${quote(key)} = @{
@@ -167,12 +168,16 @@ ${commands.join("\n")}
     Values = @{
 ${values.join("\n")}
     }
-    Valued = @(${valued.map(quote).join(", ")})
     Positional = @{
 ${slots.join("\n")}
     }
     Variadic = $${trailingIsVariadic(command)}
   }`;
+}
+
+/** Quoted candidate list for a flag or slot; empty when nothing is known. */
+function enumCandidates(spec: { kind: string; values?: string[] }): string {
+  return (spec.kind === "enum" ? spec.values ?? [] : []).map(quote).join(", ");
 }
 
 function quote(text: string): string {

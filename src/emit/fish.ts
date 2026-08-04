@@ -159,8 +159,11 @@ function argumentAction(
     case "enum":
       return `-f -a ${quote((values ?? []).join(" "))}`;
     case "file":
+      // One call per suffix: fish only accepts several suffixes in one call
+      // from 3.6 on, and older versions read the second argument as the token
+      // to complete, which silently breaks the whole filter.
       return globs && globs.length > 0
-        ? `-F -a "(__fish_complete_suffix ${globs.map((glob) => `.${glob}`).join(" ")})"`
+        ? `-F -a "(${globs.map((glob) => `__fish_complete_suffix .${glob}`).join("; ")})"`
         : `-F`;
     case "dir":
       return `-f -a "(__fish_complete_directories)"`;

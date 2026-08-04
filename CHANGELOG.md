@@ -17,6 +17,13 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- fix: complete a value attached to its flag, so `quarto render --to=html` works in bash and zsh as well as spelled with a space. bash splits words on `=` and `:`, so the attached form counted its pieces as positionals and offered files where formats belong, and a metadata value written `key:value` pushed every later positional off its slot; the words are now glued back together before anything reads them. zsh option specs carry a trailing `=` on valued long options, which `_arguments` reads as accepting both forms.
+- fix: filter fish file candidates on every fish version. fish only accepts several suffixes in one `__fish_complete_suffix` call from 3.6 on; older versions read the second argument as the token to complete, which silently broke the filter to renderable documents. Each suffix is now a call of its own.
+- fix: keep a symlinked shell configuration a symlink. Rewriting the managed block replaced an rc file that was a symlink into a dotfiles checkout with a plain file in mktemp's 0600 mode; the block is now written back through the existing file.
+- fix: fall through when an earlier install can no longer be written. A completion script found in a directory that has since become read-only, such as a Homebrew prefix owned by another user, was chosen again and the install died after the download; it now lands in a writable location and reports the copy it could not remove.
+- fix: name the rc file when it cannot be written, on the first install and on every later rewrite, rather than stopping with a bare permission error from the shell.
+- fix: refuse an unknown channel arriving through `QUARTO_COMPLETIONS_CHANNEL` in the PowerShell installer with a clear message; it previously surfaced later as a confusing download error.
+
 - fix: install zsh completions where Oh My Zsh will find them. Oh My Zsh puts `$ZSH_CUSTOM/completions` on `fpath` and runs `compinit` itself while `~/.zshrc` is still sourcing it, so a block appended below that ran too late and the completions never loaded. The file now goes straight there, and no shell configuration is edited.
 - fix: use `compinit -i` rather than `compinit -C` in the managed block. `-C` omits the check for new completion functions and reuses the existing dump, so on any machine where `compinit` had already run, the newly installed `_quarto` was never picked up.
 - fix: remove what an earlier run left behind. The installer only ever cleaned the one location that suited the machine at the time, so a script written anywhere else was stranded, and its managed block with it. Installing and uninstalling now sweep every location the installer knows, and `--dry-run` reports them.

@@ -56,20 +56,27 @@ jobs:
 
           # The manifest carries a generation date, which changes on every run
           # and says nothing about the CLI surface. Everything else is stable,
-          # so no list of artefact names is repeated here.
-          if git diff --quiet -- docs/completions ':!docs/completions/*/manifest.json'; then
+          # so no list of artefact names is repeated here. `git status` rather
+          # than `git diff`, so a file the generator starts writing under a new
+          # name is seen too.
+          if [ -z "$(git status --porcelain -- docs/completions ':!docs/completions/*/manifest.json')" ]; then
             echo "Completions are unchanged."
             git checkout -- docs/completions
             exit 0
           fi
 
-          branch="ci/completions-$(date -u +%Y%m%d)"
+          # One fixed branch name: a dated one would open a second pull request
+          # beside a first left unmerged for a week, where this force-push
+          # updates it in place.
+          branch="ci/completions"
           git checkout -b "${branch}"
           git add docs/completions
           git commit -m "chore: regenerate completions from the current Quarto"
           git push --force origin "${branch}"
 
-          if gh pr view "${branch}" >/dev/null 2>&1; then
+          # `gh pr view` also reports merged and closed pull requests for the
+          # branch, and those must not stop a new one from opening.
+          if [ "$(gh pr view "${branch}" --json state --jq .state 2>/dev/null)" = "OPEN" ]; then
             echo "Pull request already open."
             exit 0
           fi

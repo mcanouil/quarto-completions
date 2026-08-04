@@ -34,7 +34,6 @@ $script:QuartoCompletionSpec = @{
     Values = @{
 
     }
-    Valued = @()
     Positional = @{
 
     }
@@ -97,13 +96,34 @@ $script:QuartoCompletionSpec = @{
     Values = @{
       '-t' = @('html', 'pdf', 'docx', 'odt', 'rtf', 'revealjs', 'beamer', 'pptx', 'typst', 'dashboard', 'epub', 'gfm', 'commonmark', 'markdown', 'markua', 'hugo-md', 'docusaurus-md', 'jats', 'asciidoc', 'asciidoctor', 'ipynb', 'context', 'docbook', 'dokuwiki', 'jira', 'mediawiki', 'man', 'ms', 'muse', 'opml', 'org', 'rst', 'texinfo', 'textile', 'xwiki', 'zimwiki')
       '--to' = @('html', 'pdf', 'docx', 'odt', 'rtf', 'revealjs', 'beamer', 'pptx', 'typst', 'dashboard', 'epub', 'gfm', 'commonmark', 'markdown', 'markua', 'hugo-md', 'docusaurus-md', 'jats', 'asciidoc', 'asciidoctor', 'ipynb', 'context', 'docbook', 'dokuwiki', 'jira', 'mediawiki', 'man', 'ms', 'muse', 'opml', 'org', 'rst', 'texinfo', 'textile', 'xwiki', 'zimwiki')
+      '-o' = @()
+      '--output' = @()
+      '--output-dir' = @()
+      '-M' = @()
+      '--metadata' = @()
+      '--site-url' = @()
+      '-P' = @()
+      '--execute-param' = @()
+      '--execute-params' = @()
+      '--execute-dir' = @()
+      '--execute-daemon' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
+      '--toc-depth' = @()
+      '--number-offset' = @()
       '--top-level-division' = @('default', 'section', 'chapter', 'part')
+      '--template' = @()
+      '--css' = @()
+      '--bibliography' = @()
+      '--csl' = @()
+      '--highlight-style' = @()
       '--pdf-engine' = @('pdflatex', 'lualatex', 'xelatex', 'tectonic', 'latexmk', 'context', 'wkhtmltopdf', 'weasyprint', 'typst')
       '--wrap' = @('auto', 'none', 'preserve')
+      '--reference-doc' = @()
+      '--shift-heading-level-by' = @()
     }
-    Valued = @('-t', '--to', '-o', '--output', '--output-dir', '-M', '--metadata', '--site-url', '-P', '--execute-param', '--execute-params', '--execute-dir', '--execute-daemon', '--log', '--log-level', '--log-format', '--profile', '--toc-depth', '--number-offset', '--top-level-division', '--template', '--css', '--bibliography', '--csl', '--highlight-style', '--pdf-engine', '--wrap', '--reference-doc', '--shift-heading-level-by')
     Positional = @{
       0 = @()
       1 = @()
@@ -151,14 +171,27 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--port' = @()
+      '--host' = @()
       '--render' = @('all', 'html', 'pdf', 'docx', 'odt', 'rtf', 'revealjs', 'beamer', 'pptx', 'typst', 'dashboard', 'epub', 'gfm', 'commonmark', 'markdown', 'markua', 'hugo-md', 'docusaurus-md', 'jats', 'asciidoc', 'asciidoctor', 'ipynb', 'context', 'docbook', 'dokuwiki', 'jira', 'mediawiki', 'man', 'ms', 'muse', 'opml', 'org', 'rst', 'texinfo', 'textile', 'xwiki', 'zimwiki')
+      '--timeout' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
+      '--toc-depth' = @()
+      '--number-offset' = @()
       '--top-level-division' = @('default', 'section', 'chapter', 'part')
+      '--template' = @()
+      '--css' = @()
+      '--bibliography' = @()
+      '--csl' = @()
+      '--highlight-style' = @()
       '--pdf-engine' = @('pdflatex', 'lualatex', 'xelatex', 'tectonic', 'latexmk', 'context', 'wkhtmltopdf', 'weasyprint', 'typst')
       '--wrap' = @('auto', 'none', 'preserve')
+      '--reference-doc' = @()
+      '--shift-heading-level-by' = @()
     }
-    Valued = @('--port', '--host', '--render', '--timeout', '--log', '--log-level', '--log-format', '--profile', '--toc-depth', '--number-offset', '--top-level-division', '--template', '--css', '--bibliography', '--csl', '--highlight-style', '--pdf-engine', '--wrap', '--reference-doc', '--shift-heading-level-by')
     Positional = @{
       0 = @()
       1 = @()
@@ -184,10 +217,14 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '-p' = @()
+      '--port' = @()
+      '--host' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('-p', '--port', '--host', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @()
     }
@@ -211,10 +248,11 @@ $script:QuartoCompletionSpec = @{
     }
     Values = @{
       '--open' = @('positron', 'vscode', 'rstudio')
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--open', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('project', 'extension')
       1 = @()
@@ -235,7 +273,6 @@ $script:QuartoCompletionSpec = @{
     Values = @{
 
     }
-    Valued = @()
     Positional = @{
       0 = @()
       1 = @()
@@ -256,10 +293,10 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
     }
-    Valued = @('--log', '--log-level', '--log-format')
     Positional = @{
       0 = @()
     }
@@ -279,10 +316,10 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
     }
-    Valued = @('--log', '--log-level', '--log-format')
     Positional = @{
 
     }
@@ -304,10 +341,11 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @()
     }
@@ -329,10 +367,12 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--embed' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--embed', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @()
     }
@@ -354,10 +394,12 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--embed' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--embed', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('tinytex', 'chrome-headless-shell', 'verapdf')
     }
@@ -379,10 +421,12 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--embed' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--embed', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @()
     }
@@ -405,10 +449,13 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '-o' = @()
+      '--output' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('-o', '--output', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @()
     }
@@ -424,7 +471,6 @@ $script:QuartoCompletionSpec = @{
     Values = @{
 
     }
-    Valued = @()
     Positional = @{
 
     }
@@ -440,7 +486,6 @@ $script:QuartoCompletionSpec = @{
     Values = @{
 
     }
-    Valued = @()
     Positional = @{
 
     }
@@ -460,10 +505,11 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @()
       1 = @()
@@ -484,10 +530,11 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('extensions', 'tools')
     }
@@ -509,10 +556,11 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('tinytex', 'chrome-headless-shell', 'verapdf')
     }
@@ -534,10 +582,11 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('tinytex', 'chrome-headless-shell', 'verapdf')
     }
@@ -554,7 +603,6 @@ $script:QuartoCompletionSpec = @{
     Values = @{
 
     }
-    Valued = @()
     Positional = @{
 
     }
@@ -580,10 +628,14 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--id' = @()
+      '--server' = @()
+      '--token' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--id', '--server', '--token', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('quarto-pub', 'gh-pages', 'connect', 'posit-connect-cloud', 'netlify', 'confluence', 'huggingface')
       1 = @()
@@ -606,10 +658,12 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--output' = @()
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--output', '--log', '--log-level', '--log-format', '--profile')
     Positional = @{
       0 = @('install', 'jupyter', 'knitr', 'versions', 'all')
     }
@@ -628,7 +682,6 @@ $script:QuartoCompletionSpec = @{
     Values = @{
 
     }
-    Valued = @()
     Positional = @{
 
     }
@@ -647,10 +700,10 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
     }
-    Valued = @('--log', '--log-level', '--log-format')
     Positional = @{
       0 = @('jupyter', 'knitr', 'markdown', 'julia')
       1 = @()
@@ -672,10 +725,10 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
     }
-    Valued = @('--log', '--log-level', '--log-format')
     Positional = @{
       0 = @()
     }
@@ -696,10 +749,11 @@ $script:QuartoCompletionSpec = @{
 
     }
     Values = @{
+      '--log' = @()
       '--log-level' = @('debug', 'info', 'warning', 'error', 'critical')
       '--log-format' = @('plain', 'json-stream')
+      '--profile' = @()
     }
-    Valued = @('--log', '--log-level', '--log-format', '--profile')
     Positional = @{
 
     }
@@ -715,19 +769,21 @@ function Script:Resolve-QuartoNode {
   $path = @()
   $position = 0
   $skip = $false
-  $valued = $script:QuartoCompletionSpec[''].Valued
+  # Values is keyed by every flag that consumes the next word, so its key set
+  # doubles as the valued-flag list.
+  $valued = $script:QuartoCompletionSpec[''].Values
 
   foreach ($word in $Words) {
     if ($skip) { $skip = $false; continue }
     if ($word.StartsWith('-')) {
-      if ($valued -contains $word) { $skip = $true }
+      if ($valued.ContainsKey($word)) { $skip = $true }
       continue
     }
     $candidate = (($path + $word) -join ' ')
     if ($script:QuartoCompletionSpec.ContainsKey($candidate)) {
       $path += $word
       $position = 0
-      $valued = $script:QuartoCompletionSpec[$candidate].Valued
+      $valued = $script:QuartoCompletionSpec[$candidate].Values
       continue
     }
     $position++
