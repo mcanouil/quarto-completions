@@ -212,6 +212,44 @@ const tests: Record<string, () => void> = {
     assertIncludes(output, `__quarto_at "render"`);
   },
 
+  "fish filters files one suffix at a time"() {
+    // fish only accepts several suffixes in one __fish_complete_suffix call
+    // from 3.6 on; older versions read the second argument as the token to
+    // complete, so each suffix must arrive in a call of its own.
+    const output = emitFish(enrich(fixtureSpec()));
+    assertIncludes(output, "__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb");
+  },
+
+  "powershell gates every valued flag, not only the enums"() {
+    // A valued flag missing from Values would fall through to the subcommand
+    // candidates; an empty list makes the completer return nothing instead.
+    const output = emitPwsh(enrich(fixtureSpec()));
+    assertIncludes(output, "'--profile' = @()");
+  },
+
+  "the generator refuses a completable positional beside subcommands"() {
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.args.push({ name: "shape", optional: true, variadic: false, kind: "enum", values: ["x"] });
+    let message = "";
+    try {
+      render(spec);
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, "'quarto call'");
+    assertIncludes(message, "shape");
+  },
+
+  "a bare value positional beside subcommands is tolerated"() {
+    // `use <type> [target]` restates its subcommands in the usage line; there
+    // is nothing to complete, so dropping it loses nothing.
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.args.push({ name: "type", optional: false, variadic: false, kind: "value" });
+    render(spec);
+  },
+
   "powershell registers both the binary and the shim"() {
     const output = emitPwsh(fixtureSpec());
     assertIncludes(output, "-CommandName quarto -ScriptBlock");
@@ -233,6 +271,21 @@ const tests: Record<string, () => void> = {
   "bash guards the word before the first argument"() {
     const output = emitBash(enrich(fixtureSpec()));
     assertIncludes(output, `if [ "$COMP_CWORD" -gt 0 ]; then`);
+  },
+
+  "bash reunites a flag split on = with its value"() {
+    // bash keeps '=' in COMP_WORDBREAKS, so '--to=html' reaches the function
+    // as three words and the script has to put them back together.
+    const output = emitBash(enrich(fixtureSpec()));
+    assertIncludes(output, `if [ "$cur" = "=" ]; then`);
+    assertIncludes(output, `elif [ "$prev" = "=" ]`);
+  },
+
+  "zsh accepts a value attached with = on long options"() {
+    const output = emitZsh(enrich(fixtureSpec()));
+    assertIncludes(output, "--to=");
+    // Switches take no value, so they must not grow the suffix.
+    assertExcludes(output, "--toc=");
   },
 
   "descriptions are escaped for the shell that shows them"() {

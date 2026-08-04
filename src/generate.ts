@@ -15,6 +15,7 @@ import { emitBash } from "./emit/bash.ts";
 import { emitFish } from "./emit/fish.ts";
 import { emitPwsh } from "./emit/pwsh.ts";
 import { emitZsh } from "./emit/zsh.ts";
+import { walk } from "./spec.ts";
 import type { Spec } from "./spec.ts";
 
 interface Options {
@@ -60,6 +61,20 @@ function parseArgs(args: string[]): Options {
 /** Files written for a channel, keyed by their name on disk. */
 export function render(spec: Spec): Record<string, string> {
   const enriched = enrich(spec);
+  // The zsh emitter hands every word after a subcommand-bearing command to the
+  // subcommand machinery, so a positional there is silently dropped. `use` is
+  // shaped like this today and loses nothing: its positionals are the
+  // subcommands restated, with no candidates of their own. A positional that
+  // does carry candidates would disappear without this check.
+  for (const command of walk(enriched.root)) {
+    const completable = command.args.filter((arg) => arg.kind !== "value");
+    if (command.commands.length > 0 && completable.length > 0) {
+      throw new Error(
+        `'quarto ${command.path.join(" ")}' has subcommands and a completable positional ` +
+          `(${completable.map((arg) => arg.name).join(", ")}); the zsh emitter would drop it.`,
+      );
+    }
+  }
   return {
     "quarto.bash": emitBash(enriched),
     "_quarto": emitZsh(enriched),
