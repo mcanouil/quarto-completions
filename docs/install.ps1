@@ -25,7 +25,9 @@
 
 [CmdletBinding()]
 param(
-  [ValidateSet('stable', 'prerelease')]
+  # No ValidateSet: Windows PowerShell 5.1 would skip it for the default value
+  # read from the environment, and PowerShell 7 would refuse that value with
+  # its own wording. The one check below covers both paths with one message.
   [string]$Channel = $(if ($env:QUARTO_COMPLETIONS_CHANNEL) { $env:QUARTO_COMPLETIONS_CHANNEL } else { 'stable' }),
 
   [string]$BaseUrl = $(if ($env:QUARTO_COMPLETIONS_BASE_URL) { $env:QUARTO_COMPLETIONS_BASE_URL } else { 'https://m.canouil.dev/quarto-completions' }),
@@ -47,8 +49,6 @@ if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
 # Promoted to script scope so the functions below read one binding rather than
 # closing over the parameters.
 $script:Channel = $Channel
-# ValidateSet does not run on default values, so a channel arriving through the
-# environment variable would otherwise sail through and fail later as a 404.
 if ($script:Channel -notin @('stable', 'prerelease')) {
   throw "Channel must be 'stable' or 'prerelease', got '$($script:Channel)'"
 }
