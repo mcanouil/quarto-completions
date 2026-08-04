@@ -80,6 +80,15 @@ _quarto() {
     prev="\${COMP_WORDS[COMP_CWORD-1]}"
   fi
 
+  # '=' is in COMP_WORDBREAKS, so '--to=html' arrives as the three words
+  # '--to', '=', 'html'. Reunite them: the value dispatch below keys on the
+  # flag, and the '=' itself is never the word being completed.
+  if [ "$cur" = "=" ]; then
+    cur=""
+  elif [ "$prev" = "=" ] && [ "$COMP_CWORD" -ge 2 ]; then
+    prev="\${COMP_WORDS[COMP_CWORD-2]}"
+  fi
+
   cmd="quarto"
   _quarto_valued "$cmd"
   pos=0
@@ -88,6 +97,11 @@ _quarto() {
     word="\${COMP_WORDS[i]}"
     if [ "$skip" = "1" ]; then
       skip=0
+      # A valued flag written '--to=html' consumes two words here, the '='
+      # and the value, not one.
+      if [ "$word" = "=" ]; then
+        skip=1
+      fi
       continue
     fi
     case "$word" in

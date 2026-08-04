@@ -97,7 +97,12 @@ function optionSpec(option: OptionSpec): string {
   const description = escapeDescription(option.description);
   const forms = optionFlags(option);
   const exclusion = `(${forms.join(" ")})`;
-  const flag = forms.length > 1 ? `{${forms.join(",")}}` : `${forms[0]}`;
+  // A trailing '=' on the long form tells _arguments the value may sit in the
+  // same word after '=' as well as in the next word, so '--to=html' completes.
+  const spelled = forms.map((form) =>
+    option.kind !== "none" && form.startsWith("--") ? `${form}=` : form
+  );
+  const flag = spelled.length > 1 ? `{${spelled.join(",")}}` : `${spelled[0]}`;
   const value = option.kind === "none"
     ? ""
     : `:${option.placeholder ?? "value"}:${argAction(option.kind, option.values, option.globs)}`;

@@ -53,6 +53,14 @@ test_bash() {
   expect_contains "bash: publish providers" "$(bash_complete quarto publish '')" "gh-pages"
   expect_contains "bash: forwarded pandoc flags" "$(bash_complete quarto render --pdf-en)" "--pdf-engine"
 
+  # bash splits on '=', so '--to=html' reaches the function as '--to', '=', 'html'.
+  expect_contains "bash: formats for --to= (equals form)" \
+    "$(bash_complete quarto render --to = '')" "revealjs"
+  expect_contains "bash: a partial value after --to= completes" \
+    "$(bash_complete quarto render --to = ht)" "html"
+  expect_contains "bash: a value attached with = is not counted as a positional" \
+    "$(bash_complete quarto render --to = html '')" "report.qmd"
+
   local inputs
   inputs="$(bash_complete quarto render '')"
   expect_contains "bash: input documents" "${inputs}" "report.qmd"
@@ -83,6 +91,9 @@ test_zsh() {
   candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto render --to ' 2)"
   expect_contains "zsh: formats for --to" "${candidates}" "revealjs"
 
+  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto render --to=' 2)"
+  expect_contains "zsh: formats for --to= (equals form)" "${candidates}" "revealjs"
+
   candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish ' 2)"
   expect_contains "zsh: publish providers" "${candidates}" "gh-pages"
 
@@ -105,6 +116,8 @@ echo "COMMANDS:"(complete -C 'quarto ')
 echo "FORMATS:"(complete -C 'quarto render --to ')
 echo "PROVIDERS:"(complete -C 'quarto publish ')
 echo "AFTER:"(complete -C 'quarto publish gh-pages ')
+cd ${SCRATCH}/fixtures
+echo "INPUTS:"(complete -C 'quarto render ')
 EOF
   local output
   output="$(fish "${script}" 2>&1)"
@@ -114,6 +127,10 @@ EOF
   expect_contains "fish: publish providers" "${output}" "gh-pages"
   expect_missing "fish: provider not offered twice" \
     "$(printf '%s' "${output}" | grep '^AFTER:' || true)" "quarto-pub"
+  # Newer fish appends non-matching files as deprioritised fallback candidates,
+  # so only the presence of a matching document can be asserted.
+  expect_contains "fish: input documents" \
+    "$(printf '%s' "${output}" | grep '^INPUTS:' || true)" "report.qmd"
 }
 
 test_pwsh() {
