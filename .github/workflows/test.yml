@@ -74,6 +74,14 @@ jobs:
           bash tests/syntax.sh docs/completions/prerelease --scripts-only
           bash tests/syntax.sh docs/completions/dev --scripts-only
 
+      # This sources the generated scripts in real bash, zsh, fish, and
+      # PowerShell, and the dev channel among them is generated from
+      # quarto-cli's main, an unreviewed third-party branch. Command names,
+      # flags, and enum values reaching a shell as code rather than as data is
+      # exactly what the emitters escape against, with a test per shell in
+      # tests/run.ts pinning it. The control is that escaping; what remains is
+      # the runner itself, which holds no more than a contents:read token and
+      # is discarded after the job.
       - name: Functional completions
         run: |
           bash tests/completions.sh docs/completions/stable
