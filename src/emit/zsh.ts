@@ -69,7 +69,7 @@ function commandFunction(command: CommandSpec): string {
         const last = index === args.length - 1;
         const slot = last && trailingIsVariadic(command) ? "*" : `${index + 1}`;
         specs.push(
-          `'${slot}:${singleQuote(arg.name)}:${
+          `'${slot}:${specLabel(arg.name)}:${
             singleQuote(argAction(arg.kind, arg.values, arg.globs))
           }'`,
         );
@@ -88,7 +88,7 @@ function commandFunction(command: CommandSpec): string {
 
   if (hasCommands) {
     const subcommandList = command.commands
-      .map((child) => `'${singleQuote(commandName(child))}:${escapeDescription(child.description)}'`)
+      .map((child) => `'${specLabel(commandName(child))}:${escapeDescription(child.description)}'`)
       .join(" \\\n      ");
     body.push(
       `  case $state in`,
@@ -115,10 +115,28 @@ function commandFunction(command: CommandSpec): string {
 
 /**
  * zsh reads an option description up to the matching `]`, so a bracket inside
- * one would truncate it and leave the rest to be parsed as a spec.
+ * one would truncate it and leave the rest to be parsed as a spec. A
+ * trailing backslash needs the same treatment: verified against real zsh,
+ * one there escapes the `]` that follows, and _arguments then reports the
+ * whole spec as an invalid option definition and drops every flag on the
+ * command, not only this one.
  */
 function escapeDescription(text: string): string {
-  return singleQuote(oneLine(text).replace(/([[\]])/g, "\\$1"));
+  return singleQuote(oneLine(text).replace(/([\\[\]])/g, "\\$1"));
+}
+
+/**
+ * Escapes text for a zsh spec label: the message before an action
+ * (`:message:action`), or a `_describe` candidate's name before its
+ * description (`name:description`). An unescaped `:` there ends the field
+ * early, and the field that follows is read as a fresh spec component in its
+ * own right, not as more of this one. Verified against real zsh: a
+ * placeholder carrying a `:` followed by a `{...}` eval-string action ran a
+ * command the moment it was offered. `'` still needs the same outer-quote
+ * escaping every other value in this spec gets.
+ */
+function specLabel(text: string): string {
+  return singleQuote(text.replace(/:/g, "\\:"));
 }
 
 /**
@@ -152,7 +170,7 @@ function optionSpec(option: OptionSpec): string {
   const bareForms = spelled.map(bareWord);
   const flag = bareForms.length > 1 ? `{${bareForms.join(",")}}` : bareForms[0];
   const value = takesValue
-    ? `:${singleQuote(option.placeholder ?? "value")}:${
+    ? `:${specLabel(option.placeholder ?? "value")}:${
       singleQuote(argAction(option.kind, option.values, option.globs))
     }`
     : "";

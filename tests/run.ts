@@ -274,6 +274,20 @@ const tests: Record<string, () => void> = {
     assertExcludes(output, "[Writes [DIR] somewhere.]");
   },
 
+  "zsh escapes a trailing backslash, which would otherwise escape the closing bracket"() {
+    // Verified against real zsh: without this, _arguments reports the whole
+    // spec as an invalid option definition and drops every flag on the
+    // command, not only this one.
+    const spec = fixtureSpec();
+    spec.root.commands[0].options.push({
+      long: "--evil-desc",
+      description: "ends in backslash\\",
+      kind: "none",
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "ends in backslash\\\\");
+  },
+
   "bash guards the word before the first argument"() {
     const output = emitBash(enrich(fixtureSpec()));
     assertIncludes(output, `if [ "$cword" -gt 0 ]; then`);
@@ -565,6 +579,39 @@ const tests: Record<string, () => void> = {
     const output = emitZsh(enrich(spec));
     assertIncludes(output, "ev'\\''; touch pwned; echo '\\''");
     assertExcludes(output, ":ev'; touch pwned; echo ':");
+  },
+
+  "zsh escapes a colon that would otherwise end a spec label early"() {
+    // A spec label reads up to the next unescaped ':' as one field; an
+    // unescaped one inside it starts a fresh field early, which can be a
+    // {...} eval-string action. Verified against real zsh: a placeholder
+    // carrying ':{touch pwned}' ran a command the moment it was offered.
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({
+      long: "--evil-ph",
+      description: "x",
+      kind: "value",
+      placeholder: "pl:{touch pwned}",
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "pl\\:{touch pwned}");
+    assertExcludes(output, ":pl:{touch pwned}:");
+  },
+
+  "zsh escapes a colon in a subcommand name the same way"() {
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.commands.push({
+      path: ["call", "evil:{touch pwned}"],
+      description: "x",
+      options: [],
+      args: [],
+      commands: [],
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "evil\\:{touch pwned}:x");
+    assertExcludes(output, "'evil:{touch pwned}:x'");
   },
 
   "zsh routes enum values through a function rather than a literal action list"() {
