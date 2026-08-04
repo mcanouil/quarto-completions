@@ -42,6 +42,14 @@ expect_absent() {
   fi
 }
 
+expect_symlink() {
+  if [ -L "$2" ]; then
+    pass "$1"
+  else
+    fail "$1" "not a symlink any more: $2"
+  fi
+}
+
 expect_count() {
   # $1: label, $2: file, $3: needle, $4: expected occurrences
   local actual
@@ -364,6 +372,41 @@ expect_file "an out-of-home ZSH is not followed on install" \
   "${SANDBOX}/.zfunc/_quarto"
 expect_count "the out-of-home file is still untouched" \
   "${OUTSIDE}/.oh-my-zsh/custom/completions/_quarto" "not ours to delete" 1
+
+# A .zshrc that is a symlink, which is what dotfile managers create. Editing
+# the managed block must follow the link, not replace it with a plain file.
+LINK_HOME="$(scenario_home symlink-rc)"
+mkdir -p "${LINK_HOME}/dotfiles"
+touch "${LINK_HOME}/dotfiles/zshrc"
+ln -s "${LINK_HOME}/dotfiles/zshrc" "${LINK_HOME}/.zshrc"
+scenario_run "${LINK_HOME}" --shell zsh >/dev/null
+# The second run rewrites the block, which is the path that edits in place.
+scenario_run "${LINK_HOME}" --shell zsh >/dev/null
+expect_symlink "zsh: a symlinked rc file survives a re-install" "${LINK_HOME}/.zshrc"
+expect_count "zsh: the block landed through the symlink" \
+  "${LINK_HOME}/dotfiles/zshrc" ">>> quarto completions >>>" 1
+scenario_run "${LINK_HOME}" --shell zsh --uninstall >/dev/null
+expect_symlink "zsh: a symlinked rc file survives an uninstall" "${LINK_HOME}/.zshrc"
+expect_count "zsh: uninstall removed the block through the symlink" \
+  "${LINK_HOME}/dotfiles/zshrc" ">>> quarto completions >>>" 0
+
+# An earlier install whose directory has since become read-only, which is what
+# a Homebrew prefix owned by another user looks like. Choosing it again would
+# download the script and then die on the mv; it has to fall through to a
+# location that can be written, and report the copy it could not remove.
+ROBREW_HOME="$(scenario_home readonly-brew)"
+ROBREW_PREFIX="${SCRATCH}/readonly-brew-prefix"
+mkdir -p "${ROBREW_PREFIX}/share/zsh/site-functions"
+touch "${ROBREW_PREFIX}/share/zsh/site-functions/_quarto"
+chmod 555 "${ROBREW_PREFIX}/share/zsh/site-functions"
+if robrew_output="$(brew_run "${ROBREW_HOME}" "${ROBREW_PREFIX}" --shell zsh 2>&1)"; then
+  pass "a read-only existing install does not fail the install"
+else
+  fail "a read-only existing install does not fail the install" "${robrew_output}"
+fi
+expect_file "the install falls through to a writable location" "${ROBREW_HOME}/.zfunc/_quarto"
+expect_contains "the read-only copy is reported" "${robrew_output}" "Could not remove"
+chmod 755 "${ROBREW_PREFIX}/share/zsh/site-functions"
 
 # A home whose script is already gone but whose block is not must not report
 # that it cleaned the rc file and then that there was nothing to remove.
