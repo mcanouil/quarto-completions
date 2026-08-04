@@ -96,13 +96,18 @@ mkdir -p "${HOME_DIR}"
 # HOMEBREW_PREFIX is pointed at a directory that does not exist for the same
 # reason: it is authoritative when set, so this keeps a developer's real
 # /opt/homebrew out of every scenario but the one that asks for it.
+#
+# --channel stable is a default, not a fixed value: the installer keeps the
+# last --channel it sees, so a caller appending its own after "$@" still
+# overrides it. Without this, every scenario below would silently follow
+# whatever quarto happens to be on the machine running the suite.
 install_run() {
   env -u ZSH -u ZSH_CUSTOM \
     HOME="${HOME_DIR}" \
     HOMEBREW_PREFIX="${HOME_DIR}/no-brew" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
     XDG_CONFIG_HOME="${HOME_DIR}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
 }
 
 # A dry run reports without touching anything.
@@ -195,6 +200,7 @@ scenario_home() {
   printf '%s' "${home}"
 }
 
+# --channel stable is a default, not a fixed value; see install_run above.
 scenario_run() {
   # $1: home, then installer arguments
   local home="$1"
@@ -204,7 +210,7 @@ scenario_run() {
     HOMEBREW_PREFIX="${home}/no-brew" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
 }
 
 # The same, with a Homebrew prefix that exists. Its site-functions directory is
@@ -218,7 +224,7 @@ brew_run() {
     HOMEBREW_PREFIX="${prefix}" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
 }
 
 # Oh My Zsh already puts its custom completions directory on fpath and runs

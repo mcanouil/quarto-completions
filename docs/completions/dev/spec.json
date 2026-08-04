@@ -1715,7 +1715,7 @@
               "tools",
               "install"
             ],
-            "description": "",
+            "description": "Installs a global dependency.",
             "options": [
               {
                 "short": "-h",
@@ -1744,7 +1744,7 @@
               "tools",
               "info"
             ],
-            "description": "",
+            "description": "Shows the status of a global dependency.",
             "options": [
               {
                 "short": "-h",
@@ -1773,7 +1773,7 @@
               "tools",
               "uninstall"
             ],
-            "description": "",
+            "description": "Uninstalls a global dependency.",
             "options": [
               {
                 "short": "-h",
@@ -1802,7 +1802,7 @@
               "tools",
               "update"
             ],
-            "description": "",
+            "description": "Updates a global dependency.",
             "options": [
               {
                 "short": "-h",
@@ -1831,7 +1831,7 @@
               "tools",
               "list"
             ],
-            "description": "",
+            "description": "Lists the status of every global dependency.",
             "options": [
               {
                 "short": "-h",
@@ -2360,7 +2360,7 @@
         "path": [
           "inspect"
         ],
-        "description": "Inspect a Quarto project or input path. Inspecting a project returns its config and engines. Inspecting an input path return its formats, engine, and dependent resources. Emits results of inspection as JSON to output (or stdout if not provided).",
+        "description": "Inspect a Quarto project or input path.",
         "options": [
           {
             "short": "-h",
@@ -2645,7 +2645,7 @@
         "path": [
           "completions"
         ],
-        "description": "Generate shell completions. To enable shell completions for this program add the following line to your ~/.bashrc or similar: source <(quarto completions [shell]) For more information run quarto completions [shell] --help",
+        "description": "Generate shell completions.",
         "options": [
           {
             "short": "-h",
@@ -2929,7 +2929,7 @@
               "dev-call",
               "pull-git-subtree"
             ],
-            "description": "Pull configured git subtrees. This command pulls from configured subtree repositories using --squash, which creates two commits: a squash commit containing the subtree changes and a merge commit that integrates it into your branch.",
+            "description": "Pull configured git subtrees.",
             "options": [
               {
                 "short": "-h",
@@ -2958,7 +2958,7 @@
               "dev-call",
               "typst-gather"
             ],
-            "description": "Gather Typst packages for offline/hermetic builds. This command runs the typst-gather tool to download @preview packages and copy @local packages to a local directory for use during Quarto builds.",
+            "description": "Gather Typst packages for offline/hermetic builds.",
             "options": [
               {
                 "short": "-h",

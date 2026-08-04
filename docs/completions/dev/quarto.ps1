@@ -31,10 +31,10 @@ $script:QuartoCompletionSpec = @{
       'check' = 'Verify correct functioning of Quarto installation.'
       'call' = 'Access functions of Quarto subsystems such as its rendering engines.'
       'capabilities' = 'Query for current capabilities (formats, engines, kernels etc.)'
-      'inspect' = 'Inspect a Quarto project or input path. Inspecting a project returns its config and engines. Inspecting an input path return its formats, engine, and dependent resources. Emits results of inspection as JSON to output (or stdout if not provided).'
+      'inspect' = 'Inspect a Quarto project or input path.'
       'editor-support' = 'Miscellaneous tools to support Quarto editor modes'
       'create-project' = 'Create a project for rendering multiple documents'
-      'completions' = 'Generate shell completions. To enable shell completions for this program add the following line to your ~/.bashrc or similar: source <(quarto completions [shell]) For more information run quarto completions [shell] --help'
+      'completions' = 'Generate shell completions.'
       'dev-call' = 'Access internals of Quarto - this command is not intended for general use.'
     }
     Values = @{
@@ -604,11 +604,11 @@ $script:QuartoCompletionSpec = @{
       '--help' = 'Show this help.'
     }
     Commands = @{
-      'install' = ''
-      'info' = ''
-      'uninstall' = ''
-      'update' = ''
-      'list' = ''
+      'install' = 'Installs a global dependency.'
+      'info' = 'Shows the status of a global dependency.'
+      'uninstall' = 'Uninstalls a global dependency.'
+      'update' = 'Updates a global dependency.'
+      'list' = 'Lists the status of every global dependency.'
     }
     Values = @{
 
@@ -1075,8 +1075,8 @@ $script:QuartoCompletionSpec = @{
       'build-artifacts' = 'Builds all the javascript assets necessary for IDE support.'
       'show-ast-trace' = 'Renders the document with AST tracing enabled and then shows the debugging output.'
       'make-ast-diagram' = 'Creates a diagram of the Pandoc AST.'
-      'pull-git-subtree' = 'Pull configured git subtrees. This command pulls from configured subtree repositories using --squash, which creates two commits: a squash commit containing the subtree changes and a merge commit that integrates it into your branch.'
-      'typst-gather' = 'Gather Typst packages for offline/hermetic builds. This command runs the typst-gather tool to download @preview packages and copy @local packages to a local directory for use during Quarto builds.'
+      'pull-git-subtree' = 'Pull configured git subtrees.'
+      'typst-gather' = 'Gather Typst packages for offline/hermetic builds.'
     }
     Values = @{
 

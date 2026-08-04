@@ -197,7 +197,7 @@ try {
   # one that carries the hidden commands (dev-call and the rest). The channel
   # only changes which URL is fetched, not where the script is installed, so
   # this lands at the same $completionPath as every install above.
-  Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev') | Out-Null
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev')
   if ($LASTEXITCODE -eq 0) { Test-Pass 'a dev channel install succeeds' }
   else { Test-Fail 'a dev channel install succeeds' $output }
   Assert-FilePresent 'dev channel: script installed' $completionPath

@@ -110,10 +110,17 @@ parse_args() {
 # result is. Only a quarto on PATH reporting exactly '99.9.9' selects 'dev':
 # that is the version Quarto's own kLocalDevelopment constant reports for an
 # unreleased source build, the one build whose hidden commands the dev
-# channel completes.
+# channel completes. Uninstalling never reads CHANNEL, so an unset one there
+# is left at a placeholder rather than spent starting quarto for nothing.
 resolve_channel() {
+  if [ -z "${CHANNEL}" ] && [ "${ACTION}" = "uninstall" ]; then
+    CHANNEL="stable"
+  fi
   if [ -z "${CHANNEL}" ]; then
-    if command -v quarto >/dev/null 2>&1 && [ "$(quarto --version 2>/dev/null)" = "99.9.9" ]; then
+    # head -n 1: a wrapper or a build with extra banner output on stdout must
+    # not sink the comparison below by trailing text the real version lacks.
+    if command -v quarto >/dev/null 2>&1 &&
+      [ "$(quarto --version 2>/dev/null | head -n 1)" = "99.9.9" ]; then
       CHANNEL="dev"
     else
       CHANNEL="stable"

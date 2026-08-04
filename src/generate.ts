@@ -10,9 +10,11 @@
  *
  * The `dev` channel only ever comes from a 99.9.9 source build: that is the
  * version Quarto's own `kLocalDevelopment` constant reports, and it is the one
- * build where the commands `dev-call` seeds (`src/introspect.ts`) exist to be
- * introspected. A version and channel that disagree fail rather than publish
- * a release channel missing its hidden surface, or a dev channel missing it.
+ * build where `dev-call` and the rest of the hidden surface `introspect.ts`
+ * seeds exist to be introspected. `introspect()` fails fast when the channel
+ * and the binary's version disagree, before spending a cold Quarto start per
+ * command on a tree walk that would otherwise fail confusingly partway
+ * through.
  */
 
 import { enrich } from "./enrich.ts";
@@ -106,25 +108,9 @@ async function sha256(content: string): Promise<string> {
     .join("");
 }
 
-/** What Quarto's own `kLocalDevelopment` reports for an unreleased source build. */
-const kDevVersion = "99.9.9";
-
 async function main(): Promise<void> {
   const options = parseArgs(Deno.args);
   const spec = await introspect({ quarto: options.quarto, channel: options.channel });
-
-  const isDevBuild = spec.quartoVersion === kDevVersion;
-  if (options.channel === "dev" && !isDevBuild) {
-    throw new Error(
-      `--channel dev needs a ${kDevVersion} source build, got Quarto ${spec.quartoVersion}`,
-    );
-  }
-  if (options.channel !== "dev" && isDevBuild) {
-    throw new Error(
-      `Quarto ${kDevVersion} is a source build; generate it with --channel dev, not '${options.channel}'`,
-    );
-  }
-
   const files = render(spec);
   const directory = `${options.out}/${options.channel}`;
 

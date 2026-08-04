@@ -4,9 +4,9 @@
   "generated": "2026-08-04",
   "files": {
     "quarto.bash": "8cbdc3c31b2cbeb5018c112a62d40f3730c11dd993636674847021e36e77af3f",
-    "_quarto": "651e8c4f426f1f6f4961c47c02ddcf259617296a2fc77dbc7a62ad2f96b13fa4",
-    "quarto.fish": "8dd51a5e27c6547b7a38443919c9eb8494c7ec677c36dcc4720452ddd5747999",
-    "quarto.ps1": "4ea9b2cd268ad630bb74cb85544e1cee2e7c9cd56dc0cf83c50aeac548fc495a",
-    "spec.json": "a0defea44bf9ea4de3212c8ac8156b67258e21dbb8b7d2af7f016071f2e66b0f"
+    "_quarto": "6325d3493ce8283a28c5aca9956617c01e75819568757974ebf5daabda0856e4",
+    "quarto.fish": "4d5d9793b8b904acecd0d7ee9e1c1115b82a48c7b8df19ac07e9cd679452e2ad",
+    "quarto.ps1": "5ced2f78045b6bd2b19c204c7c415e947b5a4a772a08be3dc2f2ec47e4b4c85d",
+    "spec.json": "46af7f96db4e608d6d3b1d6a2dab2a8674d2f0327228596a846d2464abd42ab1"
   }
 }
