@@ -408,6 +408,19 @@ expect_file "the install falls through to a writable location" "${ROBREW_HOME}/.
 expect_contains "the read-only copy is reported" "${robrew_output}" "Could not remove"
 chmod 755 "${ROBREW_PREFIX}/share/zsh/site-functions"
 
+# A first install into an unwritable rc file without a managed block reaches
+# the append rather than the rewrite, and has to fail with the same message.
+ROAPPEND_HOME="$(scenario_home readonly-append)"
+touch "${ROAPPEND_HOME}/.zshrc"
+chmod 400 "${ROAPPEND_HOME}/.zshrc"
+if roappend_output="$(scenario_run "${ROAPPEND_HOME}" --shell zsh 2>&1)"; then
+  fail "an unwritable rc file fails a first install" "installer exited zero: ${roappend_output}"
+else
+  expect_contains "an unwritable rc file is named on a first install" \
+    "${roappend_output}" "error: could not write ${ROAPPEND_HOME}/.zshrc"
+fi
+chmod 600 "${ROAPPEND_HOME}/.zshrc"
+
 # An rc file that cannot be written must stop the run with a message naming
 # it, not with a bare permission error from the redirect.
 RORC_HOME="$(scenario_home readonly-rc)"

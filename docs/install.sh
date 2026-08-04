@@ -494,11 +494,13 @@ write_rc_block() {
   # $1: rc file, $2: body
   remove_rc_block "$1"
   mkdir -p "$(dirname "$1")"
+  # The same message as the rewrite in remove_rc_block: a first install into
+  # an existing rc file without a block reaches this append directly.
   {
     printf '%s\n' "${BLOCK_START}"
     printf '%s\n' "$2"
     printf '%s\n' "${BLOCK_END}"
-  } >>"$1"
+  } >>"$1" || fail "could not write $1: fix its permissions and re-run"
 }
 
 do_install() {
