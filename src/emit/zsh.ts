@@ -12,6 +12,20 @@ import { banner, nodes, oneLine, positionals, singleQuote, trailingIsVariadic } 
 
 export function emitZsh(spec: Spec): string {
   const all = nodes(spec);
+  // Everything after a subcommand-bearing command goes to the subcommand
+  // machinery below, so a positional there is silently dropped. `use` is
+  // shaped like this today and loses nothing: its positionals are the
+  // subcommands restated, with no candidates of their own. A positional that
+  // does carry candidates would disappear without this check.
+  for (const command of all) {
+    const completable = positionals(command).filter((arg) => arg.kind !== "value");
+    if (command.commands.length > 0 && completable.length > 0) {
+      throw new Error(
+        `'quarto ${command.path.join(" ")}' has subcommands and a completable positional ` +
+          `(${completable.map((arg) => arg.name).join(", ")}); the zsh emitter would drop it.`,
+      );
+    }
+  }
   return `#compdef quarto
 ${banner(spec, "#")}
 
@@ -95,17 +109,18 @@ function escapeDescription(text: string): string {
 
 function optionSpec(option: OptionSpec): string {
   const description = escapeDescription(option.description);
+  const takesValue = option.kind !== "none";
   const forms = optionFlags(option);
   const exclusion = `(${forms.join(" ")})`;
   // A trailing '=' on the long form tells _arguments the value may sit in the
   // same word after '=' as well as in the next word, so '--to=html' completes.
   const spelled = forms.map((form) =>
-    option.kind !== "none" && form.startsWith("--") ? `${form}=` : form
+    takesValue && form.startsWith("--") ? `${form}=` : form
   );
   const flag = spelled.length > 1 ? `{${spelled.join(",")}}` : `${spelled[0]}`;
-  const value = option.kind === "none"
-    ? ""
-    : `:${option.placeholder ?? "value"}:${argAction(option.kind, option.values, option.globs)}`;
+  const value = takesValue
+    ? `:${option.placeholder ?? "value"}:${argAction(option.kind, option.values, option.globs)}`
+    : "";
   return `'${exclusion}'${flag}'[${description}]${value}'`;
 }
 
