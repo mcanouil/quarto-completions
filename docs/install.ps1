@@ -28,7 +28,10 @@ param(
   # No ValidateSet: Windows PowerShell 5.1 would skip it for the default value
   # read from the environment, and PowerShell 7 would refuse that value with
   # its own wording. The one check below covers both paths with one message.
-  [string]$Channel = $(if ($env:QUARTO_COMPLETIONS_CHANNEL) { $env:QUARTO_COMPLETIONS_CHANNEL } else { 'stable' }),
+  # Left empty rather than defaulted to 'stable' here: the block below tells
+  # an unset channel from an explicit one, which is what lets it pick 'dev'
+  # only when nothing named a channel at all.
+  [string]$Channel = $(if ($env:QUARTO_COMPLETIONS_CHANNEL) { $env:QUARTO_COMPLETIONS_CHANNEL } else { '' }),
 
   [string]$BaseUrl = $(if ($env:QUARTO_COMPLETIONS_BASE_URL) { $env:QUARTO_COMPLETIONS_BASE_URL } else { 'https://m.canouil.dev/quarto-completions' }),
 
@@ -49,8 +52,25 @@ if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
 # Promoted to script scope so the functions below read one binding rather than
 # closing over the parameters.
 $script:Channel = $Channel
-if ($script:Channel -notin @('stable', 'prerelease')) {
-  throw "Channel must be 'stable' or 'prerelease', got '$($script:Channel)'"
+if (-not $script:Channel) {
+  # Only a quarto on PATH reporting exactly '99.9.9' selects 'dev': that is
+  # the version Quarto's own kLocalDevelopment constant reports for an
+  # unreleased source build, the one build whose hidden commands the dev
+  # channel completes.
+  $quartoVersion = ''
+  $quartoOnPath = Get-Command quarto -ErrorAction SilentlyContinue
+  if ($quartoOnPath) {
+    try {
+      $quartoVersion = (& $quartoOnPath.Source --version 2>$null | Select-Object -First 1).ToString().Trim()
+    }
+    catch {
+      $quartoVersion = ''
+    }
+  }
+  $script:Channel = if ($quartoVersion -eq '99.9.9') { 'dev' } else { 'stable' }
+}
+if ($script:Channel -notin @('stable', 'prerelease', 'dev')) {
+  throw "Channel must be 'stable', 'prerelease', or 'dev', got '$($script:Channel)'"
 }
 $script:BaseUrl = $BaseUrl.TrimEnd('/')
 $script:DryRun = [bool]$DryRun

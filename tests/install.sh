@@ -155,13 +155,17 @@ for _ in $(seq 1 60); do
   sleep 1
 done
 
+# --channel stable is explicit rather than relying on the default: this test
+# asserts on the file tampered above, and the default channel would otherwise
+# follow whatever quarto happens to be on the machine running the suite.
 tampered_output="$(
   env -u ZSH -u ZSH_CUSTOM \
     HOME="${TAMPERED_HOME}" \
     HOMEBREW_PREFIX="${TAMPERED_HOME}/no-brew" \
     XDG_DATA_HOME="${TAMPERED_HOME}/.local/share" \
     XDG_CONFIG_HOME="${TAMPERED_HOME}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" --shell fish 2>&1
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" \
+    --shell fish --channel stable 2>&1
 )" && tampered_status=0 || tampered_status=1
 kill "${TAMPERED_PID}" 2>/dev/null || true
 
@@ -470,5 +474,17 @@ EOF
 else
   skip "zsh: the managed block makes completions work" "zsh not installed"
 fi
+
+# --channel dev fetches from the dev channel published alongside stable and
+# prerelease: generated from a 99.9.9 quarto-cli source build, and the only
+# one that carries the hidden commands (dev-call and the rest).
+DEV_HOME="$(scenario_home dev-channel)"
+if scenario_run "${DEV_HOME}" --shell fish --channel dev >/dev/null; then
+  pass "a dev channel install succeeds"
+else
+  fail "a dev channel install succeeds" "installer exited non-zero"
+fi
+expect_file "dev channel: script installed" \
+  "${DEV_HOME}/.config/fish/completions/quarto.fish"
 
 summary

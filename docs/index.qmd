@@ -62,7 +62,7 @@ The piped form cannot take arguments in PowerShell, so each one also reads an en
 | Option | Environment variable | Effect |
 | --- | --- | --- |
 | `--shell` | `QUARTO_COMPLETIONS_SHELL` | Which shell to install for. |
-| `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `stable` (default) or `prerelease`. |
+| `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `stable` (default), `prerelease`, or `dev`. Chosen automatically as `dev` when the `quarto` on `PATH` reports version `99.9.9`. |
 | `--dry-run` | | Report every path that would change, then exit. |
 | `--uninstall` | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block. |
 
@@ -100,4 +100,5 @@ powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completi
 Formats and shortcodes supplied by installed extensions are not completed.
 Reading them would mean running Quarto on every keystroke, which is the cost this project exists to remove.
 
-Hidden developer commands, such as `quarto dev-call`, are left out on purpose: they do not appear in `quarto --help` either.
+Commands Quarto hides from `quarto --help`, such as `dev-call`, are left out of the `stable` and `prerelease` channels on purpose: they do not appear in that help output either.
+They are completed on a `dev` channel instead; see [Channels](shells.qmd#channels).

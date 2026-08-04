@@ -156,7 +156,7 @@ try {
   $env:QUARTO_COMPLETIONS_CHANNEL = 'nonsense'
   try {
     $output = Invoke-Installer -BaseUrl $baseUrl
-    if ($LASTEXITCODE -ne 0 -and $output -match "'stable' or 'prerelease'") {
+    if ($LASTEXITCODE -ne 0 -and $output -match "'stable', 'prerelease', or 'dev'") {
       Test-Pass 'an unknown channel from the environment is refused'
     }
     else {
@@ -173,7 +173,10 @@ try {
   Add-Content -LiteralPath (Join-Path $tampered 'completions/stable/quarto.ps1') -Value '# tampered'
   $tamperedServer = Start-Site -Directory $tampered -On ($Port + 1)
   try {
-    $output = Invoke-Installer -BaseUrl "http://127.0.0.1:$($Port + 1)"
+    # -Channel stable is explicit here: this asserts on the file tampered
+    # above, and the default channel would otherwise follow whatever quarto
+    # happens to be on the machine running the suite.
+    $output = Invoke-Installer -BaseUrl "http://127.0.0.1:$($Port + 1)" -Arguments @('-Channel', 'stable')
     if ($LASTEXITCODE -ne 0 -and $output -match 'Checksum mismatch') {
       Test-Pass 'a checksum mismatch is refused'
     }
@@ -188,6 +191,17 @@ try {
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall') | Out-Null
   Assert-FileMissing 'script removed' $completionPath
   Assert-Count 'managed block removed' $profilePath '>>> quarto completions >>>' 0
+
+  # -Channel dev fetches from the dev channel published alongside stable and
+  # prerelease: generated from a 99.9.9 quarto-cli source build, and the only
+  # one that carries the hidden commands (dev-call and the rest). The channel
+  # only changes which URL is fetched, not where the script is installed, so
+  # this lands at the same $completionPath as every install above.
+  Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev') | Out-Null
+  if ($LASTEXITCODE -eq 0) { Test-Pass 'a dev channel install succeeds' }
+  else { Test-Fail 'a dev channel install succeeds' $output }
+  Assert-FilePresent 'dev channel: script installed' $completionPath
+  Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev', '-Uninstall') | Out-Null
 }
 finally {
   Stop-Process -Id $server.Id -ErrorAction SilentlyContinue

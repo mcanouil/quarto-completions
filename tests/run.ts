@@ -9,7 +9,7 @@
  */
 
 import { assert, assertEquals, assertExcludes, assertIncludes } from "./assert.ts";
-import { parseHelp } from "../src/introspect.ts";
+import { hiddenChildrenFor, parseHelp } from "../src/introspect.ts";
 import { enrich } from "../src/enrich.ts";
 import { render } from "../src/generate.ts";
 import { emitBash } from "../src/emit/bash.ts";
@@ -294,6 +294,92 @@ const tests: Record<string, () => void> = {
     // description in the surface carrying single quotes.
     assertIncludes(emitZsh(spec), `'\\''--output -'\\''`);
     assertIncludes(emitPwsh(spec), `''--output -''`);
+  },
+
+  "hidden commands are seeded only on the dev channel"() {
+    for (const channel of ["stable", "prerelease"] as const) {
+      assertEquals(hiddenChildrenFor([], channel), []);
+      assertEquals(hiddenChildrenFor(["dev-call"], channel), []);
+    }
+  },
+
+  "the dev channel seeds the root's hidden commands"() {
+    const names = hiddenChildrenFor([], "dev");
+    for (const expected of ["capabilities", "inspect", "editor-support", "create-project", "completions", "dev-call"]) {
+      assert(names.includes(expected), `root is missing hidden '${expected}': ${names.join(", ")}`);
+    }
+    // 'tools' itself answers --help without hiding, only its subcommands do;
+    // seeding it as a root child would duplicate the one recursion already finds.
+    assertExcludes(names.join(","), "tools");
+  },
+
+  "the dev channel seeds tools' hidden subcommands"() {
+    assertEquals(hiddenChildrenFor(["tools"], "dev"), [
+      "install",
+      "info",
+      "uninstall",
+      "update",
+      "list",
+    ]);
+  },
+
+  "the dev channel seeds dev-call's hidden subcommands, not the one it already lists"() {
+    const names = hiddenChildrenFor(["dev-call"], "dev");
+    for (const expected of ["validate-yaml", "build-artifacts", "show-ast-trace", "make-ast-diagram", "pull-git-subtree", "typst-gather"]) {
+      assert(names.includes(expected), `dev-call is missing hidden '${expected}': ${names.join(", ")}`);
+    }
+    assert(!names.includes("cli-info"), `cli-info should not be seeded: ${names.join(", ")}`);
+  },
+
+  "dev-call's own help lists only the one subcommand recursion already finds"() {
+    // Documents why the other six need seeding: they are individually hidden,
+    // so even dev-call's own --help does not mention them. 'help' is listed
+    // too, but introspectCommand drops it before it ever reaches here.
+    const { children } = parseHelp(fixture("dev-call"), ["dev-call"]);
+    assertEquals(children.map((child) => child.name), ["help", "cli-info"]);
+  },
+
+  "tools' own help lists no subcommands beyond the built-in 'help'"() {
+    // Every one of them is hidden, which is why hiddenChildrenFor has to seed
+    // 'tools' even though 'tools' itself is a visible, ordinarily-discovered
+    // command.
+    const { children } = parseHelp(fixture("tools"), ["tools"]);
+    assertEquals(children.map((child) => child.name), ["help"]);
+  },
+
+  "a hidden subcommand's own positional is still read from its usage line"() {
+    const { command } = parseHelp(fixture("tools-install"), ["tools", "install"]);
+    assertEquals(command.args.map((arg) => arg.name), ["tool"]);
+  },
+
+  "a description stops before the Arguments block Cliffy renders inside it"() {
+    const { command } = parseHelp(
+      fixture("dev-call-pull-git-subtree"),
+      ["dev-call", "pull-git-subtree"],
+    );
+    assertIncludes(command.description, "Pull configured git subtrees.");
+    assertExcludes(command.description, "Arguments");
+    assertExcludes(command.description, "Name of subtree to pull");
+  },
+
+  "the overlay gives create-project its enums, including the one help text cannot express"() {
+    const { command } = parseHelp(fixture("create-project"), ["create-project"]);
+    const spec: Spec = {
+      quartoVersion: "99.9.9",
+      channel: "dev",
+      root: { path: [], description: "", options: [], args: [], commands: [command] },
+    };
+    const enriched = enrich(spec).root.commands[0];
+    // Harvested automatically from its parenthesised list in the description.
+    assertEquals(option(enriched, "--type").kind, "enum");
+    assertIncludes(option(enriched, "--type").values ?? [], "book");
+    // Written "(jupyter, knitr, markdown, ...)"; the trailing ellipsis stops
+    // the automatic harvest, so the overlay has to state the set itself.
+    assertEquals(option(enriched, "--engine").kind, "enum");
+    assertIncludes(option(enriched, "--engine").values ?? [], "julia");
+    // Written "('source' or 'visual')", which the harvester's comma-separated
+    // pattern does not match at all.
+    assertEquals(option(enriched, "--editor").values, ["source", "visual"]);
   },
 };
 

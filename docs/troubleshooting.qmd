@@ -77,6 +77,9 @@ If you run a Quarto prerelease, install the matching channel:
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --channel prerelease
 ```
 
+If the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports, the installer picks `--channel dev` on its own, with no flag needed.
+That channel also completes the commands Quarto hides from `quarto --help`, such as `dev-call`; see [Channels](shells.qmd#channels).
+
 ## Extension formats are missing from `--to`
 
 Only Quarto's built-in formats are completed.

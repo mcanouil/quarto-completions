@@ -1,0 +1,17 @@
+
+Usage:   quarto dev-call
+Version: 99.9.9         
+
+Description:
+
+  Access internals of Quarto - this command is not intended for general use.
+
+Options:
+
+  -h, --help  - Show this help.  
+
+Commands:
+
+  help      [command]  - Show this help or the help of a sub-command.   
+  cli-info             - Generate JSON information about the Quarto CLI.
+

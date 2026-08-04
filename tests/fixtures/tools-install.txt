@@ -1,0 +1,12 @@
+
+Usage:   quarto tools install <tool>
+Version: 99.9.9                     
+
+Options:
+
+  -h, --help  - Show this help.  
+
+Commands:
+
+  help  [command]  - Show this help or the help of a sub-command.
+

@@ -34,6 +34,7 @@ The generator runs on Quarto's own embedded runtime, so a Quarto installation is
 quarto run src/generate.ts                    # regenerate docs/completions/
 quarto run src/generate.ts --check            # fail if the committed output is stale
 quarto run src/generate.ts --channel prerelease
+quarto run src/generate.ts --channel dev --quarto /path/to/a/99.9.9/build/quarto
 ```
 
 Generated scripts, the installers, and the documentation website all live under `docs/`, which is what GitHub Pages publishes.
@@ -55,7 +56,7 @@ The full matrix runs on Linux, macOS, and Windows in CI.
 ## Limitations
 
 - Formats and shortcodes contributed by installed extensions are not completed: reading them would mean running Quarto on every keystroke.
-- Hidden developer commands such as `quarto dev-call` are excluded, as they are from `quarto --help`.
+- Commands Quarto hides from `quarto --help`, such as `dev-call`, are excluded from the `stable` and `prerelease` channels for the same reason they are excluded from that help output. They are completed on a third `dev` channel instead, generated from a Quarto source build and selected automatically when the `quarto` on `PATH` reports version `99.9.9`. See [Channels](https://m.canouil.dev/quarto-completions/shells.html#channels).
 
 ## Licence
 

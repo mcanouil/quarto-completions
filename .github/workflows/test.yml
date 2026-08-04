@@ -72,9 +72,12 @@ jobs:
         run: |
           bash tests/syntax.sh docs/completions/stable
           bash tests/syntax.sh docs/completions/prerelease --scripts-only
+          bash tests/syntax.sh docs/completions/dev --scripts-only
 
       - name: Functional completions
-        run: bash tests/completions.sh docs/completions/stable
+        run: |
+          bash tests/completions.sh docs/completions/stable
+          bash tests/completions.sh docs/completions/dev
 
       - name: Render the site
         run: quarto render docs

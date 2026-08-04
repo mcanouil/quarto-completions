@@ -48,6 +48,27 @@ jobs:
       - name: Generate prerelease completions
         run: quarto run src/generate.ts --channel prerelease
 
+      # The dev channel needs an actual 99.9.9 source build: that is the
+      # version Quarto's own kLocalDevelopment constant reports, and the one
+      # build where dev-call and the rest of the hidden surface introspect.ts
+      # seeds (src/introspect.ts) exist to be introspected. Neither the
+      # release nor the pre-release binary above is that build.
+      - name: Checkout quarto-cli
+        uses: actions/checkout@v7
+        with:
+          repository: quarto-dev/quarto-cli
+          ref: main
+          path: .quarto-cli
+
+      - name: Build quarto-cli
+        working-directory: .quarto-cli
+        run: ./configure.sh
+
+      - name: Generate dev completions
+        run: |
+          quarto run src/generate.ts --channel dev \
+            --quarto "${{ github.workspace }}/.quarto-cli/package/dist/bin/quarto"
+
       - name: Open a pull request when the CLI surface moved
         env:
           GH_TOKEN: ${{ steps.setup-git-user.outputs.token }}

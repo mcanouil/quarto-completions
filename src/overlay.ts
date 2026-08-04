@@ -249,6 +249,67 @@ export const overlay: Record<string, CommandOverride> = {
       "entry-point": { kind: "file", globs: ["ts"] },
     },
   },
+  // Everything below is hidden from `quarto --help` and only ever appears on
+  // the `dev` channel; see `kHiddenCommands` in `src/introspect.ts`. Inert on
+  // `stable` and `prerelease`, where none of these commands is in the tree.
+  "inspect": {
+    args: {
+      path: { kind: "file" },
+      output: { kind: "file" },
+    },
+  },
+  "create-project": {
+    options: {
+      // `--type` is left alone: its help text ends `(book, default, website,
+      // manuscript)`, which the generic parenthesised-list reader already
+      // turns into an enum.
+      "--engine": { kind: "enum", values: ["jupyter", "knitr", "markdown", "julia"] },
+      "--editor": { kind: "enum", values: ["source", "visual"] },
+    },
+    args: {
+      dir: { kind: "dir" },
+    },
+  },
+  "tools install": {
+    args: {
+      tool: { kind: "enum", values: kTools },
+    },
+  },
+  "tools info": {
+    args: {
+      tool: { kind: "enum", values: kTools },
+    },
+  },
+  "tools uninstall": {
+    args: {
+      tool: { kind: "enum", values: kTools },
+    },
+  },
+  "tools update": {
+    args: {
+      tool: { kind: "enum", values: kTools },
+    },
+  },
+  "dev-call validate-yaml": {
+    args: {
+      input: { kind: "file", globs: ["yml", "yaml"] },
+    },
+  },
+  "dev-call show-ast-trace": {
+    args: {
+      arguments: { kind: "file", globs: kInputGlobs },
+    },
+  },
+  "dev-call make-ast-diagram": {
+    args: {
+      arguments: { kind: "file", globs: kInputGlobs },
+    },
+  },
+  "dev-call pull-git-subtree": {
+    args: {
+      name: { kind: "enum", values: ["all", "julia-engine", "orange-book"] },
+    },
+  },
 };
 
 /**

@@ -13,7 +13,10 @@
 set -euo pipefail
 
 BASE_URL="${QUARTO_COMPLETIONS_BASE_URL:-https://m.canouil.dev/quarto-completions}"
-CHANNEL="${QUARTO_COMPLETIONS_CHANNEL:-stable}"
+# Left empty rather than defaulted here: resolve_channel tells an unset
+# channel from an explicit one, which is what lets it pick 'dev' only when
+# nothing named a channel at all.
+CHANNEL="${QUARTO_COMPLETIONS_CHANNEL:-}"
 TARGET_SHELL="${QUARTO_COMPLETIONS_SHELL:-}"
 ACTION="install"
 DRY_RUN=0
@@ -37,8 +40,9 @@ Usage: install.sh [options]
 
 Options:
   --shell <bash|zsh|fish>   Shell to install for (default: detected from $SHELL).
-  --channel <stable|prerelease>
-                            Quarto release channel (default: stable).
+  --channel <stable|prerelease|dev>
+                            Quarto release channel (default: stable, or dev
+                            when the quarto on PATH reports version 99.9.9).
   --uninstall               Remove the completions and the managed block.
   --dry-run                 Report every path that would change, then exit.
   --base-url <url>          Where to fetch from (default: the published site).
@@ -100,10 +104,25 @@ parse_args() {
   if [ "${QUARTO_COMPLETIONS_UNINSTALL:-0}" = "1" ]; then
     ACTION="uninstall"
   fi
+}
+
+# Fills in a channel nothing named explicitly, then validates whatever the
+# result is. Only a quarto on PATH reporting exactly '99.9.9' selects 'dev':
+# that is the version Quarto's own kLocalDevelopment constant reports for an
+# unreleased source build, the one build whose hidden commands the dev
+# channel completes.
+resolve_channel() {
+  if [ -z "${CHANNEL}" ]; then
+    if command -v quarto >/dev/null 2>&1 && [ "$(quarto --version 2>/dev/null)" = "99.9.9" ]; then
+      CHANNEL="dev"
+    else
+      CHANNEL="stable"
+    fi
+  fi
 
   case "${CHANNEL}" in
-    stable | prerelease) ;;
-    *) fail "channel must be 'stable' or 'prerelease', got '${CHANNEL}'" ;;
+    stable | prerelease | dev) ;;
+    *) fail "channel must be 'stable', 'prerelease', or 'dev', got '${CHANNEL}'" ;;
   esac
 }
 
@@ -598,6 +617,7 @@ do_uninstall() {
 
 main() {
   parse_args "$@"
+  resolve_channel
   detect_shell
 
   TARGET_FILE=""
