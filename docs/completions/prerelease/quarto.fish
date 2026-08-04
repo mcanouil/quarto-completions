@@ -130,7 +130,7 @@ complete -c quarto -n '__quarto_at "" 0' -f -a 'check' -d 'Verify correct functi
 complete -c quarto -n '__quarto_at "" 0' -f -a 'call' -d 'Access functions of Quarto subsystems such as its rendering engines.'
 complete -c quarto -n '__quarto_at ""' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at ""' -s V -l version -f -d 'Show the version number for this program.'
-complete -c quarto -n '__quarto_at "render" 0' -F -a "(__fish_complete_suffix .qmd .ipynb .md .Rmd .rmd .markdown)"
+complete -c quarto -n '__quarto_at "render" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
 complete -c quarto -n '__quarto_at "render"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "render"' -s t -l to -r -f -a 'html pdf docx odt rtf revealjs beamer pptx typst dashboard epub gfm commonmark markdown markua hugo-md docusaurus-md jats asciidoc asciidoctor ipynb context docbook dokuwiki jira mediawiki man ms muse opml org rst texinfo textile xwiki zimwiki' -d 'Specify output format(s).'
 complete -c quarto -n '__quarto_at "render"' -s o -l output -r -F -d 'Write output to FILE (use '\''--output -'\'' for stdout).'
@@ -139,7 +139,7 @@ complete -c quarto -n '__quarto_at "render"' -s M -l metadata -r -f -d 'Metadata
 complete -c quarto -n '__quarto_at "render"' -l site-url -r -f -d 'Override site-url for website or book output'
 complete -c quarto -n '__quarto_at "render"' -l execute -f -d 'Execute code (--no-execute to skip execution).'
 complete -c quarto -n '__quarto_at "render"' -s P -l execute-param -r -f -d 'Execution parameter (KEY:VALUE).'
-complete -c quarto -n '__quarto_at "render"' -l execute-params -r -F -a "(__fish_complete_suffix .yml .yaml .json)" -d 'YAML file with execution parameters.'
+complete -c quarto -n '__quarto_at "render"' -l execute-params -r -F -a "(__fish_complete_suffix .yml; __fish_complete_suffix .yaml; __fish_complete_suffix .json)" -d 'YAML file with execution parameters.'
 complete -c quarto -n '__quarto_at "render"' -l execute-dir -r -f -a "(__fish_complete_directories)" -d 'Working directory for code execution.'
 complete -c quarto -n '__quarto_at "render"' -l execute-daemon -r -f -d 'Keep Jupyter kernel alive (defaults to 300 seconds).'
 complete -c quarto -n '__quarto_at "render"' -l execute-daemon-restart -f -d 'Restart keepalive Jupyter kernel before render.'
@@ -164,7 +164,7 @@ complete -c quarto -n '__quarto_at "render"' -l top-level-division -r -f -a 'def
 complete -c quarto -n '__quarto_at "render"' -l standalone -f -d 'Produce a standalone document.'
 complete -c quarto -n '__quarto_at "render"' -l template -r -F -d 'Use FILE as a custom template.'
 complete -c quarto -n '__quarto_at "render"' -l css -r -F -a "(__fish_complete_suffix .css)" -d 'Link to a CSS style sheet.'
-complete -c quarto -n '__quarto_at "render"' -l bibliography -r -F -a "(__fish_complete_suffix .bib .bibtex .json .yml .yaml)" -d 'Bibliography file.'
+complete -c quarto -n '__quarto_at "render"' -l bibliography -r -F -a "(__fish_complete_suffix .bib; __fish_complete_suffix .bibtex; __fish_complete_suffix .json; __fish_complete_suffix .yml; __fish_complete_suffix .yaml)" -d 'Bibliography file.'
 complete -c quarto -n '__quarto_at "render"' -l csl -r -F -a "(__fish_complete_suffix .csl)" -d 'Citation Style Language file.'
 complete -c quarto -n '__quarto_at "render"' -l citeproc -f -d 'Process citations with citeproc.'
 complete -c quarto -n '__quarto_at "render"' -l highlight-style -r -f -d 'Syntax highlighting style.'
@@ -172,9 +172,9 @@ complete -c quarto -n '__quarto_at "render"' -l pdf-engine -r -f -a 'pdflatex lu
 complete -c quarto -n '__quarto_at "render"' -l mathjax -f -d 'Render mathematics with MathJax.'
 complete -c quarto -n '__quarto_at "render"' -l katex -f -d 'Render mathematics with KaTeX.'
 complete -c quarto -n '__quarto_at "render"' -l wrap -r -f -a 'auto none preserve' -d 'Text wrapping in the output.'
-complete -c quarto -n '__quarto_at "render"' -l reference-doc -r -F -a "(__fish_complete_suffix .docx .pptx .odt)" -d 'Reference document for docx, pptx, or odt output.'
+complete -c quarto -n '__quarto_at "render"' -l reference-doc -r -F -a "(__fish_complete_suffix .docx; __fish_complete_suffix .pptx; __fish_complete_suffix .odt)" -d 'Reference document for docx, pptx, or odt output.'
 complete -c quarto -n '__quarto_at "render"' -l shift-heading-level-by -r -f -d 'Shift heading levels by this amount.'
-complete -c quarto -n '__quarto_at "preview" 0' -F -a "(__fish_complete_suffix .qmd .ipynb .md .Rmd .rmd .markdown)"
+complete -c quarto -n '__quarto_at "preview" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
 complete -c quarto -n '__quarto_at "preview"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "preview"' -l port -r -f -d 'Suggested port to listen on (defaults to random value between 3000 and 8000).'
 complete -c quarto -n '__quarto_at "preview"' -l host -r -f -d 'Hostname to bind to (defaults to 127.0.0.1)'
@@ -197,7 +197,7 @@ complete -c quarto -n '__quarto_at "preview"' -l top-level-division -r -f -a 'de
 complete -c quarto -n '__quarto_at "preview"' -l standalone -f -d 'Produce a standalone document.'
 complete -c quarto -n '__quarto_at "preview"' -l template -r -F -d 'Use FILE as a custom template.'
 complete -c quarto -n '__quarto_at "preview"' -l css -r -F -a "(__fish_complete_suffix .css)" -d 'Link to a CSS style sheet.'
-complete -c quarto -n '__quarto_at "preview"' -l bibliography -r -F -a "(__fish_complete_suffix .bib .bibtex .json .yml .yaml)" -d 'Bibliography file.'
+complete -c quarto -n '__quarto_at "preview"' -l bibliography -r -F -a "(__fish_complete_suffix .bib; __fish_complete_suffix .bibtex; __fish_complete_suffix .json; __fish_complete_suffix .yml; __fish_complete_suffix .yaml)" -d 'Bibliography file.'
 complete -c quarto -n '__quarto_at "preview"' -l csl -r -F -a "(__fish_complete_suffix .csl)" -d 'Citation Style Language file.'
 complete -c quarto -n '__quarto_at "preview"' -l citeproc -f -d 'Process citations with citeproc.'
 complete -c quarto -n '__quarto_at "preview"' -l highlight-style -r -f -d 'Syntax highlighting style.'
@@ -205,9 +205,9 @@ complete -c quarto -n '__quarto_at "preview"' -l pdf-engine -r -f -a 'pdflatex l
 complete -c quarto -n '__quarto_at "preview"' -l mathjax -f -d 'Render mathematics with MathJax.'
 complete -c quarto -n '__quarto_at "preview"' -l katex -f -d 'Render mathematics with KaTeX.'
 complete -c quarto -n '__quarto_at "preview"' -l wrap -r -f -a 'auto none preserve' -d 'Text wrapping in the output.'
-complete -c quarto -n '__quarto_at "preview"' -l reference-doc -r -F -a "(__fish_complete_suffix .docx .pptx .odt)" -d 'Reference document for docx, pptx, or odt output.'
+complete -c quarto -n '__quarto_at "preview"' -l reference-doc -r -F -a "(__fish_complete_suffix .docx; __fish_complete_suffix .pptx; __fish_complete_suffix .odt)" -d 'Reference document for docx, pptx, or odt output.'
 complete -c quarto -n '__quarto_at "preview"' -l shift-heading-level-by -r -f -d 'Shift heading levels by this amount.'
-complete -c quarto -n '__quarto_at "serve" 0' -F -a "(__fish_complete_suffix .qmd .ipynb .md .Rmd .rmd .markdown)"
+complete -c quarto -n '__quarto_at "serve" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
 complete -c quarto -n '__quarto_at "serve"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "serve"' -l no-render -f -d 'Do not render the document before serving.'
 complete -c quarto -n '__quarto_at "serve"' -s p -l port -r -f -d 'The TCP port that the application should listen on.'
@@ -278,7 +278,7 @@ complete -c quarto -n '__quarto_at "remove"' -l log-level -r -f -a 'debug info w
 complete -c quarto -n '__quarto_at "remove"' -l log-format -r -f -a 'plain json-stream' -d 'Log format (plain, json-stream)'
 complete -c quarto -n '__quarto_at "remove"' -l quiet -f -d 'Suppress console output.'
 complete -c quarto -n '__quarto_at "remove"' -l profile -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "convert" 0' -F -a "(__fish_complete_suffix .qmd .ipynb .md .Rmd .rmd .markdown)"
+complete -c quarto -n '__quarto_at "convert" 0' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
 complete -c quarto -n '__quarto_at "convert"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "convert"' -s o -l output -r -F -d 'Write output to PATH.'
 complete -c quarto -n '__quarto_at "convert"' -l with-ids -f -d 'Include ids in conversion'
@@ -287,7 +287,7 @@ complete -c quarto -n '__quarto_at "convert"' -l log-level -r -f -a 'debug info 
 complete -c quarto -n '__quarto_at "convert"' -l log-format -r -f -a 'plain json-stream' -d 'Log format (plain, json-stream)'
 complete -c quarto -n '__quarto_at "convert"' -l quiet -f -d 'Suppress console output.'
 complete -c quarto -n '__quarto_at "convert"' -l profile -r -f -d 'Active project profile(s)'
-complete -c quarto -n '__quarto_at "run" 0' -F -a "(__fish_complete_suffix .ts .js .py .R .r .lua)"
+complete -c quarto -n '__quarto_at "run" 0' -F -a "(__fish_complete_suffix .ts; __fish_complete_suffix .js; __fish_complete_suffix .py; __fish_complete_suffix .R; __fish_complete_suffix .r; __fish_complete_suffix .lua)"
 complete -c quarto -n '__quarto_at "run"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "run"' -l log -r -F -d 'Path to log file'
 complete -c quarto -n '__quarto_at "run"' -l log-level -r -f -a 'debug info warning error critical' -d 'Log level (debug, info, warning, error, critical)'
@@ -321,7 +321,7 @@ complete -c quarto -n '__quarto_at "uninstall"' -l quiet -f -d 'Suppress console
 complete -c quarto -n '__quarto_at "uninstall"' -l profile -r -f -d 'Active project profile(s)'
 complete -c quarto -n '__quarto_at "tools"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "publish" 0' -f -a 'quarto-pub gh-pages connect posit-connect-cloud netlify confluence huggingface'
-complete -c quarto -n '__quarto_at "publish" 1' -F -a "(__fish_complete_suffix .qmd .ipynb .md .Rmd .rmd .markdown)"
+complete -c quarto -n '__quarto_at "publish" 1' -F -a "(__fish_complete_suffix .qmd; __fish_complete_suffix .ipynb; __fish_complete_suffix .md; __fish_complete_suffix .Rmd; __fish_complete_suffix .rmd; __fish_complete_suffix .markdown)"
 complete -c quarto -n '__quarto_at "publish"' -s h -l help -f -d 'Show this help.'
 complete -c quarto -n '__quarto_at "publish"' -l id -r -f -d 'Identifier of content to publish'
 complete -c quarto -n '__quarto_at "publish"' -l server -r -f -d 'Server to publish to'
