@@ -156,3 +156,4 @@ Several of those exist on release builds too, just hidden from view, so installi
 Each channel also publishes a `manifest.json`, carrying the Quarto version the scripts were generated from and a SHA-256 for each file.
 The installers verify that checksum before writing anything, which catches a truncated or corrupted download.
 Since the manifest is served from the same site as the scripts, it is the HTTPS connection, not the checksum, that establishes where those bytes came from.
+The installer also compares that version against the `quarto` on `PATH`, by major and minor only, and prints one line when they disagree; a patch difference or a build that cannot be read says nothing, and the install always succeeds regardless.

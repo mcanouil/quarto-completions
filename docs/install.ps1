@@ -55,6 +55,27 @@ if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
 $script:Uninstall = [bool]$Uninstall -or ($env:QUARTO_COMPLETIONS_UNINSTALL -eq '1')
 
 $script:Channel = $Channel
+# The quarto on PATH's reported version, or empty when there is none or it
+# does not answer. Read once, ahead of channel resolution, and shared by the
+# dev auto-detect below and the version advisory in Install-QuartoCompletion,
+# so an install spawns quarto at most once. Uninstalling never reads it.
+$script:LocalQuartoVersion = ''
+if (-not $script:Uninstall) {
+  # -CommandType Application: a function or alias named 'quarto' has no
+  # '.Source' to invoke, and a PATH with more than one binary would otherwise
+  # hand back an array that '&' cannot call. -First 1 takes the one PATH
+  # itself would run.
+  $quartoOnPath = Get-Command quarto -CommandType Application -ErrorAction SilentlyContinue |
+    Select-Object -First 1
+  if ($quartoOnPath) {
+    try {
+      $script:LocalQuartoVersion = (& $quartoOnPath.Source --version 2>$null | Select-Object -First 1).ToString().Trim()
+    }
+    catch {
+      $script:LocalQuartoVersion = ''
+    }
+  }
+}
 if (-not $script:Channel -and $script:Uninstall) {
   # Uninstalling never reads $script:Channel, so an unset one here is left at
   # a placeholder rather than spent starting quarto for nothing.
@@ -65,22 +86,7 @@ if (-not $script:Channel) {
   # the version Quarto's own kLocalDevelopment constant reports for an
   # unreleased source build, the one build whose hidden commands the dev
   # channel completes.
-  $quartoVersion = ''
-  # -CommandType Application: a function or alias named 'quarto' has no
-  # '.Source' to invoke, and a PATH with more than one binary would otherwise
-  # hand back an array that '&' cannot call. -First 1 takes the one PATH
-  # itself would run.
-  $quartoOnPath = Get-Command quarto -CommandType Application -ErrorAction SilentlyContinue |
-    Select-Object -First 1
-  if ($quartoOnPath) {
-    try {
-      $quartoVersion = (& $quartoOnPath.Source --version 2>$null | Select-Object -First 1).ToString().Trim()
-    }
-    catch {
-      $quartoVersion = ''
-    }
-  }
-  $script:Channel = if ($quartoVersion -eq '99.9.9') { 'dev' } else { 'stable' }
+  $script:Channel = if ($script:LocalQuartoVersion -eq '99.9.9') { 'dev' } else { 'stable' }
 }
 if ($script:Channel -notin @('stable', 'prerelease', 'dev')) {
   throw "Channel must be 'stable', 'prerelease', or 'dev', got '$($script:Channel)'"
@@ -139,6 +145,45 @@ function Script:Set-ManagedBlock {
   Add-Content -LiteralPath $Path -Value @($script:BlockStart, $Body, $script:BlockEnd) -Encoding utf8
 }
 
+function Script:Get-VersionMajorMinor {
+  param([string]$Version)
+
+  if ($Version -match '^(\d+)\.(\d+)') {
+    return "$($Matches[1]).$($Matches[2])"
+  }
+  return ''
+}
+
+# Writes the one advisory line for a Quarto that does not match what these
+# completions were generated from, or nothing when there is nothing useful to
+# say. Never fails the install; a mismatch is only ever a note.
+function Script:Write-VersionAdvice {
+  param([string]$ManifestVersion, [string]$LocalVersion, [string]$Channel)
+
+  if (-not $LocalVersion -or $LocalVersion -eq '99.9.9' -or $Channel -eq 'dev') { return }
+
+  $manifestMM = Script:Get-VersionMajorMinor $ManifestVersion
+  $localMM = Script:Get-VersionMajorMinor $LocalVersion
+  if (-not $manifestMM -or -not $localMM -or $manifestMM -eq $localMM) { return }
+
+  $manifestParts = $manifestMM -split '\.'
+  $localParts = $localMM -split '\.'
+  $newer = ([int]$localParts[0] -gt [int]$manifestParts[0]) -or
+    ([int]$localParts[0] -eq [int]$manifestParts[0] -and [int]$localParts[1] -gt [int]$manifestParts[1])
+
+  if ($newer) {
+    if ($Channel -eq 'stable') {
+      Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions. Run again with -Channel prerelease if you are on a Quarto prerelease."
+    }
+    else {
+      Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions; flags added since then are not completed yet."
+    }
+  }
+  else {
+    Script:Write-Log "Your Quarto is $LocalVersion, older than these completions; some completions may name flags your Quarto does not have."
+  }
+}
+
 function Script:Install-QuartoCompletion {
   [CmdletBinding(SupportsShouldProcess)]
   param()
@@ -191,6 +236,7 @@ function Script:Install-QuartoCompletion {
 
   Script:Write-Log
   Script:Write-Log "Quarto $($manifest.quartoVersion) completions for PowerShell ($($script:Channel) channel)."
+  Script:Write-VersionAdvice -ManifestVersion $manifest.quartoVersion -LocalVersion $script:LocalQuartoVersion -Channel $script:Channel
   Script:Write-Log "Start a new session, or run: . `"$($script:CompletionPath)`""
 }
 
