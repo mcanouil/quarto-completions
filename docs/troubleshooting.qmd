@@ -100,3 +100,4 @@ curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --un
 ```
 
 That deletes the completion file and the managed block from your shell's configuration, and leaves the rest of your configuration untouched.
+One run covers one shell, the one detected from `$SHELL`; if you installed for several, repeat with `--shell bash|zsh|fish`.
