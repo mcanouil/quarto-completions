@@ -26,8 +26,12 @@ $Site = (Resolve-Path -LiteralPath $Site).Path
 
 $installer = Join-Path $root 'docs/install.ps1'
 $scratch = Join-Path ([System.IO.Path]::GetTempPath()) ([System.IO.Path]::GetRandomFileName())
-$profilePath = Join-Path $scratch 'Profile/profile.ps1'
-$completionPath = Join-Path $scratch 'Profile/Completions/quarto.ps1'
+# Built one segment at a time, the way the installer builds it, so the test
+# asserts on the string the installer would produce and not on a variant the
+# file system happens to accept as well.
+$profileDirectory = Join-Path $scratch 'Profile'
+$profilePath = Join-Path $profileDirectory 'profile.ps1'
+$completionPath = Join-Path (Join-Path $profileDirectory 'Completions') 'quarto.ps1'
 
 $script:Passed = 0
 $script:Failed = 0

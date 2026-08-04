@@ -59,7 +59,11 @@ $script:ProfilePath = if ($env:QUARTO_COMPLETIONS_PROFILE) {
 else {
   $PROFILE.CurrentUserAllHosts
 }
-$script:CompletionPath = Join-Path (Split-Path -Parent $script:ProfilePath) 'Completions/quarto.ps1'
+# Nested rather than the three-argument form, which Windows PowerShell 5.1 does
+# not have, and one segment at a time: a '/' inside a single argument survives
+# into the result, which is then printed and dot-sourced with mixed separators.
+$script:CompletionPath =
+  Join-Path (Join-Path (Split-Path -Parent $script:ProfilePath) 'Completions') 'quarto.ps1'
 
 function Script:Write-Log {
   param([string]$Message = '')
