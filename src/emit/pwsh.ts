@@ -16,6 +16,7 @@ import {
   positionals,
   trailingIsVariadic,
   valuedFlags,
+  valuedOptions,
 } from "./common.ts";
 
 export function emitPwsh(spec: Spec): string {
@@ -139,11 +140,16 @@ function nodeEntry(command: CommandSpec): string {
     `      ${quote(commandName(child))} = ${quote(oneLine(child.description))}`
   );
 
-  const values = command.options
-    .filter((option) => option.kind === "enum")
+  // Keyed by every flag that consumes a value, not only the enums: a flag
+  // whose candidates are unknown maps to an empty list, so the completer
+  // returns nothing and PowerShell falls back to path completion rather than
+  // offering subcommands as the flag's value.
+  const values = valuedOptions(command)
     .flatMap((option) =>
       optionFlags(option).map((flag) =>
-        `      ${quote(flag)} = @(${(option.values ?? []).map(quote).join(", ")})`
+        `      ${quote(flag)} = @(${
+          (option.kind === "enum" ? option.values ?? [] : []).map(quote).join(", ")
+        })`
       )
     );
 
