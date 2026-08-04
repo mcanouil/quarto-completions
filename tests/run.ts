@@ -288,6 +288,40 @@ const tests: Record<string, () => void> = {
     assertIncludes(output, "ends in backslash\\\\");
   },
 
+  "zsh escapes a trailing backslash in a spec label the same way"() {
+    // specLabel() got the description's trailing-backslash fix above, but
+    // was fixed separately; this pins that it now carries the same one.
+    // Verified against real zsh: without it, a placeholder ending in a
+    // backslash escapes the colon that follows, and the option offers no
+    // candidates at all where the clean baseline offered its full list.
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({
+      long: "--evil-ph2",
+      description: "d",
+      kind: "value",
+      placeholder: "dir\\",
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "dir\\\\:");
+  },
+
+  "zsh escapes a colon in an enum value the same way"() {
+    // Verified against real zsh: without this, _arguments's naive
+    // colon-scan splits the action string mid-quote, printing "unmatched
+    // '" and "command not found: _" instead of offering anything.
+    const spec = fixtureSpec();
+    const render = spec.root.commands[0];
+    render.options.push({
+      long: "--evil-enum2",
+      description: "d",
+      kind: "enum",
+      values: ["a", "key:value"],
+    });
+    const output = emitZsh(enrich(spec));
+    assertIncludes(output, "key\\:value");
+  },
+
   "bash guards the word before the first argument"() {
     const output = emitBash(enrich(fixtureSpec()));
     assertIncludes(output, `if [ "$cword" -gt 0 ]; then`);
@@ -310,6 +344,16 @@ const tests: Record<string, () => void> = {
     // `compgen -W` at all, whatever quoting surrounded it.
     const output = emitBash(enrich(fixtureSpec()));
     assertExcludes(output, 'compgen -W "');
+  },
+
+  "bash disables globbing around the plain word-split loop"() {
+    // An unquoted word-split still performs pathname expansion on its own;
+    // verified against real bash, a candidate spelled like a glob (a real
+    // flag written with brackets, say) listed unrelated files from the
+    // current directory instead of completing as itself.
+    const output = emitBash(enrich(fixtureSpec()));
+    assertIncludes(output, "set -f");
+    assertIncludes(output, "set +f");
   },
 
   "zsh accepts a value attached with = on long options"() {
@@ -565,6 +609,32 @@ const tests: Record<string, () => void> = {
     // name's own unescaped ' ending the argument to `-n` right there.
     assertIncludes(output, `-n '__quarto_at "call evil'\\''; touch pwned; echo '\\''" 0'`);
     assertExcludes(output, `-n '__quarto_at "call evil'; touch pwned; echo '`);
+  },
+
+  "fish routes -a candidates through a function rather than a literal list"() {
+    // fish re-expands a literal -a candidate list at completion time,
+    // running any (...) a candidate carries -- fish's own documented
+    // mechanism for generating candidates dynamically from a command's
+    // output, e.g. 'complete -a "(ls)"', applying to every word in the
+    // list, not only one spelled as the whole argument. Verified against
+    // real fish: a subcommand named "(touch pwned)" ran it the moment
+    // `quarto <TAB>` looked at the candidate, and so did an enum value.
+    // A structural check: the vulnerable shape was `-a` given anything but
+    // a `(__quarto_words ...)` call.
+    const spec = fixtureSpec();
+    const call = spec.root.commands.find((command) => command.path[0] === "call")!;
+    call.commands.push({
+      path: ["call", "(touch pwned)"],
+      description: "x",
+      options: [
+        { long: "--evil-enum", description: "d", kind: "enum", values: ["a", "(touch pwned)"] },
+      ],
+      args: [],
+      commands: [],
+    });
+    const output = emitFish(spec);
+    assertIncludes(output, `-a "(__quarto_words '(touch pwned)')"`);
+    assertIncludes(output, `-a "(__quarto_words 'a' '(touch pwned)')"`);
   },
 
   "zsh escapes a placeholder that would otherwise close its quoted spec"() {

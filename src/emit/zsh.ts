@@ -136,7 +136,7 @@ function escapeDescription(text: string): string {
  * escaping every other value in this spec gets.
  */
 function specLabel(text: string): string {
-  return singleQuote(text.replace(/:/g, "\\:"));
+  return singleQuote(text.replace(/[\\:]/g, "\\$&"));
 }
 
 /**
@@ -184,7 +184,14 @@ function argAction(
 ): string {
   switch (kind) {
     case "enum":
-      return `_quarto_enum ${(values ?? []).map((value) => `'${singleQuote(value)}'`).join(" ")}`;
+      // specLabel(), not singleQuote(): _arguments scans the whole action
+      // string for an unescaped ':' before this ever runs as the function
+      // call it looks like, and an enum value carrying one is read as
+      // introducing a fresh spec field mid-quote. Verified against real
+      // zsh: a value of "key:value" broke the quoting so badly that the
+      // fragments it produced were read as commands, printing "unmatched
+      // '" and "command not found: _" instead of offering anything.
+      return `_quarto_enum ${(values ?? []).map((value) => `'${specLabel(value)}'`).join(" ")}`;
     case "file":
       // Globs are never attacker-controlled: they always come from this
       // repo's own overlay.ts constants, never from quarto --help text, so

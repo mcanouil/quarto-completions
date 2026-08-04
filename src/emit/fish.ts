@@ -35,6 +35,17 @@ export function emitFish(spec: Spec): string {
 
 set -g __quarto_nodes ${paths}
 
+# fish re-expands a literal -a candidate list at completion time, running
+# any (...) a candidate carries rather than treating it as inert text --
+# this is fish's own documented mechanism for generating candidates from a
+# command's output, e.g. 'complete -a "(ls)"', and applies to every word in
+# the list, not only one spelled as the whole argument. Verified against
+# real fish. Candidates instead reach this as ordinary, already-quoted
+# arguments to a function call, which is not re-evaluated the same way.
+function __quarto_words
+  printf '%s\n' $argv
+end
+
 # Flags of a command that consume the word after them.
 function __quarto_valued --argument-names node
   switch "$node"
@@ -135,9 +146,9 @@ function commandCompletions(command: CommandSpec): string[] {
 
   for (const child of command.commands) {
     lines.push(
-      `complete -c quarto -n ${at("0")} -f -a ${quote(commandName(child))} -d ${
-        quote(oneLine(child.description))
-      }`,
+      `complete -c quarto -n ${at("0")} -f -a "(__quarto_words ${
+        quote(commandName(child))
+      })" -d ${quote(oneLine(child.description))}`,
     );
   }
 
@@ -181,7 +192,7 @@ function argumentAction(
 ): string | undefined {
   switch (kind) {
     case "enum":
-      return `-f -a ${quote((values ?? []).join(" "))}`;
+      return `-f -a "(__quarto_words ${(values ?? []).map(quote).join(" ")})"`;
     case "file":
       // One call per suffix: fish only accepts several suffixes in one call
       // from 3.6 on, and older versions read the second argument as the token

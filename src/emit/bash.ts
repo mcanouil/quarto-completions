@@ -37,12 +37,20 @@ _quarto_words() {
   # a candidate carries rather than treating it as inert text, even one
   # that arrived here already escaped for this file's own parsing. Verified
   # against real bash. A plain, unquoted word-split of "$1" does not.
+  #
+  # set -f around it for the same reason: unquoted word-splitting still
+  # performs pathname expansion, so a candidate that happens to look like a
+  # glob, such as a real flag spelled with brackets, would otherwise be
+  # replaced by whatever files match it in the current directory. Verified:
+  # "P*" listed unrelated local files instead of completing as itself.
   local word
+  set -f
   for word in $1; do
     case "$word" in
       "$cur"*) COMPREPLY+=("$word") ;;
     esac
   done
+  set +f
 }
 
 _quarto_files() {
