@@ -408,6 +408,21 @@ expect_file "the install falls through to a writable location" "${ROBREW_HOME}/.
 expect_contains "the read-only copy is reported" "${robrew_output}" "Could not remove"
 chmod 755 "${ROBREW_PREFIX}/share/zsh/site-functions"
 
+# An rc file that cannot be written must stop the run with a message naming
+# it, not with a bare permission error from the redirect.
+RORC_HOME="$(scenario_home readonly-rc)"
+printf '%s\n%s\n%s\n' \
+  "# >>> quarto completions >>>" "stale" "# <<< quarto completions <<<" \
+  >"${RORC_HOME}/.zshrc"
+chmod 400 "${RORC_HOME}/.zshrc"
+if rorc_output="$(scenario_run "${RORC_HOME}" --shell zsh --uninstall 2>&1)"; then
+  fail "an unwritable rc file fails the run" "installer exited zero: ${rorc_output}"
+else
+  expect_contains "an unwritable rc file is named in the error" \
+    "${rorc_output}" "error: could not write ${RORC_HOME}/.zshrc"
+fi
+chmod 600 "${RORC_HOME}/.zshrc"
+
 # A home whose script is already gone but whose block is not must not report
 # that it cleaned the rc file and then that there was nothing to remove.
 RESIDUE_HOME="$(scenario_home residue)"

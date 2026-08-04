@@ -481,8 +481,9 @@ remove_rc_block() {
   sed "/^${BLOCK_START}\$/,/^${BLOCK_END}\$/d" "$1" >"${temporary}"
   # Written back through the existing file rather than moved over it: an rc
   # file is often a symlink into a dotfiles checkout, and mv would replace the
-  # link with a plain file carrying mktemp's 0600 mode.
-  cat "${temporary}" >"$1"
+  # link with a plain file carrying mktemp's 0600 mode. The redirect names the
+  # file on failure; set -e alone would stop with a bare permission error.
+  cat "${temporary}" >"$1" || fail "could not write $1: fix its permissions and re-run"
   rm -f "${temporary}"
 }
 
