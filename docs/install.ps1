@@ -128,6 +128,12 @@ function Script:Remove-ManagedBlock {
     if ($line -eq $script:BlockEnd) { $inside = $false; continue }
     if (-not $inside) { $kept += $line }
   }
+  # Still inside at the end means the block never closed, so everything below
+  # the opening marker has just been dropped from $kept. That is the user's
+  # own content, not this installer's, so the file is left exactly as it is.
+  if ($inside) {
+    throw "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
+  }
   Set-Content -LiteralPath $Path -Value $kept -Encoding utf8
 }
 

@@ -555,6 +555,14 @@ remove_rc_block() {
   # $1: rc file
   [ -f "$1" ] || return 0
   rc_block_present "$1" || return 0
+  # The sed range below runs to the end of the file when nothing matches the
+  # closing marker, taking everything the user keeps below the block with it.
+  # A block left open by a hand edit, a merge conflict, or a half-written file
+  # is one this cannot safely rewrite, so it stops rather than guess where the
+  # block was meant to end. Whole-line match, which is what the sed range
+  # itself matches on.
+  grep -qxF "${BLOCK_END}" "$1" ||
+    fail "the quarto completions block in $1 has no closing '${BLOCK_END}' line; repair or remove the block, then re-run"
   local temporary
   temporary="$(mktemp)"
   sed "/^${BLOCK_START}\$/,/^${BLOCK_END}\$/d" "$1" >"${temporary}"
