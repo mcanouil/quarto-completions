@@ -275,6 +275,23 @@ expect_file "zsh: a file in the old directory is moved to ~/.zfunc" \
 expect_absent "zsh: the old directory is not settled on" \
   "${MIGRATE_XDG}/.local/share/zsh/site-functions/_quarto"
 
+# A stale copy in a directory nobody can write to, which is what Homebrew's
+# prefix or a system package leaves behind. The install has otherwise worked,
+# so it says what it could not remove and still succeeds.
+UNREMOVABLE="$(scenario_home unremovable)"
+mkdir -p "${UNREMOVABLE}/.local/share/zsh/site-functions"
+touch "${UNREMOVABLE}/.local/share/zsh/site-functions/_quarto"
+chmod 500 "${UNREMOVABLE}/.local/share/zsh/site-functions"
+if unremovable_output="$(scenario_run "${UNREMOVABLE}" --shell zsh 2>&1)"; then
+  pass "an unremovable stale copy does not fail the install"
+else
+  fail "an unremovable stale copy does not fail the install" "${unremovable_output}"
+fi
+expect_file "the install still lands" "${UNREMOVABLE}/.zfunc/_quarto"
+expect_contains "it says what it could not remove" \
+  "${unremovable_output}" "Could not remove"
+chmod 700 "${UNREMOVABLE}/.local/share/zsh/site-functions"
+
 # Homebrew's site-functions directory is on fpath already, so a file written
 # there needs no managed block. $HOMEBREW_PREFIX is authoritative when set.
 BREW_HOME="$(scenario_home brew)"

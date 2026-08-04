@@ -441,8 +441,17 @@ remove_stale() {
   local location rc
   while IFS= read -r location; do
     [ -n "${location}" ] || continue
-    rm -f "${location}"
-    log "Removed ${location}"
+    # A copy that cannot be removed is reported rather than fatal. One of the
+    # places looked in is Homebrew's prefix, which is outside the home
+    # directory and may belong to another user or to a package manager, and a
+    # file there is not reason enough to fail an install that has otherwise
+    # worked. Nothing is ever removed with sudo.
+    if rm -f "${location}" 2>/dev/null; then
+      log "Removed ${location}"
+    else
+      log "Could not remove ${location}: no permission. Remove it yourself, or"
+      log "it may be found before the one that is kept up to date."
+    fi
   done <<EOF
 $(stale_locations "$1")
 EOF
