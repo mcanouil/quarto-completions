@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 2026.08.05-2 (2026-08-05)
+
 ### Bug Fixes
 
 - fix: drop the `1.6`, `1.7`, and `1.8` archived channels; per-minor archives now start at `1.9`.
