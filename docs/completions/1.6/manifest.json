@@ -1,0 +1,12 @@
+{
+  "quartoVersion": "1.6.43",
+  "channel": "1.6",
+  "generated": "2026-08-05",
+  "files": {
+    "quarto.bash": "7b7f1d14b14c28f40fec06ce39a74c86a4a1a967330ac85f72accb18194eea36",
+    "_quarto": "8afd1b92f44e9debfb2bba659968884b76501e61d28bc894ce3a8f125137ed28",
+    "quarto.fish": "703b4b0c41465749b5e073bb5f578cdc0c27649f24391c671e2a1b5fedd10ec6",
+    "quarto.ps1": "4cc652e1e840f6498156a188b23898c0ca1cd8ca9f3f6eefdf64a2724aca07f9",
+    "spec.json": "e39ac492f490429f480e6766907d5b5e28b3afbc7844d5ddeae142728af17d10"
+  }
+}

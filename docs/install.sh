@@ -40,9 +40,11 @@ Usage: install.sh [options]
 
 Options:
   --shell <bash|zsh|fish>   Shell to install for (default: detected from $SHELL).
-  --channel <stable|prerelease|dev>
-                            Quarto release channel (default: stable, or dev
-                            when the quarto on PATH reports version 99.9.9).
+  --channel <release|pre-release|dev|<major.minor>>
+                            Quarto release channel (default: the local
+                            Quarto's own minor, e.g. 1.9, when that is
+                            published; otherwise release; dev when the quarto
+                            on PATH reports version 99.9.9).
   --uninstall               Remove the completions and the managed block.
   --dry-run                 Report every path that would change, then exit.
   --base-url <url>          Where to fetch from (default: the published site).
@@ -118,27 +120,57 @@ detect_local_quarto_version() {
   fi
 }
 
+# True when a channel has a manifest published at BASE_URL, checked without
+# keeping anything past its headers. Called only while auto-detecting a
+# channel from the local Quarto's own minor: an explicit --channel and an
+# uninstall never call this, so neither spends a network round trip settling
+# something nothing asked about.
+channel_published() {
+  # $1: channel
+  # No -S: a miss here is an expected outcome the caller falls back from, not
+  # an error worth curl's own diagnostic on stderr.
+  if command -v curl >/dev/null 2>&1; then
+    curl -fs -o /dev/null "${BASE_URL}/completions/$1/manifest.json"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -q -O /dev/null "${BASE_URL}/completions/$1/manifest.json"
+  else
+    return 1
+  fi
+}
+
 # Fills in a channel nothing named explicitly, then validates whatever the
 # result is. Only a quarto on PATH reporting exactly '99.9.9' selects 'dev':
 # that is the version Quarto's own kLocalDevelopment constant reports for an
 # unreleased source build, the one build whose hidden commands the dev
-# channel completes. Uninstalling never reads CHANNEL, so an unset one there
-# is left at a placeholder rather than spent starting quarto for nothing.
+# channel completes. Short of that, a local Quarto whose own minor is
+# published (e.g. '1.9') is preferred over 'release', which may already be a
+# minor ahead. Uninstalling never reads CHANNEL, so an unset one there is
+# left at a placeholder rather than spent probing the network for nothing.
 resolve_channel() {
   if [ -z "${CHANNEL}" ] && [ "${ACTION}" = "uninstall" ]; then
-    CHANNEL="stable"
+    CHANNEL="release"
   fi
   if [ -z "${CHANNEL}" ]; then
+    local minor
     if [ "${LOCAL_QUARTO_VERSION}" = "99.9.9" ]; then
       CHANNEL="dev"
+    elif minor="$(version_major_minor "${LOCAL_QUARTO_VERSION}")" && [ -n "${minor}" ] &&
+      channel_published "${minor}"; then
+      CHANNEL="${minor}"
     else
-      CHANNEL="stable"
+      if [ -n "${LOCAL_QUARTO_VERSION}" ] && [ -n "${minor:-}" ]; then
+        log "No published completions for Quarto ${minor}; installing the release channel instead."
+      fi
+      CHANNEL="release"
     fi
   fi
 
   case "${CHANNEL}" in
-    stable | prerelease | dev) ;;
-    *) fail "channel must be 'stable', 'prerelease', or 'dev', got '${CHANNEL}'" ;;
+    release | pre-release | dev) ;;
+    *)
+      printf '%s' "${CHANNEL}" | grep -qE '^[0-9]+\.[0-9]+$' ||
+        fail "channel must be 'release', 'pre-release', 'dev', or a Quarto minor such as '1.9', got '${CHANNEL}'"
+      ;;
   esac
 }
 
@@ -221,8 +253,8 @@ version_advice() {
   [ "${manifest_mm}" != "${local_mm}" ] || return 0
 
   if version_newer "${local_mm}" "${manifest_mm}"; then
-    if [ "$3" = "stable" ]; then
-      log "Your Quarto is $2, newer than these completions. Run again with --channel prerelease if you are on a Quarto prerelease."
+    if [ "$3" = "release" ]; then
+      log "Your Quarto is $2, newer than these completions. Run again with --channel pre-release if you are on a Quarto pre-release."
     else
       log "Your Quarto is $2, newer than these completions; flags added since then are not completed yet."
     fi
@@ -284,7 +316,7 @@ reload_advice() {
 installed_stamp() {
   # $1: the completion file
   [ -r "$1" ] || return 0
-  sed -n '1,5{s/^# Quarto \([^ ][^ ]*\) (\([a-z][a-z]*\) channel)\.$/\1 \2/p;}' "$1" 2>/dev/null
+  sed -n '1,5{s/^# Quarto \([^ ][^ ]*\) (\([a-z0-9.-][a-z0-9.-]*\) channel)\.$/\1 \2/p;}' "$1" 2>/dev/null
 }
 
 # One line per other shell whose completions came from a different Quarto or a

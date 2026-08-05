@@ -80,7 +80,7 @@ jobs:
   generate:
     # Runs even when build-dev-quarto fails: that build is quarto-cli's
     # moving main branch, and one broken commit there must not discard the
-    # stable and prerelease regeneration below, which does not depend on it.
+    # release and pre-release regeneration below, which does not depend on it.
     # !cancelled() rather than always(): this job can push a branch and open
     # a pull request, which a cancelled run must not still do.
     needs: build-dev-quarto
@@ -107,21 +107,66 @@ jobs:
           app-key: ${{ secrets.APP_KEY }}
           gh-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Read before the release below overwrites the manifest, so there is
+      # something to compare the new release against. Empty on a first run,
+      # or one where the file does not parse; either way nothing is archived.
+      - name: Record the previous release's minor
+        id: previous-release
+        run: |
+          set -euo pipefail
+          version="$(jq -r '.quartoVersion // empty' docs/completions/release/manifest.json 2>/dev/null || true)"
+          minor="$(printf '%s' "${version}" | grep -oE '^[0-9]+\.[0-9]+' || true)"
+          echo "minor=${minor}" >> "${GITHUB_OUTPUT}"
+
       - name: Setup Quarto (release)
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: release
 
-      - name: Generate stable completions
-        run: quarto run src/generate.ts --channel stable
+      - name: Generate release completions
+        run: quarto run src/generate.ts --channel release
+
+      # A minor bump means the line just left is no longer published anywhere
+      # once this run's release completions overwrite it, so it is archived
+      # under its own channel before that becomes true for good. Ordinary
+      # patch releases leave the minor unchanged and archive nothing.
+      - name: Archive the superseded release, if the minor moved
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          previous="${{ steps.previous-release.outputs.minor }}"
+          current="$(jq -r '.quartoVersion' docs/completions/release/manifest.json | grep -oE '^[0-9]+\.[0-9]+')"
+          if [ -n "${previous}" ] && [ "${previous}" != "${current}" ]; then
+            echo "Release moved from ${previous}.x to ${current}.x; archiving ${previous}."
+            bash scripts/archive-minor.sh "${previous}"
+          else
+            echo "Release is still on the ${current}.x line; nothing to archive."
+          fi
+
+      # The most recently archived line can still ship a late patch, as 1.9.38
+      # did after 1.10 had already reached pre-release. Only the newest
+      # archive is worth the weekly check; older ones are frozen on purpose.
+      - name: Refresh the newest archived minor
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          newest="$(find docs/completions -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+          if [ -n "${newest}" ]; then
+            echo "Refreshing archived channel ${newest}."
+            bash scripts/archive-minor.sh "${newest}"
+          else
+            echo "No archived minor channel to refresh yet."
+          fi
 
       - name: Setup Quarto (pre-release)
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: pre-release
 
-      - name: Generate prerelease completions
-        run: quarto run src/generate.ts --channel prerelease
+      - name: Generate pre-release completions
+        run: quarto run src/generate.ts --channel pre-release
 
       - name: Remove the previous dev channel
         if: needs.build-dev-quarto.result == 'success'

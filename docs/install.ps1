@@ -28,9 +28,9 @@ param(
   # No ValidateSet: Windows PowerShell 5.1 would skip it for the default value
   # read from the environment, and PowerShell 7 would refuse that value with
   # its own wording. The one check below covers both paths with one message.
-  # Left empty rather than defaulted to 'stable' here: the block below tells
-  # an unset channel from an explicit one, which is what lets it pick 'dev'
-  # only when nothing named a channel at all.
+  # Left empty rather than defaulted to 'release' here: the block below tells
+  # an unset channel from an explicit one, which is what lets it pick 'dev', or
+  # the local Quarto's own minor, only when nothing named a channel at all.
   [string]$Channel = $(if ($env:QUARTO_COMPLETIONS_CHANNEL) { $env:QUARTO_COMPLETIONS_CHANNEL } else { '' }),
 
   [string]$BaseUrl = $(if ($env:QUARTO_COMPLETIONS_BASE_URL) { $env:QUARTO_COMPLETIONS_BASE_URL } else { 'https://m.canouil.dev/quarto-completions' }),
@@ -84,22 +84,72 @@ if (-not $script:Uninstall) {
     }
   }
 }
+
+$script:BaseUrl = $BaseUrl.TrimEnd('/')
+
+function Script:Write-Log {
+  param([string]$Message = '')
+
+  Write-Information -MessageData $Message -InformationAction Continue
+}
+
+function Script:Get-VersionMajorMinor {
+  param([string]$Version)
+
+  if ($Version -match '^(\d+)\.(\d+)') {
+    return "$($Matches[1]).$($Matches[2])"
+  }
+  return ''
+}
+
+# True when a channel has a manifest published at BaseUrl. Called only while
+# auto-detecting a channel from the local Quarto's own minor: an explicit
+# -Channel and an uninstall never call this, so neither spends a network
+# round trip settling something nothing asked about.
+function Script:Test-ChannelPublished {
+  param([Parameter(Mandatory)][string]$Channel)
+
+  try {
+    Invoke-WebRequest -Uri "$($script:BaseUrl)/completions/$Channel/manifest.json" -Method Head -UseBasicParsing |
+      Out-Null
+    return $true
+  }
+  catch {
+    return $false
+  }
+}
+
+# Fills in a channel nothing named explicitly, then validates whatever the
+# result is. Only a quarto on PATH reporting exactly '99.9.9' selects 'dev':
+# that is the version Quarto's own kLocalDevelopment constant reports for an
+# unreleased source build, the one build whose hidden commands the dev
+# channel completes. Short of that, a local Quarto whose own minor is
+# published (e.g. '1.9') is preferred over 'release', which may already be a
+# minor ahead. Uninstalling never reads $script:Channel, so an unset one here
+# is left at a placeholder rather than spent probing the network for nothing.
 if (-not $script:Channel -and $script:Uninstall) {
-  # Uninstalling never reads $script:Channel, so an unset one here is left at
-  # a placeholder rather than spent starting quarto for nothing.
-  $script:Channel = 'stable'
+  $script:Channel = 'release'
 }
 if (-not $script:Channel) {
-  # Only a quarto on PATH reporting exactly '99.9.9' selects 'dev': that is
-  # the version Quarto's own kLocalDevelopment constant reports for an
-  # unreleased source build, the one build whose hidden commands the dev
-  # channel completes.
-  $script:Channel = if ($script:LocalQuartoVersion -eq '99.9.9') { 'dev' } else { 'stable' }
+  if ($script:LocalQuartoVersion -eq '99.9.9') {
+    $script:Channel = 'dev'
+  }
+  else {
+    $minor = Script:Get-VersionMajorMinor $script:LocalQuartoVersion
+    if ($minor -and (Script:Test-ChannelPublished $minor)) {
+      $script:Channel = $minor
+    }
+    else {
+      if ($minor) {
+        Script:Write-Log "No published completions for Quarto $minor; installing the release channel instead."
+      }
+      $script:Channel = 'release'
+    }
+  }
 }
-if ($script:Channel -notin @('stable', 'prerelease', 'dev')) {
-  throw "Channel must be 'stable', 'prerelease', or 'dev', got '$($script:Channel)'"
+if ($script:Channel -notin @('release', 'pre-release', 'dev') -and $script:Channel -notmatch '^\d+\.\d+$') {
+  throw "Channel must be 'release', 'pre-release', 'dev', or a Quarto minor such as '1.9', got '$($script:Channel)'"
 }
-$script:BaseUrl = $BaseUrl.TrimEnd('/')
 $script:DryRun = [bool]$DryRun
 
 $script:BlockStart = '# >>> quarto completions >>>'
@@ -115,12 +165,6 @@ else {
 # into the result, which is then printed and dot-sourced with mixed separators.
 $script:CompletionPath =
   Join-Path (Join-Path (Split-Path -Parent $script:ProfilePath) 'Completions') 'quarto.ps1'
-
-function Script:Write-Log {
-  param([string]$Message = '')
-
-  Write-Information -MessageData $Message -InformationAction Continue
-}
 
 # True when a file carries an opening marker with no closing one, which is the
 # state Remove-ManagedBlock refuses to rewrite. Mirrors rc_block_unterminated
@@ -189,18 +233,12 @@ function Script:Set-ManagedBlock {
   Add-Content -LiteralPath $Path -Value @($script:BlockStart, $Body, $script:BlockEnd) -Encoding utf8
 }
 
-function Script:Get-VersionMajorMinor {
-  param([string]$Version)
-
-  if ($Version -match '^(\d+)\.(\d+)') {
-    return "$($Matches[1]).$($Matches[2])"
-  }
-  return ''
-}
-
 # Writes the one advisory line for a Quarto that does not match what these
 # completions were generated from, or nothing when there is nothing useful to
-# say. Never fails the install; a mismatch is only ever a note.
+# say. Never fails the install; a mismatch is only ever a note. Also silent on
+# a version channel matching the local Quarto's own minor: $manifestMM and
+# $localMM are then equal, which the check below already treats as nothing to
+# say.
 function Script:Write-VersionAdvice {
   param([string]$ManifestVersion, [string]$LocalVersion, [string]$Channel)
 
@@ -216,8 +254,8 @@ function Script:Write-VersionAdvice {
     ([int]$localParts[0] -eq [int]$manifestParts[0] -and [int]$localParts[1] -gt [int]$manifestParts[1])
 
   if ($newer) {
-    if ($Channel -eq 'stable') {
-      Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions. Run again with -Channel prerelease if you are on a Quarto prerelease."
+    if ($Channel -eq 'release') {
+      Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions. Run again with -Channel pre-release if you are on a Quarto pre-release."
     }
     else {
       Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions; flags added since then are not completed yet."

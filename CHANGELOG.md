@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### New Features
+
+- feat: publish an archived channel for every Quarto minor from `1.6` onward, generated from that line's newest patch.
+  With no `--channel` given, the installer matches the local Quarto's own minor when it is published, falling back to `release`; the most recently archived minor is refreshed weekly against a late patch, and older ones are frozen.
+
+### Breaking Changes
+
+- feat!: rename the `stable` and `prerelease` channels to `release` and `pre-release`, matching the vocabulary `quarto-actions/setup` already uses.
+  `--channel stable` and `--channel prerelease`, and the `completions/stable/` and `completions/prerelease/` URLs, no longer resolve; the piped installers are unaffected, since they always fetch fresh.
+
 ## 2026.08.05 (2026-08-05)
 
 ### New Features

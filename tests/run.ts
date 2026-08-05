@@ -74,7 +74,7 @@ function fixtureSpec(): Spec {
 
   return {
     quartoVersion: "1.10.18",
-    channel: "stable",
+    channel: "release",
     root,
   };
 }
@@ -217,10 +217,26 @@ const tests: Record<string, () => void> = {
     );
     assertEquals(parseArgs([]), {
       quarto: "quarto",
-      channel: "stable",
+      channel: "release",
       out: "docs/completions",
       check: false,
     });
+  },
+
+  "a version channel is a valid --channel"() {
+    assertEquals(parseArgs(["--channel", "1.9"]).channel, "1.9");
+  },
+
+  "a channel that is not release, pre-release, dev, or a bare major.minor is refused"() {
+    for (const channel of ["stable", "prerelease", "1", "1.9.3", "v1.9"]) {
+      let message = "";
+      try {
+        parseArgs(["--channel", channel]);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      assertIncludes(message, `'${channel}'`, `--channel ${channel} was not refused`);
+    }
   },
 
   "every script stamps its Quarto version and channel in one parsable line"() {
@@ -229,7 +245,7 @@ const tests: Record<string, () => void> = {
     // is an interface rather than a comment. Rewording it silently turns that
     // advice off.
     const spec = enrich(fixtureSpec());
-    const stamp = "# Quarto 1.10.18 (stable channel).";
+    const stamp = "# Quarto 1.10.18 (release channel).";
     for (const output of [emitBash(spec), emitZsh(spec), emitFish(spec), emitPwsh(spec)]) {
       assertIncludes(output, `\n${stamp}\n`);
     }
@@ -415,7 +431,7 @@ const tests: Record<string, () => void> = {
   },
 
   "hidden commands are seeded only on the dev channel"() {
-    for (const channel of ["stable", "prerelease"] as const) {
+    for (const channel of ["release", "pre-release", "1.9"] as const) {
       assertEquals(hiddenChildrenFor([], channel), []);
       assertEquals(hiddenChildrenFor(["dev-call"], channel), []);
     }
@@ -505,8 +521,8 @@ const tests: Record<string, () => void> = {
 
   "the dev channel needs a 99.9.9 build, and a 99.9.9 build needs the dev channel"() {
     assertEquals(assertChannelMatchesVersion("dev", kDevVersion), undefined);
-    assertEquals(assertChannelMatchesVersion("stable", "1.10.18"), undefined);
-    assertEquals(assertChannelMatchesVersion("prerelease", "1.11.0"), undefined);
+    assertEquals(assertChannelMatchesVersion("release", "1.10.18"), undefined);
+    assertEquals(assertChannelMatchesVersion("pre-release", "1.11.0"), undefined);
 
     let message = "";
     try {
@@ -519,12 +535,34 @@ const tests: Record<string, () => void> = {
 
     message = "";
     try {
-      assertChannelMatchesVersion("stable", kDevVersion);
+      assertChannelMatchesVersion("release", kDevVersion);
     } catch (error) {
       message = (error as Error).message;
     }
     assertIncludes(message, kDevVersion);
-    assertIncludes(message, "stable");
+    assertIncludes(message, "release");
+  },
+
+  "a version channel needs a build on that same major.minor"() {
+    assertEquals(assertChannelMatchesVersion("1.9", "1.9.38"), undefined);
+
+    let message = "";
+    try {
+      assertChannelMatchesVersion("1.9", "1.10.18");
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, "1.9");
+    assertIncludes(message, "1.10.18");
+
+    message = "";
+    try {
+      assertChannelMatchesVersion("1.9", kDevVersion);
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, kDevVersion);
+    assertIncludes(message, "1.9");
   },
 
   "a seeded description is cut to its first sentence"() {

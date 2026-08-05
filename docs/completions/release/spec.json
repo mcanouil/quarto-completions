@@ -1,6 +1,6 @@
 {
-  "quartoVersion": "1.11.1",
-  "channel": "prerelease",
+  "quartoVersion": "1.10.18",
+  "channel": "release",
   "root": {
     "path": [],
     "description": "Quarto CLI",

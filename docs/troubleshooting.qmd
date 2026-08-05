@@ -75,8 +75,11 @@ An error there means bash was started with `--norc` or without `bash-completion`
 ## The completions are out of date
 
 They are generated from a released Quarto, so a flag added after that release is not there yet.
-The installer checks this each time it runs, comparing the `quarto` on your `PATH` against the completions it is about to install: it says so when they disagree by major or minor version, adding `--channel prerelease` to the message when your Quarto is newer than a `stable` install.
+The installer checks this each time it runs, comparing the `quarto` on your `PATH` against the completions it is about to install: it says so when they disagree by major or minor version, adding `--channel pre-release` to the message when your Quarto is newer than a `release` install.
 Nothing checks again after that, so an upgrade of Quarto is not noticed on its own: re-run the installer after upgrading, the same way you first installed.
+
+If your Quarto is *behind* the current release, the mismatch is not a reason to live with stale completions: every Quarto minor from `1.6` onwards has its own archived channel, generated from that line's newest patch.
+With no `--channel` given, the installer already matches your Quarto's own minor when it is published, so the fix is usually to re-run the installer with nothing more than that; see [Channels](shells.qmd#channels).
 To check an install done earlier, or without running the installer again, ask where the file is:
 
 ::: {.panel-tabset}
@@ -112,20 +115,20 @@ Select-String -Pattern Quarto -Path <path> | Select-Object -First 1
 
 Every script carries that line in its header.
 The path is worth asking for rather than assuming: where the file goes depends on what else the machine has installed, so it differs between shells and between machines.
-If you run a Quarto prerelease, install the matching channel:
+If you run a Quarto pre-release, install the matching channel:
 
 ::: {.panel-tabset}
 
 ### macOS and Linux
 
 ```bash
-curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --channel prerelease
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --channel pre-release
 ```
 
 ### Windows
 
 ```powershell
-$env:QUARTO_COMPLETIONS_CHANNEL = 'prerelease'
+$env:QUARTO_COMPLETIONS_CHANNEL = 'pre-release'
 powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
 Remove-Item Env:\QUARTO_COMPLETIONS_CHANNEL
 ```
@@ -155,14 +158,14 @@ grep -m1 Quarto <path>
 ```
 
 Each script names the Quarto version and the channel it came from.
-A shell showing an older command set is a shell whose file says an older version, or says `stable` where you expected `dev`.
+A shell showing an older command set is a shell whose file says an older version, or says `release` where you expected `dev`.
 Install for it by name:
 
 ```bash
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --shell zsh
 ```
 
-Hidden commands such as `inspect` and `dev-call` are on the `dev` channel only, so a `stable` file lacking them is correct rather than stale; see [Channels](shells.qmd#channels).
+Hidden commands such as `inspect` and `dev-call` are on the `dev` channel only, so a `release` file lacking them is correct rather than stale; see [Channels](shells.qmd#channels).
 
 ## Extension formats are missing from `--to`
 

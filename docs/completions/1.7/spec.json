@@ -1,6 +1,6 @@
 {
-  "quartoVersion": "1.10.18",
-  "channel": "stable",
+  "quartoVersion": "1.7.34",
+  "channel": "1.7",
   "root": {
     "path": [],
     "description": "Quarto CLI",
@@ -173,10 +173,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -477,10 +476,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -706,10 +704,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -797,10 +794,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -908,10 +904,9 @@
               {
                 "long": "--log-level",
                 "placeholder": "level",
-                "description": "Log level (debug, info, warning, error, critical)",
+                "description": "Log level (info, warning, error, critical)",
                 "kind": "enum",
                 "values": [
-                  "debug",
                   "info",
                   "warning",
                   "error",
@@ -971,71 +966,9 @@
               {
                 "long": "--log-level",
                 "placeholder": "level",
-                "description": "Log level (debug, info, warning, error, critical)",
+                "description": "Log level (info, warning, error, critical)",
                 "kind": "enum",
                 "values": [
-                  "debug",
-                  "info",
-                  "warning",
-                  "error",
-                  "critical"
-                ]
-              },
-              {
-                "long": "--log-format",
-                "placeholder": "format",
-                "description": "Log format (plain, json-stream)",
-                "kind": "enum",
-                "values": [
-                  "plain",
-                  "json-stream"
-                ]
-              },
-              {
-                "long": "--quiet",
-                "description": "Suppress console output.",
-                "kind": "none"
-              }
-            ],
-            "args": [],
-            "commands": []
-          },
-          {
-            "path": [
-              "use",
-              "brand"
-            ],
-            "description": "Use a brand for this project.",
-            "options": [
-              {
-                "short": "-h",
-                "long": "--help",
-                "description": "Show this help.",
-                "kind": "none"
-              },
-              {
-                "long": "--force",
-                "description": "Skip all prompts and confirmations",
-                "kind": "none"
-              },
-              {
-                "long": "--dry-run",
-                "description": "Show what would happen without making changes",
-                "kind": "none"
-              },
-              {
-                "long": "--log",
-                "placeholder": "file",
-                "description": "Path to log file",
-                "kind": "file"
-              },
-              {
-                "long": "--log-level",
-                "placeholder": "level",
-                "description": "Log level (debug, info, warning, error, critical)",
-                "kind": "enum",
-                "values": [
-                  "debug",
                   "info",
                   "warning",
                   "error",
@@ -1063,14 +996,7 @@
                 "kind": "value"
               }
             ],
-            "args": [
-              {
-                "name": "target",
-                "optional": false,
-                "variadic": false,
-                "kind": "value"
-              }
-            ],
+            "args": [],
             "commands": []
           }
         ]
@@ -1107,10 +1033,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1152,7 +1077,7 @@
         "path": [
           "update"
         ],
-        "description": "Updates an extension or global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).",
+        "description": "Updates an extension or global dependency.",
         "options": [
           {
             "short": "-h",
@@ -1180,10 +1105,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1258,10 +1182,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1332,10 +1255,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1420,10 +1342,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1496,10 +1417,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1545,7 +1465,7 @@
         "path": [
           "install"
         ],
-        "description": "Installs a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).",
+        "description": "Installs a global dependency (TinyTex or Chromium).",
         "options": [
           {
             "short": "-h",
@@ -1572,10 +1492,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1622,7 +1541,7 @@
         "path": [
           "uninstall"
         ],
-        "description": "Uninstalls a global dependency (TinyTeX, Chromium (deprecated), Chrome Headless Shell, VeraPDF).",
+        "description": "Removes an extension.",
         "options": [
           {
             "short": "-h",
@@ -1649,10 +1568,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1765,10 +1683,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1861,10 +1778,9 @@
           {
             "long": "--log-level",
             "placeholder": "level",
-            "description": "Log level (debug, info, warning, error, critical)",
+            "description": "Log level (info, warning, error, critical)",
             "kind": "enum",
             "values": [
-              "debug",
               "info",
               "warning",
               "error",
@@ -1946,156 +1862,9 @@
               {
                 "long": "--log-level",
                 "placeholder": "level",
-                "description": "Log level (debug, info, warning, error, critical)",
+                "description": "Log level (info, warning, error, critical)",
                 "kind": "enum",
                 "values": [
-                  "debug",
-                  "info",
-                  "warning",
-                  "error",
-                  "critical"
-                ]
-              },
-              {
-                "long": "--log-format",
-                "placeholder": "format",
-                "description": "Log format (plain, json-stream)",
-                "kind": "enum",
-                "values": [
-                  "plain",
-                  "json-stream"
-                ]
-              },
-              {
-                "long": "--quiet",
-                "description": "Suppress console output.",
-                "kind": "none"
-              }
-            ],
-            "args": [
-              {
-                "name": "engine-name",
-                "optional": false,
-                "variadic": false,
-                "kind": "enum",
-                "values": [
-                  "jupyter",
-                  "knitr",
-                  "markdown",
-                  "julia"
-                ]
-              },
-              {
-                "name": "args",
-                "optional": true,
-                "variadic": true,
-                "kind": "value"
-              }
-            ],
-            "commands": []
-          },
-          {
-            "path": [
-              "call",
-              "build-ts-extension"
-            ],
-            "description": "Build TypeScript execution engine extensions.",
-            "options": [
-              {
-                "short": "-h",
-                "long": "--help",
-                "description": "Show this help.",
-                "kind": "none"
-              },
-              {
-                "long": "--check",
-                "description": "Type-check only (skip bundling)",
-                "kind": "none"
-              },
-              {
-                "long": "--init-config",
-                "description": "Generate deno.json with absolute importMap path",
-                "kind": "none"
-              },
-              {
-                "long": "--log",
-                "placeholder": "file",
-                "description": "Path to log file",
-                "kind": "file"
-              },
-              {
-                "long": "--log-level",
-                "placeholder": "level",
-                "description": "Log level (debug, info, warning, error, critical)",
-                "kind": "enum",
-                "values": [
-                  "debug",
-                  "info",
-                  "warning",
-                  "error",
-                  "critical"
-                ]
-              },
-              {
-                "long": "--log-format",
-                "placeholder": "format",
-                "description": "Log format (plain, json-stream)",
-                "kind": "enum",
-                "values": [
-                  "plain",
-                  "json-stream"
-                ]
-              },
-              {
-                "long": "--quiet",
-                "description": "Suppress console output.",
-                "kind": "none"
-              }
-            ],
-            "args": [
-              {
-                "name": "entry-point",
-                "optional": true,
-                "variadic": false,
-                "kind": "file",
-                "globs": [
-                  "ts"
-                ]
-              }
-            ],
-            "commands": []
-          },
-          {
-            "path": [
-              "call",
-              "typst-gather"
-            ],
-            "description": "Gather Typst packages for a format extension.",
-            "options": [
-              {
-                "short": "-h",
-                "long": "--help",
-                "description": "Show this help.",
-                "kind": "none"
-              },
-              {
-                "long": "--init-config",
-                "description": "Generate a starter typst-gather.toml in current directory",
-                "kind": "none"
-              },
-              {
-                "long": "--log",
-                "placeholder": "file",
-                "description": "Path to log file",
-                "kind": "file"
-              },
-              {
-                "long": "--log-level",
-                "placeholder": "level",
-                "description": "Log level (debug, info, warning, error, critical)",
-                "kind": "enum",
-                "values": [
-                  "debug",
                   "info",
                   "warning",
                   "error",
@@ -2124,7 +1893,363 @@
               }
             ],
             "args": [],
-            "commands": []
+            "commands": [
+              {
+                "path": [
+                  "call",
+                  "engine",
+                  "julia"
+                ],
+                "description": "Access functionality specific to the julia rendering engine.",
+                "options": [
+                  {
+                    "long": "--log",
+                    "placeholder": "file",
+                    "description": "Path to log file",
+                    "kind": "file"
+                  },
+                  {
+                    "long": "--log-level",
+                    "placeholder": "level",
+                    "description": "Log level (info, warning, error, critical)",
+                    "kind": "enum",
+                    "values": [
+                      "info",
+                      "warning",
+                      "error",
+                      "critical"
+                    ]
+                  },
+                  {
+                    "long": "--log-format",
+                    "placeholder": "format",
+                    "description": "Log format (plain, json-stream)",
+                    "kind": "enum",
+                    "values": [
+                      "plain",
+                      "json-stream"
+                    ]
+                  },
+                  {
+                    "long": "--quiet",
+                    "description": "Suppress console output.",
+                    "kind": "none"
+                  },
+                  {
+                    "long": "--profile",
+                    "description": "Active project profile(s)",
+                    "kind": "value"
+                  },
+                  {
+                    "short": "-h",
+                    "long": "--help",
+                    "description": "Show this help.",
+                    "kind": "none"
+                  }
+                ],
+                "args": [],
+                "commands": [
+                  {
+                    "path": [
+                      "call",
+                      "engine",
+                      "julia",
+                      "status"
+                    ],
+                    "description": "Get status information on the currently running Julia server process.",
+                    "options": [
+                      {
+                        "long": "--log",
+                        "placeholder": "file",
+                        "description": "Path to log file",
+                        "kind": "file"
+                      },
+                      {
+                        "long": "--log-level",
+                        "placeholder": "level",
+                        "description": "Log level (info, warning, error, critical)",
+                        "kind": "enum",
+                        "values": [
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ]
+                      },
+                      {
+                        "long": "--log-format",
+                        "placeholder": "format",
+                        "description": "Log format (plain, json-stream)",
+                        "kind": "enum",
+                        "values": [
+                          "plain",
+                          "json-stream"
+                        ]
+                      },
+                      {
+                        "long": "--quiet",
+                        "description": "Suppress console output.",
+                        "kind": "none"
+                      },
+                      {
+                        "long": "--profile",
+                        "description": "Active project profile(s)",
+                        "kind": "value"
+                      },
+                      {
+                        "short": "-h",
+                        "long": "--help",
+                        "description": "Show this help.",
+                        "kind": "none"
+                      }
+                    ],
+                    "args": [],
+                    "commands": []
+                  },
+                  {
+                    "path": [
+                      "call",
+                      "engine",
+                      "julia",
+                      "kill"
+                    ],
+                    "description": "Kill the control server if it is currently running. This will also kill all notebook worker processes.",
+                    "options": [
+                      {
+                        "long": "--log",
+                        "placeholder": "file",
+                        "description": "Path to log file",
+                        "kind": "file"
+                      },
+                      {
+                        "long": "--log-level",
+                        "placeholder": "level",
+                        "description": "Log level (info, warning, error, critical)",
+                        "kind": "enum",
+                        "values": [
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ]
+                      },
+                      {
+                        "long": "--log-format",
+                        "placeholder": "format",
+                        "description": "Log format (plain, json-stream)",
+                        "kind": "enum",
+                        "values": [
+                          "plain",
+                          "json-stream"
+                        ]
+                      },
+                      {
+                        "long": "--quiet",
+                        "description": "Suppress console output.",
+                        "kind": "none"
+                      },
+                      {
+                        "long": "--profile",
+                        "description": "Active project profile(s)",
+                        "kind": "value"
+                      },
+                      {
+                        "short": "-h",
+                        "long": "--help",
+                        "description": "Show this help.",
+                        "kind": "none"
+                      }
+                    ],
+                    "args": [],
+                    "commands": []
+                  },
+                  {
+                    "path": [
+                      "call",
+                      "engine",
+                      "julia",
+                      "log"
+                    ],
+                    "description": "Print the content of the julia server log file if it exists which can be used to diagnose problems.",
+                    "options": [
+                      {
+                        "long": "--log",
+                        "placeholder": "file",
+                        "description": "Path to log file",
+                        "kind": "file"
+                      },
+                      {
+                        "long": "--log-level",
+                        "placeholder": "level",
+                        "description": "Log level (info, warning, error, critical)",
+                        "kind": "enum",
+                        "values": [
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ]
+                      },
+                      {
+                        "long": "--log-format",
+                        "placeholder": "format",
+                        "description": "Log format (plain, json-stream)",
+                        "kind": "enum",
+                        "values": [
+                          "plain",
+                          "json-stream"
+                        ]
+                      },
+                      {
+                        "long": "--quiet",
+                        "description": "Suppress console output.",
+                        "kind": "none"
+                      },
+                      {
+                        "long": "--profile",
+                        "description": "Active project profile(s)",
+                        "kind": "value"
+                      },
+                      {
+                        "short": "-h",
+                        "long": "--help",
+                        "description": "Show this help.",
+                        "kind": "none"
+                      }
+                    ],
+                    "args": [],
+                    "commands": []
+                  },
+                  {
+                    "path": [
+                      "call",
+                      "engine",
+                      "julia",
+                      "close"
+                    ],
+                    "description": "Close the worker for a given notebook. If it is currently running, it will not be interrupted.",
+                    "options": [
+                      {
+                        "long": "--log",
+                        "placeholder": "file",
+                        "description": "Path to log file",
+                        "kind": "file"
+                      },
+                      {
+                        "long": "--log-level",
+                        "placeholder": "level",
+                        "description": "Log level (info, warning, error, critical)",
+                        "kind": "enum",
+                        "values": [
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ]
+                      },
+                      {
+                        "long": "--log-format",
+                        "placeholder": "format",
+                        "description": "Log format (plain, json-stream)",
+                        "kind": "enum",
+                        "values": [
+                          "plain",
+                          "json-stream"
+                        ]
+                      },
+                      {
+                        "long": "--quiet",
+                        "description": "Suppress console output.",
+                        "kind": "none"
+                      },
+                      {
+                        "long": "--profile",
+                        "description": "Active project profile(s)",
+                        "kind": "value"
+                      },
+                      {
+                        "short": "-h",
+                        "long": "--help",
+                        "description": "Show this help.",
+                        "kind": "none"
+                      },
+                      {
+                        "short": "-f",
+                        "long": "--force",
+                        "description": "Force closing. This will terminate the worker if it is running. (Default: false)",
+                        "kind": "none"
+                      }
+                    ],
+                    "args": [
+                      {
+                        "name": "file",
+                        "optional": false,
+                        "variadic": false,
+                        "kind": "value"
+                      }
+                    ],
+                    "commands": []
+                  },
+                  {
+                    "path": [
+                      "call",
+                      "engine",
+                      "julia",
+                      "stop"
+                    ],
+                    "description": "Send a message to the server that it should close all notebooks and exit. This will fail if any notebooks are not idle.",
+                    "options": [
+                      {
+                        "long": "--log",
+                        "placeholder": "file",
+                        "description": "Path to log file",
+                        "kind": "file"
+                      },
+                      {
+                        "long": "--log-level",
+                        "placeholder": "level",
+                        "description": "Log level (info, warning, error, critical)",
+                        "kind": "enum",
+                        "values": [
+                          "info",
+                          "warning",
+                          "error",
+                          "critical"
+                        ]
+                      },
+                      {
+                        "long": "--log-format",
+                        "placeholder": "format",
+                        "description": "Log format (plain, json-stream)",
+                        "kind": "enum",
+                        "values": [
+                          "plain",
+                          "json-stream"
+                        ]
+                      },
+                      {
+                        "long": "--quiet",
+                        "description": "Suppress console output.",
+                        "kind": "none"
+                      },
+                      {
+                        "long": "--profile",
+                        "description": "Active project profile(s)",
+                        "kind": "value"
+                      },
+                      {
+                        "short": "-h",
+                        "long": "--help",
+                        "description": "Show this help.",
+                        "kind": "none"
+                      }
+                    ],
+                    "args": [],
+                    "commands": []
+                  }
+                ]
+              }
+            ]
           }
         ]
       }

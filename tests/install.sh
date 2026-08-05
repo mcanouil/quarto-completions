@@ -73,7 +73,7 @@ SERVER_PID=$!
 # which a loaded runner loses.
 ready=0
 for _ in $(seq 1 60); do
-  if curl -fsS "http://127.0.0.1:${PORT}/completions/stable/manifest.json" >/dev/null 2>&1; then
+  if curl -fsS "http://127.0.0.1:${PORT}/completions/release/manifest.json" >/dev/null 2>&1; then
     ready=1
     break
   fi
@@ -103,7 +103,7 @@ mkdir -p "${HOME_DIR}"
 # scenario below silently uninstall instead, with no argument able to say
 # otherwise.
 #
-# --channel stable is a default, not a fixed value: the installer keeps the
+# --channel release is a default, not a fixed value: the installer keeps the
 # last --channel it sees, so a caller appending its own after "$@" still
 # overrides it. Without this, every scenario below would silently follow
 # whatever quarto happens to be on the machine running the suite.
@@ -113,7 +113,7 @@ install_run() {
     HOMEBREW_PREFIX="${HOME_DIR}/no-brew" \
     XDG_DATA_HOME="${HOME_DIR}/.local/share" \
     XDG_CONFIG_HOME="${HOME_DIR}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel release "$@"
 }
 
 # A dry run reports without touching anything.
@@ -186,15 +186,15 @@ TAMPERED_HOME="${SCRATCH}/tampered-home"
 mkdir -p "${TAMPERED_HOME}"
 TAMPERED="${SCRATCH}/tampered"
 cp -R "${SITE}" "${TAMPERED}"
-printf '\n# tampered\n' >>"${TAMPERED}/completions/stable/quarto.fish"
+printf '\n# tampered\n' >>"${TAMPERED}/completions/release/quarto.fish"
 python3 -m http.server "$((PORT + 1))" --directory "${TAMPERED}" >/dev/null 2>&1 &
 TAMPERED_PID=$!
 for _ in $(seq 1 60); do
-  curl -fsS "http://127.0.0.1:$((PORT + 1))/completions/stable/manifest.json" >/dev/null 2>&1 && break
+  curl -fsS "http://127.0.0.1:$((PORT + 1))/completions/release/manifest.json" >/dev/null 2>&1 && break
   sleep 1
 done
 
-# --channel stable is explicit rather than relying on the default: this test
+# --channel release is explicit rather than relying on the default: this test
 # asserts on the file tampered above, and the default channel would otherwise
 # follow whatever quarto happens to be on the machine running the suite.
 tampered_output="$(
@@ -204,7 +204,7 @@ tampered_output="$(
     XDG_DATA_HOME="${TAMPERED_HOME}/.local/share" \
     XDG_CONFIG_HOME="${TAMPERED_HOME}/.config" \
     bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:$((PORT + 1))" \
-    --shell fish --channel stable 2>&1
+    --shell fish --channel release 2>&1
 )" && tampered_status=0 || tampered_status=1
 kill "${TAMPERED_PID}" 2>/dev/null || true
 
@@ -234,7 +234,7 @@ scenario_home() {
   printf '%s' "${home}"
 }
 
-# --channel stable is a default, not a fixed value; see install_run above.
+# --channel release is a default, not a fixed value; see install_run above.
 scenario_run() {
   # $1: home, then installer arguments
   local home="$1"
@@ -244,7 +244,7 @@ scenario_run() {
     HOMEBREW_PREFIX="${home}/no-brew" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel release "$@"
 }
 
 # The same, with a Homebrew prefix that exists. Its site-functions directory is
@@ -258,7 +258,7 @@ brew_run() {
     HOMEBREW_PREFIX="${prefix}" \
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel release "$@"
 }
 
 # Oh My Zsh already puts its custom completions directory on fpath and runs
@@ -411,7 +411,7 @@ env -u QUARTO_COMPLETIONS_UNINSTALL ZSH="${OUTSIDE}/.oh-my-zsh" \
   XDG_DATA_HOME="${SANDBOX}/.local/share" \
   XDG_CONFIG_HOME="${SANDBOX}/.config" \
   bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" \
-  --shell zsh --channel stable >/dev/null
+  --shell zsh --channel release >/dev/null
 expect_file "an out-of-home ZSH is not followed on install" \
   "${SANDBOX}/.zfunc/_quarto"
 expect_count "the out-of-home file is still untouched" \
@@ -576,8 +576,8 @@ else
   skip "zsh: the managed block makes completions work" "zsh not installed"
 fi
 
-# --channel dev fetches from the dev channel published alongside stable and
-# prerelease: generated from a 99.9.9 quarto-cli source build, and the only
+# --channel dev fetches from the dev channel published alongside release and
+# pre-release: generated from a 99.9.9 quarto-cli source build, and the only
 # one that carries the hidden commands (dev-call and the rest).
 DEV_HOME="$(scenario_home dev-channel)"
 if scenario_run "${DEV_HOME}" --shell fish --channel dev >/dev/null; then
@@ -587,6 +587,25 @@ else
 fi
 expect_file "dev channel: script installed" \
   "${DEV_HOME}/.config/fish/completions/quarto.fish"
+
+# --channel 1.9 fetches an archived minor, published alongside release,
+# pre-release, and dev: generated from that line's newest patch.
+VERSION_HOME="$(scenario_home version-channel)"
+if scenario_run "${VERSION_HOME}" --shell fish --channel 1.9 >/dev/null; then
+  pass "a version channel install succeeds"
+else
+  fail "a version channel install succeeds" "installer exited non-zero"
+fi
+expect_file "version channel: script installed" \
+  "${VERSION_HOME}/.config/fish/completions/quarto.fish"
+
+# A channel naming anything but a bare major.minor is refused the same way an
+# unrecognised word is.
+if install_run --shell zsh --channel 1.9.3 >/dev/null 2>&1; then
+  fail "a three-part version channel is refused" "installer exited zero"
+else
+  pass "a three-part version channel is refused"
+fi
 
 # The version advisory compares the manifest's Quarto version against
 # whatever is on PATH. QUARTO_SHIM is prepended ahead of the real quarto
@@ -630,34 +649,34 @@ advisory_run() {
     XDG_DATA_HOME="${home}/.local/share" \
     XDG_CONFIG_HOME="${home}/.config" \
     PATH="${run_path}" \
-    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel stable "$@"
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" --channel release "$@"
 }
 
-STABLE_QUARTO_VERSION="$(sed -n 's/.*"quartoVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
-  "${SITE}/completions/stable/manifest.json" | head -n 1)"
-STABLE_MAJOR="${STABLE_QUARTO_VERSION%%.*}"
-STABLE_MINOR="${STABLE_QUARTO_VERSION#*.}"
-STABLE_MINOR="${STABLE_MINOR%%.*}"
-if [ "${STABLE_MINOR}" -gt 0 ]; then
-  LOWER_VERSION="${STABLE_MAJOR}.$((STABLE_MINOR - 1)).0"
+RELEASE_QUARTO_VERSION="$(sed -n 's/.*"quartoVersion"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+  "${SITE}/completions/release/manifest.json" | head -n 1)"
+RELEASE_MAJOR="${RELEASE_QUARTO_VERSION%%.*}"
+RELEASE_MINOR="${RELEASE_QUARTO_VERSION#*.}"
+RELEASE_MINOR="${RELEASE_MINOR%%.*}"
+if [ "${RELEASE_MINOR}" -gt 0 ]; then
+  LOWER_VERSION="${RELEASE_MAJOR}.$((RELEASE_MINOR - 1)).0"
 else
-  LOWER_VERSION="$((STABLE_MAJOR - 1)).9.0"
+  LOWER_VERSION="$((RELEASE_MAJOR - 1)).9.0"
 fi
 
 MATCH_HOME="$(scenario_home advisory-match)"
-set_quarto_shim_version "${STABLE_MAJOR}.${STABLE_MINOR}.0"
+set_quarto_shim_version "${RELEASE_MAJOR}.${RELEASE_MINOR}.0"
 match_output="$(advisory_run "${MATCH_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
 expect_missing "advisory: a matching major.minor says nothing" "${match_output}" "than these completions"
 
 PATCH_HOME="$(scenario_home advisory-patch)"
-set_quarto_shim_version "${STABLE_MAJOR}.${STABLE_MINOR}.99"
+set_quarto_shim_version "${RELEASE_MAJOR}.${RELEASE_MINOR}.99"
 patch_output="$(advisory_run "${PATCH_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
 expect_missing "advisory: a patch-only difference says nothing" "${patch_output}" "than these completions"
 
 NEWER_HOME="$(scenario_home advisory-newer)"
-set_quarto_shim_version "${STABLE_MAJOR}.$((STABLE_MINOR + 1)).0"
+set_quarto_shim_version "${RELEASE_MAJOR}.$((RELEASE_MINOR + 1)).0"
 newer_output="$(advisory_run "${NEWER_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
-expect_contains "advisory: a newer Quarto names --channel prerelease" "${newer_output}" "--channel prerelease"
+expect_contains "advisory: a newer Quarto names --channel pre-release" "${newer_output}" "--channel pre-release"
 
 OLDER_HOME="$(scenario_home advisory-older)"
 set_quarto_shim_version "${LOWER_VERSION}"
@@ -673,6 +692,43 @@ NOPATH_HOME="$(scenario_home advisory-nopath)"
 rm -f "${QUARTO_SHIM}/quarto"
 nopath_output="$(advisory_run "${NOPATH_HOME}" "$(path_without_real_quarto)" --shell fish)"
 expect_missing "advisory: no quarto on PATH says nothing" "${nopath_output}" "than these completions"
+
+# Channel auto-detection reads the same PATH-visible quarto as the version
+# advisory above, so it reuses the shim; unlike advisory_run, it names no
+# --channel of its own, letting resolve_channel's own default run.
+autodetect_run() {
+  # $1: home, $2: PATH to run with, then installer arguments
+  local home="$1" run_path="$2"
+  shift 2
+  env -u ZSH -u ZSH_CUSTOM -u QUARTO_COMPLETIONS_UNINSTALL \
+    HOME="${home}" \
+    HOMEBREW_PREFIX="${home}/no-brew" \
+    XDG_DATA_HOME="${home}/.local/share" \
+    XDG_CONFIG_HOME="${home}/.config" \
+    PATH="${run_path}" \
+    bash "${ROOT}/docs/install.sh" --base-url "http://127.0.0.1:${PORT}" "$@"
+}
+
+# With no --channel named, a local Quarto whose own minor is published (1.9,
+# backfilled alongside release) is installed instead of release.
+MINORMATCH_HOME="$(scenario_home minor-match)"
+set_quarto_shim_version "1.9.2"
+minormatch_output="$(autodetect_run "${MINORMATCH_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_contains "auto-detect: a published local minor is installed" "${minormatch_output}" "(1.9 channel)"
+expect_missing "auto-detect: no fallback note for a published minor" \
+  "${minormatch_output}" "installing the release channel instead"
+
+# A local minor with nothing published (1.5 is older than every backfilled
+# archive) falls back to release, and says so.
+NOMINOR_HOME="$(scenario_home minor-fallback)"
+set_quarto_shim_version "1.5.0"
+nominor_output="$(autodetect_run "${NOMINOR_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
+expect_contains "auto-detect: an unpublished local minor falls back to release" \
+  "${nominor_output}" "No published completions for Quarto 1.5; installing the release channel instead."
+expect_contains "auto-detect: the fallback still installs the release channel" \
+  "${nominor_output}" "(release channel)"
+
+rm -f "${QUARTO_SHIM}/quarto"
 
 # The reload hint has to name a command that loads the block just written.
 # `exec bash -l` does not: a login bash reads ~/.bash_profile, ~/.bash_login,
@@ -742,7 +798,7 @@ mkdir -p "${OTHER_HOME}/.zfunc"
 printf '%s\n%s\n%s\n' \
   "#compdef quarto" \
   "# Quarto CLI completions, generated by quarto-completions." \
-  "# Quarto 0.1.0 (prerelease channel)." \
+  "# Quarto 0.1.0 (pre-release channel)." \
   >"${OTHER_HOME}/.zfunc/_quarto"
 other_output="$(scenario_run "${OTHER_HOME}" --shell bash)"
 expect_contains "other shells: a stale zsh install is named" \
@@ -757,9 +813,9 @@ expect_contains "other shells: the command that updates it is given" \
 # after it from being looked at.
 BOTH_HOME="$(scenario_home other-both)"
 mkdir -p "${BOTH_HOME}/.zfunc" "${BOTH_HOME}/.config/fish/completions"
-printf '#compdef quarto\n# Quarto 0.1.0 (stable channel).\n' \
+printf '#compdef quarto\n# Quarto 0.1.0 (release channel).\n' \
   >"${BOTH_HOME}/.zfunc/_quarto"
-printf '# Quarto 0.2.0 (prerelease channel).\n' \
+printf '# Quarto 0.2.0 (pre-release channel).\n' \
   >"${BOTH_HOME}/.config/fish/completions/quarto.fish"
 both_output="$(scenario_run "${BOTH_HOME}" --shell bash)"
 expect_contains "other shells: the first stale shell is named" \
@@ -798,7 +854,7 @@ expect_missing "other shells: an unstamped file says nothing" \
 # able to read, and this advice runs on the last line of a successful install.
 UNREADABLE_HOME="$(scenario_home other-unreadable)"
 mkdir -p "${UNREADABLE_HOME}/.zfunc"
-printf '#compdef quarto\n# Quarto 0.1.0 (stable channel).\n' \
+printf '#compdef quarto\n# Quarto 0.1.0 (release channel).\n' \
   >"${UNREADABLE_HOME}/.zfunc/_quarto"
 chmod 000 "${UNREADABLE_HOME}/.zfunc/_quarto"
 if unreadable_output="$(scenario_run "${UNREADABLE_HOME}" --shell bash 2>&1)"; then
@@ -814,7 +870,7 @@ chmod 600 "${UNREADABLE_HOME}/.zfunc/_quarto"
 # in its output.
 QUIET_HOME="$(scenario_home other-uninstall)"
 mkdir -p "${QUIET_HOME}/.zfunc"
-printf '#compdef quarto\n# Quarto 0.1.0 (stable channel).\n' >"${QUIET_HOME}/.zfunc/_quarto"
+printf '#compdef quarto\n# Quarto 0.1.0 (release channel).\n' >"${QUIET_HOME}/.zfunc/_quarto"
 scenario_run "${QUIET_HOME}" --shell bash >/dev/null
 quiet_output="$(scenario_run "${QUIET_HOME}" --shell bash --uninstall)"
 expect_missing "uninstall: no other-shell note" "${quiet_output}" "also has completions"
