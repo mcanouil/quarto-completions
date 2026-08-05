@@ -525,6 +525,33 @@ fi
 expect_count "uninstall left the content below the block alone" \
   "${UNTERMINATED_HOME}/.zshrc" "SENTINEL=keep-me" 1
 
+# --dry-run decided there was a block to clean from the opening marker alone,
+# so it promised a clean the run that followed refused. It has to report the
+# problem instead, and end the way the real run does.
+write_unterminated_rc
+if unterminated_output="$(scenario_run "${UNTERMINATED_HOME}" --shell zsh --dry-run 2>&1)"; then
+  fail "an unterminated block fails a dry-run install" "installer exited zero: ${unterminated_output}"
+else
+  expect_contains "a dry-run install names the unterminated block" \
+    "${unterminated_output}" "no closing"
+  expect_missing "a dry-run install promises no rc file update" \
+    "${unterminated_output}" "Would update   ${UNTERMINATED_HOME}/.zshrc"
+fi
+expect_count "the dry-run install left the content below the block alone" \
+  "${UNTERMINATED_HOME}/.zshrc" "SENTINEL=keep-me" 1
+
+write_unterminated_rc
+if unterminated_output="$(scenario_run "${UNTERMINATED_HOME}" --shell zsh --uninstall --dry-run 2>&1)"; then
+  fail "an unterminated block fails a dry-run uninstall" "installer exited zero: ${unterminated_output}"
+else
+  expect_contains "a dry-run uninstall names the unterminated block" \
+    "${unterminated_output}" "no closing"
+  expect_missing "a dry-run uninstall promises no clean" \
+    "${unterminated_output}" "Would clean"
+fi
+expect_count "the dry-run uninstall left the content below the block alone" \
+  "${UNTERMINATED_HOME}/.zshrc" "SENTINEL=keep-me" 1
+
 # --dry-run is the first diagnostic the troubleshooting page asks for, so it
 # has to say something even when there is nothing to do.
 CLEAN_HOME="$(scenario_home clean)"

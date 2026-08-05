@@ -104,6 +104,22 @@ The installer enables it, so this should only appear on a Windows build old enou
 
 If it keeps failing, report it with the two hashes the error printed: <https://github.com/mcanouil/quarto-completions/issues>.
 
+## The managed block has no closing line
+
+The installer keeps everything it adds to your shell configuration between two markers:
+
+```bash
+# >>> quarto completions >>>
+# <<< quarto completions <<<
+```
+
+A hand edit, a merge conflict, or a half-written file can leave the opening marker with no matching closing one.
+The installer removes the block by cutting from one marker to the other, so on a file in that state it would take every line you keep below the opening marker with it.
+It stops instead, and changes nothing, on install, on uninstall, and on `--dry-run` alike.
+
+Open the file it named, `~/.bashrc` or `~/.zshrc` on macOS and Linux, and your PowerShell profile on Windows, then either add the closing line back below the block or delete the block outright, markers included.
+Re-run the installer afterwards; it writes a fresh block of its own.
+
 ## Removing everything
 
 ```bash
