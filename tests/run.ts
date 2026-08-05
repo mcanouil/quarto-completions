@@ -18,7 +18,7 @@ import {
   parseHelp,
 } from "../src/introspect.ts";
 import { enrich } from "../src/enrich.ts";
-import { mirrorChannel, parseArgs, render } from "../src/generate.ts";
+import { mirrorChannel, parseArgs, render, sourceFor } from "../src/generate.ts";
 import { emitBash } from "../src/emit/bash.ts";
 import { emitFish } from "../src/emit/fish.ts";
 import { emitPwsh } from "../src/emit/pwsh.ts";
@@ -79,6 +79,14 @@ function fixtureSpec(): Spec {
     root,
   };
 }
+
+/** The same surface as it comes off a source build, which reports 99.9.9. */
+function devSpec(): Spec {
+  return { ...fixtureSpec(), quartoVersion: kDevVersion, channel: "dev" };
+}
+
+/** A commit SHA, in the only shape --source-commit accepts. */
+const kCommit = "e3f1c0ab1234567890abcdef1234567890abcdef";
 
 const tests: Record<string, () => void> = {
   "root help lists every command"() {
@@ -199,7 +207,7 @@ const tests: Record<string, () => void> = {
     // Without this, the missing value arrives as undefined and surfaces much
     // later: '--quarto' as the last argument fails when the binary is spawned,
     // and '--channel' reports "got 'undefined'".
-    for (const flag of ["--quarto", "--channel", "--out"]) {
+    for (const flag of ["--quarto", "--channel", "--out", "--source-branch", "--source-commit"]) {
       let message = "";
       try {
         parseArgs([flag]);
@@ -283,6 +291,122 @@ const tests: Record<string, () => void> = {
     }
     assertIncludes(emitBash(enrich(mirrored)), "(1.10 channel)");
     assertExcludes(emitBash(enrich(mirrored)), "(release channel)");
+  },
+
+  "a dev build's branch and commit are read off the command line"() {
+    const options = parseArgs([
+      "--channel",
+      "dev",
+      "--source-branch",
+      "main",
+      "--source-commit",
+      kCommit,
+    ]);
+    assertEquals(options.branch, "main");
+    assertEquals(options.commit, kCommit);
+  },
+
+  "--source-branch and --source-commit are refused off the dev channel"() {
+    // Either order, for the same reason --mirror is checked after the whole
+    // list: a released channel takes its source from its own version, so
+    // anything passed beside it could only contradict what gets written.
+    for (
+      const args of [
+        ["--channel", "release", "--source-branch", "main"],
+        ["--source-commit", kCommit, "--channel", "1.9"],
+      ]
+    ) {
+      let message = "";
+      try {
+        parseArgs(args);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      assertIncludes(message, "--source-commit", `${args.join(" ")} was not refused`);
+      assertIncludes(message, "dev", `${args.join(" ")} was not refused by channel`);
+    }
+  },
+
+  "a --source-commit that is not a commit is refused by value"() {
+    // A branch name, a tag, and anything else that reaches the stamp as though
+    // it were a commit would be published and believed.
+    for (const commit of ["main", "v1.10.18", "e3f1c0", `${kCommit}0`, kCommit.toUpperCase()]) {
+      let message = "";
+      try {
+        parseArgs(["--channel", "dev", "--source-commit", commit]);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      assertIncludes(message, `'${commit}'`, `--source-commit ${commit} was not refused`);
+    }
+  },
+
+  "a released channel is sourced from the tag its own version names"() {
+    assertEquals(sourceFor(fixtureSpec(), parseArgs([])), { tag: "v1.10.18" });
+  },
+
+  "a mirrored minor is sourced from the same tag as the channel it came from"() {
+    const mirrored: Spec = { ...fixtureSpec(), channel: "1.10" };
+    assertEquals(sourceFor(mirrored, parseArgs(["--channel", "1.10"])), { tag: "v1.10.18" });
+  },
+
+  "a version that names no minor is sourced from nothing"() {
+    // 'unknown' is what introspect() falls back to when help output carries no
+    // version line; 'vunknown' would name a tag that does not exist.
+    const spec: Spec = { ...fixtureSpec(), quartoVersion: "unknown" };
+    assertEquals(sourceFor(spec, parseArgs([])), undefined);
+  },
+
+  "a dev build is sourced from the branch and commit it was given"() {
+    assertEquals(
+      sourceFor(
+        devSpec(),
+        parseArgs(["--channel", "dev", "--source-branch", "main", "--source-commit", kCommit]),
+      ),
+      { branch: "main", commit: kCommit },
+    );
+    assertEquals(
+      sourceFor(devSpec(), parseArgs(["--channel", "dev", "--source-commit", kCommit])),
+      { commit: kCommit },
+    );
+  },
+
+  "a dev build told nothing is sourced from nothing"() {
+    // A local run against a source build on hand: 99.9.9 names no tag, and
+    // nothing on the command line named a commit, so the scripts say neither.
+    assertEquals(sourceFor(devSpec(), parseArgs(["--channel", "dev"])), undefined);
+  },
+
+  "every script names the artefact it was built from"() {
+    const released = enrich({ ...fixtureSpec(), source: { tag: "v1.10.18" } });
+    for (
+      const output of [emitBash(released), emitZsh(released), emitFish(released), emitPwsh(released)]
+    ) {
+      assertIncludes(output, "\n# Built from quarto-dev/quarto-cli v1.10.18.\n");
+    }
+
+    const dev = enrich({ ...devSpec(), source: { branch: "main", commit: kCommit } });
+    assertIncludes(emitBash(dev), `\n# Built from quarto-dev/quarto-cli main@${kCommit}.\n`);
+
+    const detached = enrich({ ...devSpec(), source: { commit: kCommit } });
+    assertIncludes(emitBash(detached), `\n# Built from quarto-dev/quarto-cli ${kCommit}.\n`);
+
+    // A spec that names no artefact says nothing rather than saying it badly.
+    assertExcludes(emitBash(enrich(devSpec())), "Built from");
+  },
+
+  "the source line leaves the version stamp where install.sh reads it"() {
+    // installed_stamp only looks at the first five lines, and matches that one
+    // end to end: a source line appended to it, or pushing it past line five,
+    // turns the installer's stale-completion advice off silently.
+    const dev = enrich({ ...devSpec(), source: { branch: "main", commit: kCommit } });
+    for (const output of [emitBash(dev), emitZsh(dev), emitFish(dev), emitPwsh(dev)]) {
+      const head = output.split("\n").slice(0, 5);
+      assert(
+        head.includes("# Quarto 99.9.9 (dev channel)."),
+        `the stamp is not in the first five lines: ${head.join(" | ")}`,
+      );
+    }
   },
 
   "a channel that is not release, pre-release, dev, or a bare major.minor is refused"() {

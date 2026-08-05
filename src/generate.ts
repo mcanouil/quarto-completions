@@ -3,6 +3,7 @@
  *
  *     quarto run src/generate.ts [--quarto <path>] [--channel release|pre-release|dev|<major.minor>]
  *                                [--out <dir>] [--mirror] [--check]
+ *                                [--source-branch <name>] [--source-commit <sha>]
  *
  * `--check` writes nothing and exits non-zero when the committed output differs
  * from what the installed Quarto would produce, which is what CI runs to notice
@@ -13,6 +14,12 @@
  * and move without warning, where `1.10` stays where it is. Only those two
  * channels can be mirrored; a version channel is already its own minor, and a
  * 99.9.9 source build has no released line to claim.
+ *
+ * `--source-branch` and `--source-commit` name the `quarto-dev/quarto-cli`
+ * build behind a `dev` run, which is the one channel whose version says
+ * nothing: every source build reports 99.9.9. Both are recorded in
+ * `manifest.json` and in each script's header. A released channel takes
+ * neither, since its tag is its version with a `v` in front of it.
  *
  * The `dev` channel only ever comes from a 99.9.9 source build: that is the
  * version Quarto's own `kLocalDevelopment` constant reports, and it is the one
@@ -30,7 +37,7 @@ import { emitFish } from "./emit/fish.ts";
 import { emitPwsh } from "./emit/pwsh.ts";
 import { emitZsh } from "./emit/zsh.ts";
 import { isVersionChannel, majorMinor } from "./spec.ts";
-import type { Channel, Spec } from "./spec.ts";
+import type { Channel, Source, Spec } from "./spec.ts";
 
 interface Options {
   quarto: string;
@@ -38,6 +45,10 @@ interface Options {
   out: string;
   check: boolean;
   mirror: boolean;
+  /** Branch a `dev` build came from; unset everywhere else. */
+  branch?: string;
+  /** Commit that build was at; unset everywhere else. */
+  commit?: string;
 }
 
 export function parseArgs(args: string[]): Options {
@@ -85,6 +96,19 @@ export function parseArgs(args: string[]): Options {
       case "--mirror":
         options.mirror = true;
         break;
+      case "--source-branch":
+        options.branch = value(++index);
+        break;
+      case "--source-commit": {
+        const commit = value(++index);
+        // Checked on the way in: a stamp reading 'main@HEAD' or naming a tag
+        // would otherwise be published and believed.
+        if (!/^[0-9a-f]{7,40}$/.test(commit)) {
+          throw new Error(`--source-commit must be a commit SHA, got '${commit}'`);
+        }
+        options.commit = commit;
+        break;
+      }
       default:
         throw new Error(`Unknown argument '${args[index]}'`);
     }
@@ -97,7 +121,38 @@ export function parseArgs(args: string[]): Options {
       `--mirror needs --channel release or pre-release, got '${options.channel}'`,
     );
   }
+  // Same reason, and a released channel has nothing to say here anyway: its
+  // source is the tag its own version names, so a branch or a commit passed
+  // beside it could only contradict what is written.
+  if (options.channel !== "dev" && (options.branch !== undefined || options.commit !== undefined)) {
+    throw new Error(
+      `--source-branch and --source-commit need --channel dev, got '${options.channel}'`,
+    );
+  }
   return options;
+}
+
+/**
+ * Where the surface came from, as far as the command line and the binary's own
+ * version say: a tag on a released channel, and whatever the build passed on
+ * `dev`, which reports 99.9.9 and so names no tag at all. Undefined when there
+ * is nothing to record, which is a local `dev` run and a version `introspect()`
+ * could not read.
+ */
+export function sourceFor(spec: Spec, options: Options): Source | undefined {
+  if (spec.channel === "dev") {
+    if (options.branch === undefined && options.commit === undefined) {
+      return undefined;
+    }
+    return {
+      ...(options.branch !== undefined ? { branch: options.branch } : {}),
+      ...(options.commit !== undefined ? { commit: options.commit } : {}),
+    };
+  }
+  if (majorMinor(spec.quartoVersion) === undefined) {
+    return undefined;
+  }
+  return { tag: `v${spec.quartoVersion}` };
 }
 
 /**
@@ -138,6 +193,7 @@ async function manifest(
       {
         quartoVersion: spec.quartoVersion,
         channel: spec.channel,
+        ...(spec.source !== undefined ? { source: spec.source } : {}),
         // The only field that changes without the CLI surface changing, which
         // is why the manifest is the only file excluded from the drift check.
         generated: new Date().toISOString().slice(0, 10),
@@ -158,7 +214,16 @@ async function sha256(content: string): Promise<string> {
 
 async function main(): Promise<void> {
   const options = parseArgs(Deno.args);
-  const spec = await introspect({ quarto: options.quarto, channel: options.channel });
+  const introspected = await introspect({ quarto: options.quarto, channel: options.channel });
+  // Attached before the mirror is derived, so both channels of a mirrored run
+  // name the same artefact. Written field by field rather than spread, which
+  // would append `source` after the whole command tree in spec.json.
+  const spec: Spec = {
+    quartoVersion: introspected.quartoVersion,
+    channel: introspected.channel,
+    source: sourceFor(introspected, options),
+    root: introspected.root,
+  };
   // One introspection, one or two channels: the mirror is the same surface
   // written under the minor it came from, so the binary is never walked twice
   // to say the same thing in a different directory.

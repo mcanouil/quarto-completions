@@ -157,6 +157,7 @@ With no `--channel` given, the installer matches the `quarto` on `PATH` to its o
 
 The `dev` channel additionally completes the commands Quarto hides from its own `--help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`.
 Several of those exist on release builds too, just hidden from view, so installing `--channel dev` deliberately on a release Quarto is a reasonable choice; its surface then tracks `quarto-cli`'s `main` rather than the release you run.
+Because every source build reports version `99.9.9`, that version says nothing about how recent a dev channel is: the commit it was built from is what does, and it is recorded in `spec.json` and `manifest.json` and stamped into each script's header, so an installed dev completion can be traced back to a commit.
 
 A minor channel is generated the same way as `release`: flags, commands, and arguments come from that line's own binary, so they are exactly what it has.
 The one exception is a handful of value sets `src/overlay.ts` cannot read from `--help` at all, such as `--to`'s output formats and `publish`'s providers: those come from the current Quarto, so an older channel can occasionally offer a value its own Quarto does not accept.
@@ -167,7 +168,8 @@ Anything two minors below release is frozen at the bytes it was last published w
 Each channel also publishes a `spec.json`, the enriched command surface the four scripts are emitted from, for anything that would rather read the commands, flags, and values as data than parse a completion script.
 No shell loads it, and the installers never fetch it.
 
-Alongside it comes a `manifest.json`, carrying the Quarto version the scripts were generated from and a SHA-256 for each file, `spec.json` included.
+Alongside it comes a `manifest.json`, carrying the Quarto version the scripts were generated from, a `source` object naming what that binary was built from, and a SHA-256 for each file, `spec.json` included.
+A released channel names its tag, such as `v1.10.18`; `dev` names the `quarto-dev/quarto-cli` branch and the commit its source build came from.
 The installers verify that checksum before writing anything, which catches a truncated or corrupted download.
 Since the manifest is served from the same site as the scripts, it is the HTTPS connection, not the checksum, that establishes where those bytes came from.
 The installer also compares that version against the `quarto` on `PATH`, by major and minor only, and prints one line when they disagree; a patch difference or a build that cannot be read says nothing, and the install always succeeds regardless.
