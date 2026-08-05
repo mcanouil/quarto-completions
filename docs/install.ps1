@@ -122,6 +122,30 @@ function Script:Write-Log {
   Write-Information -MessageData $Message -InformationAction Continue
 }
 
+# True when a file carries an opening marker with no closing one, which is the
+# state Remove-ManagedBlock refuses to rewrite. Mirrors rc_block_unterminated
+# in docs/install.sh.
+function Script:Test-UnterminatedBlock {
+  param([Parameter(Mandatory)][string]$Path)
+
+  if (-not (Test-Path -LiteralPath $Path)) { return $false }
+
+  $inside = $false
+  foreach ($line in (Get-Content -LiteralPath $Path)) {
+    if ($line -eq $script:BlockStart) { $inside = $true; continue }
+    if ($line -eq $script:BlockEnd) { $inside = $false; continue }
+  }
+  return $inside
+}
+
+# The one message for a block this cannot rewrite, shared by the run that stops
+# on it and by -DryRun, which has to promise the same thing.
+function Script:Get-UnterminatedBlockMessage {
+  param([Parameter(Mandatory)][string]$Path)
+
+  "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
+}
+
 function Script:Remove-ManagedBlock {
   [CmdletBinding(SupportsShouldProcess)]
   param([Parameter(Mandatory)][string]$Path)
@@ -141,7 +165,7 @@ function Script:Remove-ManagedBlock {
   # the opening marker has just been dropped from $kept. That is the user's
   # own content, not this installer's, so the file is left exactly as it is.
   if ($inside) {
-    throw "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
+    throw (Script:Get-UnterminatedBlockMessage -Path $Path)
   }
   # A profile carrying no block is not this installer's to rewrite: writing it
   # back would normalise its line endings and re-encode it, adding a BOM on
@@ -214,6 +238,12 @@ function Script:Install-QuartoCompletion {
   if ($script:DryRun) {
     Script:Write-Log "Would download $url"
     Script:Write-Log "Would write    $($script:CompletionPath)"
+    # A block left open is one Set-ManagedBlock would stop on, so promising an
+    # update here would contradict the run that follows. Reported after every
+    # line the run can honestly promise, rather than in place of them.
+    if (Script:Test-UnterminatedBlock -Path $script:ProfilePath) {
+      throw (Script:Get-UnterminatedBlockMessage -Path $script:ProfilePath)
+    }
     Script:Write-Log "Would update   $($script:ProfilePath) (managed block)"
     return
   }
@@ -266,6 +296,11 @@ function Script:Uninstall-QuartoCompletion {
 
   if ($script:DryRun) {
     Script:Write-Log "Would remove $($script:CompletionPath)"
+    # The same guard as the install dry run above: a block left open is one
+    # Remove-ManagedBlock would stop on rather than clean.
+    if (Script:Test-UnterminatedBlock -Path $script:ProfilePath) {
+      throw (Script:Get-UnterminatedBlockMessage -Path $script:ProfilePath)
+    }
     Script:Write-Log "Would clean  $($script:ProfilePath) (managed block)"
     return
   }

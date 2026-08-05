@@ -512,6 +512,12 @@ EOF
 
   while IFS= read -r rc; do
     [ -n "${rc}" ] || continue
+    # A block left open is one the sweep would stop on rather than clean, so
+    # promising a clean here would contradict the run that follows.
+    # fail_on_unterminated_block reports it instead.
+    if rc_block_unterminated "${rc}"; then
+      continue
+    fi
     log "$2 ${rc} (managed block)"
   done <<EOF
 $(stale_rc "$4")
@@ -551,6 +557,34 @@ rc_block_present() {
   [ -f "$1" ] && grep -qF "${BLOCK_START}" "$1"
 }
 
+# True when a file carries an opening marker with no closing one, which is the
+# state remove_rc_block refuses to rewrite. Whole-line match on the end marker,
+# which is what the sed range there matches on.
+rc_block_unterminated() {
+  rc_block_present "$1" && ! grep -qxF "${BLOCK_END}" "$1"
+}
+
+# The one message for a block this cannot rewrite, shared by the run that stops
+# on it and by --dry-run, which has to promise the same thing.
+unterminated_message() {
+  printf "the quarto completions block in %s has no closing '%s' line; repair or remove the block, then re-run" \
+    "$1" "${BLOCK_END}"
+}
+
+# Ends a dry run on the rc file the real run would refuse to rewrite. Called
+# last, so everything the run could honestly promise is reported first.
+#
+# One file is ever in play: rc_file_for names a single rc file per shell, and
+# the resolved layout either writes its block there or leaves it behind for the
+# stale sweep, both of which go through remove_rc_block.
+fail_on_unterminated_block() {
+  local rc
+  rc="$(rc_file_for "${TARGET_SHELL}")"
+  if [ -n "${rc}" ] && rc_block_unterminated "${rc}"; then
+    fail "$(unterminated_message "${rc}")"
+  fi
+}
+
 remove_rc_block() {
   # $1: rc file
   [ -f "$1" ] || return 0
@@ -561,8 +595,7 @@ remove_rc_block() {
   # is one this cannot safely rewrite, so it stops rather than guess where the
   # block was meant to end. Whole-line match, which is what the sed range
   # itself matches on.
-  grep -qxF "${BLOCK_END}" "$1" ||
-    fail "the quarto completions block in $1 has no closing '${BLOCK_END}' line; repair or remove the block, then re-run"
+  grep -qxF "${BLOCK_END}" "$1" || fail "$(unterminated_message "$1")"
   local temporary
   temporary="$(mktemp)"
   sed "/^${BLOCK_START}\$/,/^${BLOCK_END}\$/d" "$1" >"${temporary}"
@@ -603,10 +636,13 @@ do_install() {
     else
       log "Would write    ${TARGET_FILE}"
     fi
-    if [ -n "${RC_FILE}" ]; then
+    # The same guard as report_stale: a block left open is one write_rc_block
+    # would stop on, and fail_on_unterminated_block below says so.
+    if [ -n "${RC_FILE}" ] && ! rc_block_unterminated "${RC_FILE}"; then
       log "Would update   ${RC_FILE} (managed block)"
     fi
     report_stale "Would remove  " "Would clean   " "${TARGET_FILE}" "${RC_FILE}"
+    fail_on_unterminated_block
     return 0
   fi
 
@@ -675,6 +711,7 @@ do_uninstall() {
     else
       report_stale "Would remove" "Would clean " "" ""
     fi
+    fail_on_unterminated_block
     return 0
   fi
 

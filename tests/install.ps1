@@ -289,6 +289,29 @@ try {
   }
   Assert-Count 'uninstall left the content below the block alone' $profilePath 'keep-me' 1
 
+  # -DryRun printed its lines unconditionally, so it promised an update and a
+  # clean the runs above refuse. It has to report the problem instead, and end
+  # the way they do. Mirrors the same scenario in tests/install.sh.
+  Write-UnterminatedProfile
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-DryRun')
+  if ($LASTEXITCODE -ne 0 -and $output -match 'no closing' -and $output -notmatch 'Would update') {
+    Test-Pass 'an unterminated block fails a dry-run install'
+  }
+  else {
+    Test-Fail 'an unterminated block fails a dry-run install' $output
+  }
+  Assert-Count 'the dry-run install left the content below the block alone' $profilePath 'keep-me' 1
+
+  Write-UnterminatedProfile
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall', '-DryRun')
+  if ($LASTEXITCODE -ne 0 -and $output -match 'no closing' -and $output -notmatch 'Would clean') {
+    Test-Pass 'an unterminated block fails a dry-run uninstall'
+  }
+  else {
+    Test-Fail 'an unterminated block fails a dry-run uninstall' $output
+  }
+  Assert-Count 'the dry-run uninstall left the content below the block alone' $profilePath 'keep-me' 1
+
   # Left as the installer's own uninstall would leave it, so the scenarios
   # below start from a profile with no block rather than this crafted one.
   Set-Content -LiteralPath $profilePath -Value @() -Encoding utf8
