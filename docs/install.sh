@@ -17,6 +17,12 @@ BASE_URL="${QUARTO_COMPLETIONS_BASE_URL:-https://m.canouil.dev/quarto-completion
 # channel from an explicit one, which is what lets it pick 'dev' only when
 # nothing named a channel at all.
 CHANNEL="${QUARTO_COMPLETIONS_CHANNEL:-}"
+# Whether the channel above was named rather than left to resolve_channel. A
+# channel nothing asked for falls back to release when it is not published; one
+# that was asked for fails instead, rather than quietly installing something
+# else than the caller named.
+CHANNEL_EXPLICIT=0
+[ -z "${CHANNEL}" ] || CHANNEL_EXPLICIT=1
 TARGET_SHELL="${QUARTO_COMPLETIONS_SHELL:-}"
 ACTION="install"
 DRY_RUN=0
@@ -80,6 +86,7 @@ parse_args() {
       --channel)
         require_value "$1" "$#"
         CHANNEL="$2"
+        CHANNEL_EXPLICIT=1
         shift 2
         ;;
       --base-url)
@@ -121,10 +128,14 @@ detect_local_quarto_version() {
 }
 
 # True when a channel has a manifest published at BASE_URL, checked without
-# keeping anything past its headers. Called only while auto-detecting a
-# channel from the local Quarto's own minor: an explicit --channel and an
-# uninstall never call this, so neither spends a network round trip settling
-# something nothing asked about.
+# keeping anything past its headers.
+#
+# Two callers. Auto-detecting a channel from the local Quarto's own minor, and
+# a dry run that was given an explicit channel, which has nothing else to learn
+# that from: the real run finds out by failing to fetch the manifest, and a dry
+# run fetches nothing. An uninstall never calls this, and neither does a real
+# install, so neither spends a round trip settling something nothing asked
+# about.
 channel_published() {
   # $1: channel
   # No -S: a miss here is an expected outcome the caller falls back from, not
@@ -690,6 +701,20 @@ unterminated_message() {
     "$1" "${BLOCK_END}"
 }
 
+# The one message for a channel that has nothing published at BASE_URL, shared
+# by the run that fails to fetch its manifest and by the dry run, which has to
+# refuse the same channels the real run would.
+#
+# Named rather than left to curl: a bare 'curl: (22) The requested URL returned
+# error: 404' says neither which channel was asked for nor which ones exist,
+# and the channel a caller most often names by hand is their own Quarto's minor,
+# which for anything before 1.9 was never published.
+unpublished_channel_message() {
+  # $1: manifest url
+  printf "no completions published for channel '%s' (%s); published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards" \
+    "${CHANNEL}" "$1"
+}
+
 # Ends a dry run on the rc file the real run would refuse to rewrite. Called
 # last, so everything the run could honestly promise is reported first.
 #
@@ -749,6 +774,15 @@ do_install() {
   manifest_url="${BASE_URL}/completions/${CHANNEL}/manifest.json"
 
   if [ "${DRY_RUN}" = "1" ]; then
+    # Reported before any of the lines below, and not last like
+    # fail_on_unterminated_block: that one stops a run whose other promises
+    # still hold, where a channel with nothing published makes every line
+    # below it a lie, the download included. Only an explicit channel is
+    # checked; an auto-detected one was either probed by resolve_channel or is
+    # the release fallback.
+    if [ "${CHANNEL_EXPLICIT}" = "1" ] && ! channel_published "${CHANNEL}"; then
+      fail "$(unpublished_channel_message "${manifest_url}")"
+    fi
     log "Would download ${url}"
     if [ "${TARGET_EXISTING}" = "1" ]; then
       log "Would update   ${TARGET_FILE} (existing install)"
@@ -771,7 +805,15 @@ do_install() {
 
   TEMPORARY="$(mktemp -d)"
 
-  fetch "${manifest_url}" "${TEMPORARY}/manifest.json"
+  # The manifest fetch is this path's own probe, so nothing is checked ahead of
+  # it. `fetch` calls fail itself, and exits, when neither curl nor wget is
+  # available, so that keeps its own message rather than arriving here as a
+  # channel that does not exist. curl's own line is left on stderr above this
+  # one: it is what tells a 404 from a network that is down, which the message
+  # below cannot.
+  if ! fetch "${manifest_url}" "${TEMPORARY}/manifest.json"; then
+    fail "$(unpublished_channel_message "${manifest_url}")"
+  fi
   expected="$(manifest_sha "${TEMPORARY}/manifest.json" "${name}")"
   [ -n "${expected}" ] || fail "no checksum for ${name} in ${manifest_url}"
 

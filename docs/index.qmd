@@ -43,34 +43,54 @@ The installers themselves always read the latest published files, never a releas
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="What it completes"}
 
-| Where | Candidates |
-| --- | --- |
-| `quarto <TAB>` | Every command, with its description. |
-| `quarto render --<TAB>` | Quarto's own flags, plus the Pandoc flags Quarto forwards. |
-| `quarto render --to <TAB>` | Every built-in output format. |
-| `quarto render <TAB>` | `.qmd`, `.ipynb`, `.md`, `.Rmd`, and `.markdown` documents, and directories. |
-| `quarto publish <TAB>` | The publishing providers, then a path once one is chosen. |
-| `quarto --log-level <TAB>` | `debug`, `info`, `warning`, `error`, `critical`. |
-| `quarto install <TAB>` | `tinytex`, `chrome-headless-shell`, `verapdf`. |
+| Where                      | Candidates                                                                   |
+| -------------------------- | ---------------------------------------------------------------------------- |
+| `quarto <TAB>`             | Every command, with its description.                                         |
+| `quarto render --<TAB>`    | Quarto's own flags, plus the Pandoc flags Quarto forwards.                   |
+| `quarto render --to <TAB>` | Every built-in output format.                                                |
+| `quarto render <TAB>`      | `.qmd`, `.ipynb`, `.md`, `.Rmd`, and `.markdown` documents, and directories. |
+| `quarto publish <TAB>`     | The publishing providers, then a path once one is chosen.                    |
+| `quarto --log-level <TAB>` | `debug`, `info`, `warning`, `error`, `critical`.                             |
+| `quarto install <TAB>`     | `tinytex`, `chrome-headless-shell`, `verapdf`.                               |
 
 :::
 
 ## Options
 
-The two installers share every option below apart from `--shell`, which only the macOS and Linux one takes: PowerShell is the only shell the Windows installer serves.
-The piped form cannot take arguments in PowerShell, so each one also reads an environment variable.
+Both installers take the same options, each under its own shell's spelling, apart from `--shell`: only the macOS and Linux one takes it, as PowerShell is the only shell the Windows installer serves.
+The piped form cannot take arguments in PowerShell, so each option also reads an environment variable.
 
-::: {.completions-shell tabindex="0" role="region" aria-label="Installer options"}
+::: {.panel-tabset group="os"}
 
-| Option | Environment variable | Effect |
-| --- | --- | --- |
-| `--shell` | `QUARTO_COMPLETIONS_SHELL` | Which shell to install for, on macOS and Linux. |
-| `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `release` (default), `pre-release`, `dev`, or a Quarto minor such as `1.10`. The first two roll as Quarto ships; a minor stays on its line, and every minor from `1.9` onwards is published, the current release included. With none given, the installer matches your Quarto's own minor when it is published, falling back to `release`; chosen automatically as `dev` when the `quarto` on `PATH` reports version `99.9.9`. |
-| `--dry-run` | | Report every path that would change, then exit. |
-| `--uninstall` | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block. |
-| `--base-url` | `QUARTO_COMPLETIONS_BASE_URL` | Where to fetch from, which is this site unless you are testing a copy of it. |
-| `--help` | | List these options and exit. On Windows, `Get-Help` on the saved script does the same. |
+### macOS and Linux
 
+::: {.completions-shell tabindex="0" role="region" aria-label="Installer options on macOS and Linux"}
+
+| Option         | Environment variable             | Effect                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `--shell`      | `QUARTO_COMPLETIONS_SHELL`       | Which shell to install for: `bash`, `zsh`, or `fish`. Detected from `$SHELL` when not given.                                                                                                                                                                                                                                                                                                                                   |
+| `--channel`    | `QUARTO_COMPLETIONS_CHANNEL`     | `release` (default), `pre-release`, `dev`, or a Quarto minor such as `1.10`. The first two roll as Quarto ships; a minor stays on its line, and every minor from `1.9` onwards is published, the current release included. With none given, the installer matches your Quarto's own minor when it is published, falling back to `release`; chosen automatically as `dev` when the `quarto` on `PATH` reports version `99.9.9`. |
+| `--dry-run`    |                                  | Report every path that would change, then exit.                                                                                                                                                                                                                                                                                                                                                                                |
+| `--uninstall`  | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block.                                                                                                                                                                                                                                                                                                                                                                                       |
+| `--base-url`   | `QUARTO_COMPLETIONS_BASE_URL`    | Where to fetch from, which is this site unless you are testing a copy of it.                                                                                                                                                                                                                                                                                                                                                   |
+| `-h`, `--help` |                                  | List these options and exit.                                                                                                                                                                                                                                                                                                                                                                                                   |
+
+:::
+
+### Windows
+
+::: {.completions-shell tabindex="0" role="region" aria-label="Installer options on Windows"}
+
+| Option       | Environment variable             | Effect                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `-Channel`   | `QUARTO_COMPLETIONS_CHANNEL`     | `release` (default), `pre-release`, `dev`, or a Quarto minor such as `1.10`. The first two roll as Quarto ships; a minor stays on its line, and every minor from `1.9` onwards is published, the current release included. With none given, the installer matches your Quarto's own minor when it is published, falling back to `release`; chosen automatically as `dev` when the `quarto` on `PATH` reports version `99.9.9`. |
+| `-DryRun`    |                                  | Report every path that would change, then exit.                                                                                                                                                                                                                                                                                                                                                                                |
+| `-Uninstall` | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block.                                                                                                                                                                                                                                                                                                                                                                                       |
+| `-BaseUrl`   | `QUARTO_COMPLETIONS_BASE_URL`    | Where to fetch from, which is this site unless you are testing a copy of it.                                                                                                                                                                                                                                                                                                                                                   |
+
+:::
+
+There is no `--help`: run `Get-Help` on the saved script to list these options.
 :::
 
 Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory.

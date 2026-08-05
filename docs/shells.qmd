@@ -30,11 +30,11 @@ curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="bash installation"}
 
-| What | Where |
-| --- | --- |
-| Script | [`completions/release/quarto.bash`](completions/release/quarto.bash) |
-| Installed to | `$XDG_DATA_HOME/bash-completion/completions/quarto` when that directory exists, otherwise `$XDG_DATA_HOME/quarto-completions/quarto.bash` |
-| Configuration | None in the first case, a `source` line in `~/.bashrc` in the second |
+| What          | Where                                                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| Script        | [`completions/release/quarto.bash`](completions/release/quarto.bash)                                                                      |
+| Installed to  | `$XDG_DATA_HOME/bash-completion/completions/quarto` when that directory exists, otherwise `$XDG_DATA_HOME/quarto-completions/quarto.bash` |
+| Configuration | None in the first case, a `source` line in `~/.bashrc` in the second                                                                      |
 
 :::
 
@@ -56,11 +56,11 @@ echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/q
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="zsh installation"}
 
-| What | Where |
-| --- | --- |
-| Script | [`completions/release/_quarto`](completions/release/_quarto) |
-| Installed to | The first that applies: `$ZSH_CUSTOM/completions/_quarto` under Oh My Zsh, `$HOMEBREW_PREFIX/share/zsh/site-functions/_quarto` under Homebrew, otherwise `~/.zfunc/_quarto` |
-| Configuration | None in the first two cases, an `fpath` line in `~/.zshrc` followed by `compinit` in the third |
+| What          | Where                                                                                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Script        | [`completions/release/_quarto`](completions/release/_quarto)                                                                                                                |
+| Installed to  | The first that applies: `$ZSH_CUSTOM/completions/_quarto` under Oh My Zsh, `$HOMEBREW_PREFIX/share/zsh/site-functions/_quarto` under Homebrew, otherwise `~/.zfunc/_quarto` |
+| Configuration | None in the first two cases, an `fpath` line in `~/.zshrc` followed by `compinit` in the third                                                                              |
 
 :::
 
@@ -96,11 +96,11 @@ Under Oh My Zsh, write it to `~/.oh-my-zsh/custom/completions/_quarto` instead, 
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="fish installation"}
 
-| What | Where |
-| --- | --- |
-| Script | [`completions/release/quarto.fish`](completions/release/quarto.fish) |
-| Installed to | `$XDG_CONFIG_HOME/fish/completions/quarto.fish` |
-| Configuration | None |
+| What          | Where                                                                |
+| ------------- | -------------------------------------------------------------------- |
+| Script        | [`completions/release/quarto.fish`](completions/release/quarto.fish) |
+| Installed to  | `$XDG_CONFIG_HOME/fish/completions/quarto.fish`                      |
+| Configuration | None                                                                 |
 
 :::
 
@@ -118,11 +118,11 @@ curl -fsSL https://m.canouil.dev/quarto-completions/completions/release/quarto.f
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="PowerShell installation"}
 
-| What | Where |
-| --- | --- |
-| Script | [`completions/release/quarto.ps1`](completions/release/quarto.ps1) |
-| Installed to | `Completions/quarto.ps1` beside `$PROFILE.CurrentUserAllHosts` |
-| Configuration | A dot-source line in `$PROFILE.CurrentUserAllHosts` |
+| What          | Where                                                              |
+| ------------- | ------------------------------------------------------------------ |
+| Script        | [`completions/release/quarto.ps1`](completions/release/quarto.ps1) |
+| Installed to  | `Completions/quarto.ps1` beside `$PROFILE.CurrentUserAllHosts`     |
+| Configuration | A dot-source line in `$PROFILE.CurrentUserAllHosts`                |
 
 :::
 

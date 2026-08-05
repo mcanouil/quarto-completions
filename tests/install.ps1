@@ -394,6 +394,29 @@ try {
   if ($LASTEXITCODE -ne 0) { Test-Pass 'a three-part version channel is refused' }
   else { Test-Fail 'a three-part version channel is refused' $output }
 
+  # A channel that is a bare major.minor but has nothing published is named in
+  # the error rather than left to the raw web exception. 1.5 is older than
+  # every published minor, so the site served here has no directory for it.
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', '1.5')
+  if ($LASTEXITCODE -ne 0 -and $output -match "No completions published for channel '1\.5'") {
+    Test-Pass 'an unpublished explicit channel is refused'
+  }
+  else {
+    Test-Fail 'an unpublished explicit channel is refused' $output
+  }
+  Assert-FileMissing 'unpublished channel: nothing was written' $completionPath
+
+  # The same on -DryRun, which fetches nothing and so used to print a plan for
+  # a channel that could never be installed.
+  $output = Get-FlatOutput (Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', '1.5', '-DryRun'))
+  if ($LASTEXITCODE -ne 0 -and $output -match "No completions published for channel '1\.5'" -and
+    $output -notmatch 'Would download') {
+    Test-Pass 'a dry run refuses an unpublished channel'
+  }
+  else {
+    Test-Fail 'a dry run refuses an unpublished channel' $output
+  }
+
   # The version advisory compares the manifest's Quarto version against
   # whatever quarto reports on PATH. Mirrors the shim-based cases in
   # tests/install.sh; the older-version and patch-only-difference cases are
