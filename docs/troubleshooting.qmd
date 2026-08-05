@@ -9,7 +9,17 @@ The completions are loaded when the shell starts.
 Open a new shell, or reload the current one:
 
 ```bash
-exec "$SHELL" -l
+exec "$SHELL"
+```
+
+Note the absence of `-l`.
+Under bash the completions are loaded from `~/.bashrc`, and a login bash reads `~/.bash_profile`, `~/.bash_login`, or `~/.profile` instead, never falling back to `~/.bashrc`.
+On macOS none of those exist by default and the terminal opens login shells, so completions installed for bash are absent from every new window until the first of those files sources `~/.bashrc`.
+Only the first one bash finds is read, so a `~/.profile` that sources `~/.bashrc` does nothing under a `~/.bash_profile` that does not.
+Create `~/.bash_profile`, or add to the one you have:
+
+```bash
+[ -r ~/.bashrc ] && . ~/.bashrc
 ```
 
 If that does not help, confirm the file is where the installer put it:
@@ -88,6 +98,34 @@ curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --ch
 
 If the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports, the installer picks `--channel dev` on its own, with no flag needed.
 That channel also completes the commands Quarto hides from `quarto --help`, such as `dev-call`; see [Channels](shells.qmd#channels).
+
+## Tab still shows the old commands after installing
+
+The installer maintains one shell per run, the one `$SHELL` names.
+Running it from a bash terminal maintains bash and leaves zsh exactly as it was, so a shell you did not install for keeps whatever it had, however old.
+
+An install reports this when it finds it, naming the other shell's file and its version, so start by reading what the last run said.
+To check without installing anything, ask each shell in turn:
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --shell zsh --dry-run
+```
+
+Then read the header of every path it reports:
+
+```bash
+grep -m1 Quarto <path>
+```
+
+Each script names the Quarto version and the channel it came from.
+A shell showing an older command set is a shell whose file says an older version, or says `stable` where you expected `dev`.
+Install for it by name:
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --shell zsh
+```
+
+Hidden commands such as `inspect` and `dev-call` are on the `dev` channel only, so a `stable` file lacking them is correct rather than stale; see [Channels](shells.qmd#channels).
 
 ## Extension formats are missing from `--to`
 
