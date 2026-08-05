@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Bug Fixes
+
+- fix: stop zsh offering `-J`, `-M`, `-default-`, and the completion matcher itself as candidates beside a flag's or positional's values, such as the providers of `quarto publish`.
+  `_arguments` hands an action the compadd options it built for that argument before the values, and they were read as values; a matcher only showed up where a `matcher-list` style is set, which is any Oh My Zsh.
+
 ## 2026.08.05 (2026-08-05)
 
 ### New Features

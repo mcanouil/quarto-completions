@@ -819,8 +819,22 @@ const tests: Record<string, () => void> = {
       values: ["a", "$(touch pwned)"],
     });
     const output = emitZsh(enrich(spec));
-    assertIncludes(output, "_quarto_enum '\\''a'\\'' '\\''$(touch pwned)'\\'''");
+    assertIncludes(output, "_quarto_enum -- '\\''a'\\'' '\\''$(touch pwned)'\\'''");
     assertExcludes(output, "(a $(touch pwned))");
+  },
+
+  "zsh separates the options _arguments prepends from the enum values"() {
+    // _arguments calls an action command with the compadd options it built for
+    // the spec's message ahead of the arguments written in the spec, so without
+    // a boundary they are offered as candidates: verified against real zsh,
+    // '-J' and '-default-' always, plus '-M' and the matcher itself under any
+    // configuration setting a matcher-list style, such as Oh My Zsh. Both
+    // halves of the split are pinned here, since a boundary the emitter writes
+    // and the function does not read would be silently useless.
+    const output = emitZsh(enrich(fixtureSpec()));
+    assertIncludes(output, "_quarto_enum -- '\\''html'\\''");
+    assertIncludes(output, "local -i split=${argv[(i)--]}");
+    assertIncludes(output, `compadd "\${(@)options}" -a candidates`);
   },
 };
 

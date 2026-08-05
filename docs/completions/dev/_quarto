@@ -8,9 +8,19 @@
 # as inert text; verified against real zsh. Values instead reach compadd as
 # ordinary, already-quoted arguments to this function, which is not
 # re-evaluated the same way.
+#
+# _arguments calls an action command with the compadd options it built for the
+# spec's message prepended to the arguments written here, so '--' marks where
+# those end and the values begin. Without the split they are offered as
+# candidates: '-J' and '-default-' always, and '-M' plus the matcher itself
+# wherever a matcher-list style is set, which is any Oh My Zsh. With no '--'
+# present every argument is taken for an option and nothing is offered, rather
+# than the options being listed as values.
 _quarto_enum() {
-  local -a candidates=("$@")
-  _describe '' candidates
+  local -i split=${argv[(i)--]}
+  local -a options=("${(@)argv[1,split-1]}") candidates=("${(@)argv[split+1,-1]}")
+  # -a, so a value is never read as an option of compadd's own.
+  compadd "${(@)options}" -a candidates
 }
 
 _quarto() {
@@ -93,7 +103,7 @@ _quarto_render() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '(-t --to)'{-t,--to=}'[Specify output format(s).]:value:_quarto_enum '\''html'\'' '\''pdf'\'' '\''docx'\'' '\''odt'\'' '\''rtf'\'' '\''revealjs'\'' '\''beamer'\'' '\''pptx'\'' '\''typst'\'' '\''dashboard'\'' '\''epub'\'' '\''gfm'\'' '\''commonmark'\'' '\''markdown'\'' '\''markua'\'' '\''hugo-md'\'' '\''docusaurus-md'\'' '\''jats'\'' '\''asciidoc'\'' '\''asciidoctor'\'' '\''ipynb'\'' '\''context'\'' '\''docbook'\'' '\''dokuwiki'\'' '\''jira'\'' '\''mediawiki'\'' '\''man'\'' '\''ms'\'' '\''muse'\'' '\''opml'\'' '\''org'\'' '\''rst'\'' '\''texinfo'\'' '\''textile'\'' '\''xwiki'\'' '\''zimwiki'\''' \
+    '(-t --to)'{-t,--to=}'[Specify output format(s).]:value:_quarto_enum -- '\''html'\'' '\''pdf'\'' '\''docx'\'' '\''odt'\'' '\''rtf'\'' '\''revealjs'\'' '\''beamer'\'' '\''pptx'\'' '\''typst'\'' '\''dashboard'\'' '\''epub'\'' '\''gfm'\'' '\''commonmark'\'' '\''markdown'\'' '\''markua'\'' '\''hugo-md'\'' '\''docusaurus-md'\'' '\''jats'\'' '\''asciidoc'\'' '\''asciidoctor'\'' '\''ipynb'\'' '\''context'\'' '\''docbook'\'' '\''dokuwiki'\'' '\''jira'\'' '\''mediawiki'\'' '\''man'\'' '\''ms'\'' '\''muse'\'' '\''opml'\'' '\''org'\'' '\''rst'\'' '\''texinfo'\'' '\''textile'\'' '\''xwiki'\'' '\''zimwiki'\''' \
     '(-o --output)'{-o,--output=}'[Write output to FILE (use '\''--output -'\'' for stdout).]:value:_files' \
     '(--output-dir)'--output-dir='[Write output to DIR (path is input/project relative)]:value:_files -/' \
     '(-M --metadata)'{-M,--metadata=}'[Metadata value (KEY:VALUE).]:value: ' \
@@ -111,8 +121,8 @@ _quarto_render() {
     '(--no-clean)'--no-clean'[Do not clean project output-dir prior to render]' \
     '(--debug)'--debug'[Leave intermediate files in place after render.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '(--no-execute)'--no-execute'[Negated form of --execute.]' \
@@ -121,7 +131,7 @@ _quarto_render() {
     '(--toc-depth)'--toc-depth='[Number of section levels in the table of contents.]:value: ' \
     '(--number-sections)'--number-sections'[Number section headings.]' \
     '(--number-offset)'--number-offset='[Offset for section headings.]:value: ' \
-    '(--top-level-division)'--top-level-division='[Treat top-level headings as this division.]:value:_quarto_enum '\''default'\'' '\''section'\'' '\''chapter'\'' '\''part'\''' \
+    '(--top-level-division)'--top-level-division='[Treat top-level headings as this division.]:value:_quarto_enum -- '\''default'\'' '\''section'\'' '\''chapter'\'' '\''part'\''' \
     '(--standalone)'--standalone'[Produce a standalone document.]' \
     '(--template)'--template='[Use FILE as a custom template.]:value:_files' \
     '(--css)'--css='[Link to a CSS style sheet.]:value:_files -g "*.(css)"' \
@@ -129,10 +139,10 @@ _quarto_render() {
     '(--csl)'--csl='[Citation Style Language file.]:value:_files -g "*.(csl)"' \
     '(--citeproc)'--citeproc'[Process citations with citeproc.]' \
     '(--highlight-style)'--highlight-style='[Syntax highlighting style.]:value: ' \
-    '(--pdf-engine)'--pdf-engine='[Engine used to produce PDF output.]:value:_quarto_enum '\''pdflatex'\'' '\''lualatex'\'' '\''xelatex'\'' '\''tectonic'\'' '\''latexmk'\'' '\''context'\'' '\''wkhtmltopdf'\'' '\''weasyprint'\'' '\''typst'\''' \
+    '(--pdf-engine)'--pdf-engine='[Engine used to produce PDF output.]:value:_quarto_enum -- '\''pdflatex'\'' '\''lualatex'\'' '\''xelatex'\'' '\''tectonic'\'' '\''latexmk'\'' '\''context'\'' '\''wkhtmltopdf'\'' '\''weasyprint'\'' '\''typst'\''' \
     '(--mathjax)'--mathjax'[Render mathematics with MathJax.]' \
     '(--katex)'--katex'[Render mathematics with KaTeX.]' \
-    '(--wrap)'--wrap='[Text wrapping in the output.]:value:_quarto_enum '\''auto'\'' '\''none'\'' '\''preserve'\''' \
+    '(--wrap)'--wrap='[Text wrapping in the output.]:value:_quarto_enum -- '\''auto'\'' '\''none'\'' '\''preserve'\''' \
     '(--reference-doc)'--reference-doc='[Reference document for docx, pptx, or odt output.]:value:_files -g "*.(docx|pptx|odt)"' \
     '(--shift-heading-level-by)'--shift-heading-level-by='[Shift heading levels by this amount.]:value: ' \
     '1:input:_files -g "*.(qmd|ipynb|md|Rmd|rmd|markdown)"' \
@@ -149,22 +159,22 @@ _quarto_preview() {
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--port)'--port='[Suggested port to listen on (defaults to random value between 3000 and 8000).]:port: ' \
     '(--host)'--host='[Hostname to bind to (defaults to 127.0.0.1)]:host: ' \
-    '(--render)'--render='[Render to the specified format(s) before previewing (Default: "none")]:format:_quarto_enum '\''all'\'' '\''html'\'' '\''pdf'\'' '\''docx'\'' '\''odt'\'' '\''rtf'\'' '\''revealjs'\'' '\''beamer'\'' '\''pptx'\'' '\''typst'\'' '\''dashboard'\'' '\''epub'\'' '\''gfm'\'' '\''commonmark'\'' '\''markdown'\'' '\''markua'\'' '\''hugo-md'\'' '\''docusaurus-md'\'' '\''jats'\'' '\''asciidoc'\'' '\''asciidoctor'\'' '\''ipynb'\'' '\''context'\'' '\''docbook'\'' '\''dokuwiki'\'' '\''jira'\'' '\''mediawiki'\'' '\''man'\'' '\''ms'\'' '\''muse'\'' '\''opml'\'' '\''org'\'' '\''rst'\'' '\''texinfo'\'' '\''textile'\'' '\''xwiki'\'' '\''zimwiki'\''' \
+    '(--render)'--render='[Render to the specified format(s) before previewing (Default: "none")]:format:_quarto_enum -- '\''all'\'' '\''html'\'' '\''pdf'\'' '\''docx'\'' '\''odt'\'' '\''rtf'\'' '\''revealjs'\'' '\''beamer'\'' '\''pptx'\'' '\''typst'\'' '\''dashboard'\'' '\''epub'\'' '\''gfm'\'' '\''commonmark'\'' '\''markdown'\'' '\''markua'\'' '\''hugo-md'\'' '\''docusaurus-md'\'' '\''jats'\'' '\''asciidoc'\'' '\''asciidoctor'\'' '\''ipynb'\'' '\''context'\'' '\''docbook'\'' '\''dokuwiki'\'' '\''jira'\'' '\''mediawiki'\'' '\''man'\'' '\''ms'\'' '\''muse'\'' '\''opml'\'' '\''org'\'' '\''rst'\'' '\''texinfo'\'' '\''textile'\'' '\''xwiki'\'' '\''zimwiki'\''' \
     '(--no-serve)'--no-serve'[Don'\''t run a local preview web server (just monitor and re-render input files)]' \
     '(--no-navigate)'--no-navigate'[Don'\''t navigate the browser automatically when outputs are updated.]' \
     '(--no-browser)'--no-browser'[Don'\''t open a browser to preview the site.]' \
     '(--no-watch-inputs)'--no-watch-inputs'[Do not re-render input files when they change.]' \
     '(--timeout)'--timeout='[Time (in seconds) after which to exit if there are no active clients.]:value: ' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '(--toc)'--toc'[Include an automatically generated table of contents.]' \
     '(--toc-depth)'--toc-depth='[Number of section levels in the table of contents.]:value: ' \
     '(--number-sections)'--number-sections'[Number section headings.]' \
     '(--number-offset)'--number-offset='[Offset for section headings.]:value: ' \
-    '(--top-level-division)'--top-level-division='[Treat top-level headings as this division.]:value:_quarto_enum '\''default'\'' '\''section'\'' '\''chapter'\'' '\''part'\''' \
+    '(--top-level-division)'--top-level-division='[Treat top-level headings as this division.]:value:_quarto_enum -- '\''default'\'' '\''section'\'' '\''chapter'\'' '\''part'\''' \
     '(--standalone)'--standalone'[Produce a standalone document.]' \
     '(--template)'--template='[Use FILE as a custom template.]:value:_files' \
     '(--css)'--css='[Link to a CSS style sheet.]:value:_files -g "*.(css)"' \
@@ -172,10 +182,10 @@ _quarto_preview() {
     '(--csl)'--csl='[Citation Style Language file.]:value:_files -g "*.(csl)"' \
     '(--citeproc)'--citeproc'[Process citations with citeproc.]' \
     '(--highlight-style)'--highlight-style='[Syntax highlighting style.]:value: ' \
-    '(--pdf-engine)'--pdf-engine='[Engine used to produce PDF output.]:value:_quarto_enum '\''pdflatex'\'' '\''lualatex'\'' '\''xelatex'\'' '\''tectonic'\'' '\''latexmk'\'' '\''context'\'' '\''wkhtmltopdf'\'' '\''weasyprint'\'' '\''typst'\''' \
+    '(--pdf-engine)'--pdf-engine='[Engine used to produce PDF output.]:value:_quarto_enum -- '\''pdflatex'\'' '\''lualatex'\'' '\''xelatex'\'' '\''tectonic'\'' '\''latexmk'\'' '\''context'\'' '\''wkhtmltopdf'\'' '\''weasyprint'\'' '\''typst'\''' \
     '(--mathjax)'--mathjax'[Render mathematics with MathJax.]' \
     '(--katex)'--katex'[Render mathematics with KaTeX.]' \
-    '(--wrap)'--wrap='[Text wrapping in the output.]:value:_quarto_enum '\''auto'\'' '\''none'\'' '\''preserve'\''' \
+    '(--wrap)'--wrap='[Text wrapping in the output.]:value:_quarto_enum -- '\''auto'\'' '\''none'\'' '\''preserve'\''' \
     '(--reference-doc)'--reference-doc='[Reference document for docx, pptx, or odt output.]:value:_files -g "*.(docx|pptx|odt)"' \
     '(--shift-heading-level-by)'--shift-heading-level-by='[Shift heading levels by this amount.]:value: ' \
     '1:file:_files -g "*.(qmd|ipynb|md|Rmd|rmd|markdown)"' \
@@ -194,8 +204,8 @@ _quarto_serve() {
     '(--host)'--host='[Hostname to bind to (defaults to 127.0.0.1)]:host: ' \
     '(--browser)'--browser'[Open a browser to preview the site.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:input:_files -g "*.(qmd|ipynb|md|Rmd|rmd|markdown)"'
@@ -208,15 +218,15 @@ _quarto_create() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '(--open)'--open='[Open new artifact in this editor (positron, vscode, rstudio)]:editor:_quarto_enum '\''positron'\'' '\''vscode'\'' '\''rstudio'\''' \
+    '(--open)'--open='[Open new artifact in this editor (positron, vscode, rstudio)]:editor:_quarto_enum -- '\''positron'\'' '\''vscode'\'' '\''rstudio'\''' \
     '(--no-open)'--no-open'[Do not open in an editor]' \
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '1:type:_quarto_enum '\''project'\'' '\''extension'\''' \
+    '1:type:_quarto_enum -- '\''project'\'' '\''extension'\''' \
     '*:commands: '
 
 }
@@ -259,8 +269,8 @@ _quarto_use_template() {
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '1:target: '
 
@@ -274,8 +284,8 @@ _quarto_use_binder() {
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '*: :_files'
 
@@ -290,8 +300,8 @@ _quarto_use_brand() {
     '(--force)'--force'[Skip all prompts and confirmations]' \
     '(--dry-run)'--dry-run'[Show what would happen without making changes]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:target: '
@@ -307,8 +317,8 @@ _quarto_add() {
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--embed)'--embed='[Embed this extension within another extension (used when authoring extensions).]:extensionId: ' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:extension: '
@@ -324,11 +334,11 @@ _quarto_update() {
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--embed)'--embed='[Embed this extension within another extension (used when authoring extensions).]:extensionId: ' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '*:target:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '*:target:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -341,8 +351,8 @@ _quarto_remove() {
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--embed)'--embed='[Remove this extension from within another extension (used when authoring extensions).]:extensionId: ' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '*:target: '
@@ -358,8 +368,8 @@ _quarto_convert() {
     '(-o --output)'{-o,--output=}'[Write output to PATH.]:path:_files' \
     '(--with-ids)'--with-ids'[Include ids in conversion]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:input:_files -g "*.(qmd|ipynb|md|Rmd|rmd|markdown)"'
@@ -391,8 +401,8 @@ _quarto_run() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:script:_files -g "*.(ts|js|py|R|r|lua)"' \
@@ -407,11 +417,11 @@ _quarto_list() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '1:type:_quarto_enum '\''extensions'\'' '\''tools'\'''
+    '1:type:_quarto_enum -- '\''extensions'\'' '\''tools'\'''
 
 }
 
@@ -424,11 +434,11 @@ _quarto_install() {
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--update-path)'--update-path'[Update system path when a tool is installed]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '*:target:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '*:target:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -441,11 +451,11 @@ _quarto_uninstall() {
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm actions]' \
     '(--update-path)'--update-path'[Update system path when a tool is installed]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '1:tool:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '1:tool:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -488,7 +498,7 @@ _quarto_tools_install() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '1:tool:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '1:tool:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -498,7 +508,7 @@ _quarto_tools_info() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '1:tool:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '1:tool:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -508,7 +518,7 @@ _quarto_tools_uninstall() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '1:tool:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '1:tool:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -518,7 +528,7 @@ _quarto_tools_update() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '1:tool:_quarto_enum '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
+    '1:tool:_quarto_enum -- '\''tinytex'\'' '\''chrome-headless-shell'\'' '\''verapdf'\'''
 
 }
 
@@ -529,8 +539,8 @@ _quarto_tools_list() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '*: :_files'
@@ -550,11 +560,11 @@ _quarto_publish() {
     '(--no-prompt)'--no-prompt'[Do not prompt to confirm publishing destination]' \
     '(--no-browser)'--no-browser'[Do not open a browser to the site after publishing]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '1:provider:_quarto_enum '\''quarto-pub'\'' '\''gh-pages'\'' '\''connect'\'' '\''posit-connect-cloud'\'' '\''netlify'\'' '\''confluence'\'' '\''huggingface'\''' \
+    '1:provider:_quarto_enum -- '\''quarto-pub'\'' '\''gh-pages'\'' '\''connect'\'' '\''posit-connect-cloud'\'' '\''netlify'\'' '\''confluence'\'' '\''huggingface'\''' \
     '2:path:_files -g "*.(qmd|ipynb|md|Rmd|rmd|markdown)"'
 
 }
@@ -568,11 +578,11 @@ _quarto_check() {
     '(--output)'--output='[Output as JSON to a file]:path:_files' \
     '(--no-strict)'--no-strict'[When set, will not fail if dependency versions don'\''t match precisely]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
-    '1:target:_quarto_enum '\''install'\'' '\''jupyter'\'' '\''knitr'\'' '\''versions'\'' '\''all'\'''
+    '1:target:_quarto_enum -- '\''install'\'' '\''jupyter'\'' '\''knitr'\'' '\''versions'\'' '\''all'\'''
 
 }
 
@@ -612,10 +622,10 @@ _quarto_call_engine() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
-    '1:engine-name:_quarto_enum '\''jupyter'\'' '\''knitr'\'' '\''markdown'\'' '\''julia'\''' \
+    '1:engine-name:_quarto_enum -- '\''jupyter'\'' '\''knitr'\'' '\''markdown'\'' '\''julia'\''' \
     '*:args: '
 
 }
@@ -629,8 +639,8 @@ _quarto_call_build_ts_extension() {
     '(--check)'--check'[Type-check only (skip bundling)]' \
     '(--init-config)'--init-config'[Generate deno.json with absolute importMap path]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '1:entry-point:_files -g "*.(ts)"'
 
@@ -644,8 +654,8 @@ _quarto_call_typst_gather() {
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--init-config)'--init-config'[Generate a starter typst-gather.toml in current directory]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '*: :_files'
@@ -659,8 +669,8 @@ _quarto_capabilities() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '*: :_files'
@@ -674,8 +684,8 @@ _quarto_inspect() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:path:_files' \
@@ -717,8 +727,8 @@ _quarto_editor_support_crossref() {
     '(-i --input)'{-i,--input}'[Use FILE as input (default: stdin).]' \
     '(-o --output)'{-o,--output}'[Write output to FILE (default: stdout).]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '*:args: '
@@ -732,16 +742,16 @@ _quarto_create_project() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--title)'--title='[Project title]:title: ' \
-    '(--type)'--type='[Project type (book, default, website, manuscript)]:type:_quarto_enum '\''book'\'' '\''default'\'' '\''website'\'' '\''manuscript'\''' \
+    '(--type)'--type='[Project type (book, default, website, manuscript)]:type:_quarto_enum -- '\''book'\'' '\''default'\'' '\''website'\'' '\''manuscript'\''' \
     '(--template)'--template='[Use a specific project template]:type: ' \
-    '(--engine)'--engine='[Use execution engine (jupyter, knitr, markdown, ...)]:engine:_quarto_enum '\''jupyter'\'' '\''knitr'\'' '\''markdown'\'' '\''julia'\''' \
-    '(--editor)'--editor='[Default editor for project ('\''source'\'' or '\''visual'\'')]:editor:_quarto_enum '\''source'\'' '\''visual'\''' \
+    '(--engine)'--engine='[Use execution engine (jupyter, knitr, markdown, ...)]:engine:_quarto_enum -- '\''jupyter'\'' '\''knitr'\'' '\''markdown'\'' '\''julia'\''' \
+    '(--editor)'--editor='[Default editor for project ('\''source'\'' or '\''visual'\'')]:editor:_quarto_enum -- '\''source'\'' '\''visual'\''' \
     '(--with-venv)'--with-venv='[Create a virtualenv for this project]:packages: ' \
     '(--with-condaenv)'--with-condaenv='[Create a condaenv for this project]:packages: ' \
     '(--no-scaffold)'--no-scaffold'[Don'\''t create initial project file(s)]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '(--profile)'--profile='[Active project profile(s)]:value: ' \
     '1:dir:_files -/'
@@ -854,8 +864,8 @@ _quarto_dev_call_cli_info() {
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
     '(--log)'--log='[Path to log file]:file:_files' \
-    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
-    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum '\''plain'\'' '\''json-stream'\''' \
+    '(--log-level)'--log-level='[Log level (debug, info, warning, error, critical)]:level:_quarto_enum -- '\''debug'\'' '\''info'\'' '\''warning'\'' '\''error'\'' '\''critical'\''' \
+    '(--log-format)'--log-format='[Log format (plain, json-stream)]:format:_quarto_enum -- '\''plain'\'' '\''json-stream'\''' \
     '(--quiet)'--quiet'[Suppress console output.]' \
     '*: :_files'
 
@@ -910,7 +920,7 @@ _quarto_dev_call_pull_git_subtree() {
 
   _arguments -C -s \
     '(-h --help)'{-h,--help}'[Show this help.]' \
-    '1:name:_quarto_enum '\''all'\'' '\''julia-engine'\'' '\''orange-book'\'''
+    '1:name:_quarto_enum -- '\''all'\'' '\''julia-engine'\'' '\''orange-book'\'''
 
 }
 
