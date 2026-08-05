@@ -148,6 +148,34 @@ else
   pass "an unknown channel is refused"
 fi
 
+# A shell named explicitly is validated exactly as a detected one is. Without
+# that, the run reaches the download with an empty file name and dies on a
+# checksum error that says nothing about the real mistake.
+if shell_output="$(install_run --shell nonsense 2>&1)"; then
+  fail "an unknown shell is refused" "installer exited zero: ${shell_output}"
+else
+  expect_contains "an unknown shell is refused" "${shell_output}" "pass --shell bash|zsh|fish"
+fi
+
+# Uninstalling never reaches a download, so a typo here used to exit zero after
+# reporting "Nothing to remove", which reads as "nothing was installed" rather
+# than "that is not a shell".
+if shell_output="$(install_run --shell nonsense --uninstall 2>&1)"; then
+  fail "an unknown shell is refused on uninstall" "installer exited zero: ${shell_output}"
+else
+  expect_contains "an unknown shell is refused on uninstall" \
+    "${shell_output}" "pass --shell bash|zsh|fish"
+fi
+
+# The environment equivalent, which is the only form the piped `curl | bash`
+# invocation can use, is validated the same way.
+if shell_output="$(QUARTO_COMPLETIONS_SHELL=weird install_run 2>&1)"; then
+  fail "an unknown shell from the environment is refused" "installer exited zero: ${shell_output}"
+else
+  expect_contains "an unknown shell from the environment is refused" \
+    "${shell_output}" "pass --shell bash|zsh|fish"
+fi
+
 # A download that no longer matches the manifest is refused. Serve a copy of
 # the site whose fish script has been altered after the checksums were written.
 #
@@ -462,6 +490,40 @@ residue_output="$(scenario_run "${RESIDUE_HOME}" --shell zsh --uninstall)"
 expect_contains "a leftover block alone is still removed" "${residue_output}" "Cleaned"
 expect_missing "a removed block does not also report nothing to remove" \
   "${residue_output}" "Nothing to remove"
+
+# A block whose closing marker is gone, which is what a hand edit, a merge
+# conflict, or a half-written file leaves behind. The sed range that removes
+# the block runs to the end of the file when it never matches an end marker,
+# so everything the user kept below it went with it, on install and uninstall
+# alike. Both must stop and say so, and leave the file exactly as it was.
+UNTERMINATED_HOME="$(scenario_home unterminated)"
+write_unterminated_rc() {
+  printf '%s\n%s\n%s\n' \
+    "# >>> quarto completions >>>" \
+    "fpath=(\"\${HOME}/.zfunc\" \$fpath)" \
+    "export SENTINEL=keep-me" \
+    >"${UNTERMINATED_HOME}/.zshrc"
+}
+
+write_unterminated_rc
+if unterminated_output="$(scenario_run "${UNTERMINATED_HOME}" --shell zsh 2>&1)"; then
+  fail "an unterminated block fails the install" "installer exited zero: ${unterminated_output}"
+else
+  expect_contains "an unterminated block is named on install" \
+    "${unterminated_output}" "${UNTERMINATED_HOME}/.zshrc"
+fi
+expect_count "install left the content below the block alone" \
+  "${UNTERMINATED_HOME}/.zshrc" "SENTINEL=keep-me" 1
+
+write_unterminated_rc
+if unterminated_output="$(scenario_run "${UNTERMINATED_HOME}" --shell zsh --uninstall 2>&1)"; then
+  fail "an unterminated block fails the uninstall" "installer exited zero: ${unterminated_output}"
+else
+  expect_contains "an unterminated block is named on uninstall" \
+    "${unterminated_output}" "${UNTERMINATED_HOME}/.zshrc"
+fi
+expect_count "uninstall left the content below the block alone" \
+  "${UNTERMINATED_HOME}/.zshrc" "SENTINEL=keep-me" 1
 
 # --dry-run is the first diagnostic the troubleshooting page asks for, so it
 # has to say something even when there is nothing to do.

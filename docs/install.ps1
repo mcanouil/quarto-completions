@@ -42,9 +42,17 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-# Windows PowerShell 5.1 does not negotiate TLS 1.2 by default on older builds,
-# where every download would otherwise fail with a connection error.
-if ([Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
+# Windows PowerShell 5.1 on an older build pins SecurityProtocol to an explicit
+# legacy set, Ssl3 and Tls, where every download fails with a connection error.
+# Adding Tls12 to that set is the fix.
+#
+# SystemDefault is left exactly as it is, which is what every current build
+# reports and what this used to overwrite: it means "let the platform
+# negotiate", already covers TLS 1.2, and is the only value that can reach TLS
+# 1.3, so replacing it with an explicit Tls12 opted out of the newer protocol
+# rather than enabling anything.
+if ([Net.ServicePointManager]::SecurityProtocol -ne [Net.SecurityProtocolType]::SystemDefault -and
+  [Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12') {
   [Net.ServicePointManager]::SecurityProtocol =
     [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
 }
@@ -123,11 +131,23 @@ function Script:Remove-ManagedBlock {
 
   $kept = @()
   $inside = $false
+  $found = $false
   foreach ($line in (Get-Content -LiteralPath $Path)) {
-    if ($line -eq $script:BlockStart) { $inside = $true; continue }
+    if ($line -eq $script:BlockStart) { $inside = $true; $found = $true; continue }
     if ($line -eq $script:BlockEnd) { $inside = $false; continue }
     if (-not $inside) { $kept += $line }
   }
+  # Still inside at the end means the block never closed, so everything below
+  # the opening marker has just been dropped from $kept. That is the user's
+  # own content, not this installer's, so the file is left exactly as it is.
+  if ($inside) {
+    throw "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
+  }
+  # A profile carrying no block is not this installer's to rewrite: writing it
+  # back would normalise its line endings and re-encode it, adding a BOM on
+  # Windows PowerShell 5.1, for a file there is nothing to remove from. The
+  # POSIX installer guards the same way, with rc_block_present.
+  if (-not $found) { return }
   Set-Content -LiteralPath $Path -Value $kept -Encoding utf8
 }
 

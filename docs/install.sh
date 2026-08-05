@@ -142,11 +142,13 @@ resolve_channel() {
   esac
 }
 
+# Fills in the shell nothing named explicitly, then validates whatever the
+# result is. The validation is deliberately outside the detection: a shell
+# named by --shell or QUARTO_COMPLETIONS_SHELL used to skip it entirely, so a
+# typo reached the download with an empty file name and died on a checksum
+# error, and an uninstall exited zero having removed nothing at all.
 detect_shell() {
-  if [ -n "${TARGET_SHELL}" ]; then
-    return
-  fi
-  if [ -n "${SHELL:-}" ]; then
+  if [ -z "${TARGET_SHELL}" ] && [ -n "${SHELL:-}" ]; then
     TARGET_SHELL="$(basename "${SHELL}")"
   fi
   case "${TARGET_SHELL}" in
@@ -553,6 +555,14 @@ remove_rc_block() {
   # $1: rc file
   [ -f "$1" ] || return 0
   rc_block_present "$1" || return 0
+  # The sed range below runs to the end of the file when nothing matches the
+  # closing marker, taking everything the user keeps below the block with it.
+  # A block left open by a hand edit, a merge conflict, or a half-written file
+  # is one this cannot safely rewrite, so it stops rather than guess where the
+  # block was meant to end. Whole-line match, which is what the sed range
+  # itself matches on.
+  grep -qxF "${BLOCK_END}" "$1" ||
+    fail "the quarto completions block in $1 has no closing '${BLOCK_END}' line; repair or remove the block, then re-run"
   local temporary
   temporary="$(mktemp)"
   sed "/^${BLOCK_START}\$/,/^${BLOCK_END}\$/d" "$1" >"${temporary}"
