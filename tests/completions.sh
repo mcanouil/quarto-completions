@@ -101,10 +101,32 @@ test_zsh() {
 
   candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish ' 2)"
   expect_contains "zsh: publish providers" "${candidates}" "gh-pages"
+  # _arguments hands an action command the compadd options it built for the
+  # spec's message before the arguments the spec lists, and offering those as
+  # candidates is what '_quarto_enum --' exists to prevent. '-default-' leaks
+  # even under `zsh -f`, which is what every run above uses. Asserted on the
+  # same output as the line before, so an empty one cannot pass both.
+  expect_missing "zsh: no group option among the providers" "${candidates}" "-default-"
 
   # The second positional is a path, so the providers must not come back.
   candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" fpath "${COMPLETIONS}" "${SCRATCH}/zsh" 'quarto publish gh-pages ' 2)"
   expect_missing "zsh: provider not offered twice" "${candidates}" "quarto-pub"
+
+  # The rest of the options only appear once a matcher-list style is set, which
+  # no `zsh -f` run has, so this one starts a shell that reads an rc file
+  # setting the style Oh My Zsh ships.
+  local zdotdir="${SCRATCH}/zsh-matcher"
+  mkdir -p "${zdotdir}"
+  cat >"${zdotdir}/.zshrc" <<EOF
+fpath=("${COMPLETIONS}" \$fpath)
+autoload -Uz compinit; compinit -u -d "${zdotdir}/zcompdump"
+zstyle ':completion:*' matcher-list 'm:{[:lower:][:upper:]}={[:upper:][:lower:]}' 'r:|=*' 'l:|=* r:|=*'
+quarto(){ :; }
+EOF
+  candidates="$(zsh "${ROOT}/tests/zsh-complete.zsh" rc "${zdotdir}" 'quarto publish ' 2)"
+  expect_contains "zsh: publish providers under a matcher-list" "${candidates}" "gh-pages"
+  expect_missing "zsh: no matcher among the providers" "${candidates}" "[:lower:]"
+  expect_missing "zsh: no group option among the providers (matcher-list)" "${candidates}" "-default-"
 }
 
 test_fish() {

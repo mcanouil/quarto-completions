@@ -13,3 +13,6 @@ powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completi
 ```
 
 Both installers always fetch the latest published completions rather than anything pinned to this release; see <https://m.canouil.dev/quarto-completions>.
+
+To install offline, or to pin this release, download `quarto-completions-%%VERSION%%.tar.gz` or `quarto-completions-%%VERSION%%.zip` below.
+Each holds one directory per channel, with the `manifest.json` carrying the SHA-256 of every file beside it.

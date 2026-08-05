@@ -36,7 +36,11 @@ jobs:
   # used in mcanouil/oboro and mcanouil/minato. Editing an existing release
   # triggers no further workflow, so the default GITHUB_TOKEN is enough; no
   # App-token dance like the reusable workflow's own bump-version job needs.
-  add-install-section:
+  #
+  # The completions ride along in the same job rather than a second one: both
+  # want the same checkout and the same tag lookup, and a runner is not worth
+  # spending twice for two `gh` calls.
+  finish-release:
     needs: release
     runs-on: ubuntu-latest
     permissions:
@@ -45,13 +49,45 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
 
-      - name: Prepend the Install section to the release notes
+      - name: Read the tag just released
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           TAG="$(gh api "repos/${{ github.repository }}/releases/latest" --jq .tag_name)"
+          # Empty would otherwise reach `gh release edit ""` two steps later,
+          # where the failure names neither this call nor the release.
+          [ -n "${TAG}" ] || { echo "no release found to finish" >&2; exit 1; }
+          echo "TAG=${TAG}" >> "${GITHUB_ENV}"
+
+      - name: Prepend the Install section to the release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
           sed "s/%%VERSION%%/${TAG}/g" .github/release-notes.md > notes.md
           echo "" >> notes.md
           gh release view "${TAG}" --json body --jq .body >> notes.md
           gh release edit "${TAG}" --notes-file notes.md
+
+      # The completions themselves, so a release can be installed offline or
+      # pinned by hand. The installers are unaffected: they always read the
+      # published site, never a release asset. Two archives of one tree rather
+      # than a file per channel, since every channel holds a file named
+      # _quarto.
+      - name: Attach the completions to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          # The checkout above is of the branch this ran from, which is behind
+          # the tag by the version bump the reusable workflow just committed.
+          git fetch --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          git checkout "${TAG}" -- docs/completions
+          tar -czf "quarto-completions-${TAG}.tar.gz" -C docs completions
+          (cd docs && zip -qr "../quarto-completions-${TAG}.zip" completions)
+          # --clobber, so re-running this job over a release is not fatal.
+          gh release upload "${TAG}" \
+            "quarto-completions-${TAG}.tar.gz" \
+            "quarto-completions-${TAG}.zip" \
+            --clobber

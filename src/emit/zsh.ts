@@ -34,9 +34,19 @@ ${banner(spec, "#")}
 # as inert text; verified against real zsh. Values instead reach compadd as
 # ordinary, already-quoted arguments to this function, which is not
 # re-evaluated the same way.
+#
+# _arguments calls an action command with the compadd options it built for the
+# spec's message prepended to the arguments written here, so '--' marks where
+# those end and the values begin. Without the split they are offered as
+# candidates: '-J' and '-default-' always, and '-M' plus the matcher itself
+# wherever a matcher-list style is set, which is any Oh My Zsh. With no '--'
+# present every argument is taken for an option and nothing is offered, rather
+# than the options being listed as values.
 _quarto_enum() {
-  local -a candidates=("$@")
-  _describe '' candidates
+  local -i split=\${argv[(i)--]}
+  local -a options=("\${(@)argv[1,split-1]}") candidates=("\${(@)argv[split+1,-1]}")
+  # -a, so a value is never read as an option of compadd's own.
+  compadd "\${(@)options}" -a candidates
 }
 
 ${all.map(commandFunction).join("\n\n")}
@@ -191,7 +201,9 @@ function argAction(
       // zsh: a value of "key:value" broke the quoting so badly that the
       // fragments it produced were read as commands, printing "unmatched
       // '" and "command not found: _" instead of offering anything.
-      return `_quarto_enum ${(values ?? []).map((value) => `'${specLabel(value)}'`).join(" ")}`;
+      // '--' first: see _quarto_enum, which splits the compadd options
+      // _arguments prepends here from the values written after it.
+      return `_quarto_enum -- ${(values ?? []).map((value) => `'${specLabel(value)}'`).join(" ")}`;
     case "file":
       // Globs are never attacker-controlled: they always come from this
       // repo's own overlay.ts constants, never from quarto --help text, so
