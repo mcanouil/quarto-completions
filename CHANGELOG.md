@@ -9,22 +9,6 @@ All notable changes to this project will be documented in this file.
 - fix: drop the `1.6`, `1.7`, and `1.8` archived channels; per-minor archives now start at `1.9`.
   The generator's parser and `src/overlay.ts`'s hardcoded value sets are only exercised against recent Quarto releases; the further back an archived minor goes, the less confidence there is that an old `--help` layout is read correctly, so the floor is pulled in until that is verified further back.
 
-## 2026.08.05-2 (2026-08-05)
-
-### Install
-
-macOS and Linux:
-
-```bash
-curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash
-```
-
-Windows:
-
-```powershell
-powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
-```
-
 ### New Features
 
 - feat: publish an archived channel for every Quarto minor from `1.6` onward, generated from that line's newest patch.
@@ -34,8 +18,6 @@ powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completi
 
 - feat!: rename the `stable` and `prerelease` channels to `release` and `pre-release`, matching the vocabulary `quarto-actions/setup` already uses.
   `--channel stable` and `--channel prerelease`, and the `completions/stable/` and `completions/prerelease/` URLs, no longer resolve; the piped installers are unaffected, since they always fetch fresh.
-
-## 2026.08.05 (2026-08-05)
 
 ### New Features
 

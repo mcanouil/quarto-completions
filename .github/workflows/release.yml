@@ -27,3 +27,31 @@ jobs:
       gh-app-id: ${{ vars.APP_ID }}
       repo-type: project
       quarto: ${{ inputs.quarto || 'release' }}
+
+  # The reusable workflow above builds a project-type release with no
+  # install section of its own: its "## Installation" block only fires for
+  # repo-type: extension, and it exposes no output this job could react to
+  # before it runs `gh release create`. So this prepends one after the fact,
+  # onto the release it just made, the same way .github/release-notes.md is
+  # used in mcanouil/oboro and mcanouil/minato. Editing an existing release
+  # triggers no further workflow, so the default GITHUB_TOKEN is enough; no
+  # App-token dance like the reusable workflow's own bump-version job needs.
+  add-install-section:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Prepend the Install section to the release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="$(gh api "repos/${{ github.repository }}/releases/latest" --jq .tag_name)"
+          sed "s/%%VERSION%%/${TAG}/g" .github/release-notes.md > notes.md
+          echo "" >> notes.md
+          gh release view "${TAG}" --json body --jq .body >> notes.md
+          gh release edit "${TAG}" --notes-file notes.md
