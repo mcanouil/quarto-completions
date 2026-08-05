@@ -607,6 +607,33 @@ else
   pass "a three-part version channel is refused"
 fi
 
+# A channel that is a bare major.minor but has nothing published is named in
+# the error rather than left to curl's bare 404. 1.5 is older than every
+# published minor, so the site served here has no directory for it; the
+# auto-detect case further down uses the same channel to assert the other half,
+# that a channel nothing asked for falls back to release instead of failing.
+UNPUBLISHED_HOME="$(scenario_home unpublished-channel)"
+if unpublished_output="$(scenario_run "${UNPUBLISHED_HOME}" --shell fish --channel 1.5 2>&1)"; then
+  fail "an unpublished explicit channel is refused" "installer exited zero: ${unpublished_output}"
+else
+  expect_contains "an unpublished explicit channel is refused" \
+    "${unpublished_output}" "no completions published for channel '1.5'"
+fi
+expect_absent "unpublished channel: nothing was written" \
+  "${UNPUBLISHED_HOME}/.config/fish/completions/quarto.fish"
+
+# The same on --dry-run, which fetches nothing and so used to print a plan for
+# a channel that could never be installed.
+UNPUBLISHED_DRY_HOME="$(scenario_home unpublished-channel-dry)"
+if unpublished_dry="$(scenario_run "${UNPUBLISHED_DRY_HOME}" --shell fish --channel 1.5 --dry-run 2>&1)"; then
+  fail "a dry run refuses an unpublished channel" "installer exited zero: ${unpublished_dry}"
+else
+  expect_contains "a dry run refuses an unpublished channel" \
+    "${unpublished_dry}" "no completions published for channel '1.5'"
+fi
+expect_missing "a dry run promises nothing for an unpublished channel" \
+  "${unpublished_dry}" "Would download"
+
 # The version advisory compares the manifest's Quarto version against
 # whatever is on PATH. QUARTO_SHIM is prepended ahead of the real quarto
 # test.yml installs for the rest of the suite, so each case controls exactly

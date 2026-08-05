@@ -63,6 +63,12 @@ if ([Net.ServicePointManager]::SecurityProtocol -ne [Net.SecurityProtocolType]::
 $script:Uninstall = [bool]$Uninstall -or ($env:QUARTO_COMPLETIONS_UNINSTALL -eq '1')
 
 $script:Channel = $Channel
+# Whether the channel above was named rather than left to the block below. A
+# channel nothing asked for falls back to release when it is not published; one
+# that was asked for fails instead, rather than quietly installing something
+# else than the caller named. The parameter already carries
+# QUARTO_COMPLETIONS_CHANNEL, so there is nothing else to read here.
+$script:ChannelExplicit = [bool]$Channel
 # The quarto on PATH's reported version, or empty when there is none or it
 # does not answer. Read once, ahead of channel resolution, and shared by the
 # dev auto-detect below and the version advisory in Install-QuartoCompletion,
@@ -102,10 +108,14 @@ function Script:Get-VersionMajorMinor {
   return ''
 }
 
-# True when a channel has a manifest published at BaseUrl. Called only while
-# auto-detecting a channel from the local Quarto's own minor: an explicit
-# -Channel and an uninstall never call this, so neither spends a network
-# round trip settling something nothing asked about.
+# True when a channel has a manifest published at BaseUrl.
+#
+# Two callers. Auto-detecting a channel from the local Quarto's own minor, and
+# a dry run that was given an explicit -Channel, which has nothing else to learn
+# that from: the real run finds out by failing to fetch the manifest, and a dry
+# run fetches nothing. An uninstall never calls this, and neither does a real
+# install, so neither spends a round trip settling something nothing asked
+# about.
 function Script:Test-ChannelPublished {
   param([Parameter(Mandatory)][string]$Channel)
 
@@ -189,6 +199,20 @@ function Script:Get-UnterminatedBlockMessage {
   param([Parameter(Mandatory)][string]$Path)
 
   "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
+}
+
+# The one message for a channel that has nothing published at BaseUrl, shared
+# by the run that fails to fetch its manifest and by -DryRun, which has to
+# refuse the same channels the real run would.
+#
+# Named rather than left to the web exception, which says neither which channel
+# was asked for nor which ones exist. The channel a caller most often names by
+# hand is their own Quarto's minor, which for anything before 1.9 was never
+# published.
+function Script:Get-UnpublishedChannelMessage {
+  param([Parameter(Mandatory)][string]$Url)
+
+  "No completions published for channel '$($script:Channel)' ($Url); published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards"
 }
 
 function Script:Remove-ManagedBlock {
@@ -275,6 +299,14 @@ function Script:Install-QuartoCompletion {
   $manifestUrl = "$($script:BaseUrl)/completions/$($script:Channel)/manifest.json"
 
   if ($script:DryRun) {
+    # Reported before any of the lines below, and not last like the
+    # unterminated block check: that one stops a run whose other promises still
+    # hold, where a channel with nothing published makes every line below it a
+    # lie, the download included. Only an explicit channel is checked; an
+    # auto-detected one was either probed above or is the release fallback.
+    if ($script:ChannelExplicit -and -not (Script:Test-ChannelPublished $script:Channel)) {
+      throw (Script:Get-UnpublishedChannelMessage -Url $manifestUrl)
+    }
     Script:Write-Log "Would download $url"
     Script:Write-Log "Would write    $($script:CompletionPath)"
     # A block left open is one Set-ManagedBlock would stop on, so promising an
@@ -290,7 +322,16 @@ function Script:Install-QuartoCompletion {
   if (-not $PSCmdlet.ShouldProcess($script:CompletionPath, 'Install Quarto completions')) { return }
 
   # -UseBasicParsing keeps 5.1 from waiting on Internet Explorer's engine.
-  $manifest = Invoke-RestMethod -Uri $manifestUrl -UseBasicParsing
+  #
+  # This fetch is the real run's own probe, so nothing is checked ahead of it.
+  # The underlying reason is appended rather than dropped: it is what tells a
+  # 404 from a network that is down, which the message alone cannot.
+  try {
+    $manifest = Invoke-RestMethod -Uri $manifestUrl -UseBasicParsing
+  }
+  catch {
+    throw "$(Script:Get-UnpublishedChannelMessage -Url $manifestUrl). $($_.Exception.Message)"
+  }
   $expected = $manifest.files.'quarto.ps1'
   if (-not $expected) {
     throw "No checksum for quarto.ps1 in $manifestUrl"

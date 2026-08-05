@@ -180,7 +180,7 @@ Naming anything else, `--channel 1.0` on an older Quarto for instance, stops the
 ```default
 error: no completions published for channel '1.0'
 (https://m.canouil.dev/quarto-completions/completions/1.0/manifest.json);
-published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards.
+published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards
 ```
 
 A channel you name is never quietly swapped for another one, on `--dry-run` or on a real run.

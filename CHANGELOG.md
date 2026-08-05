@@ -15,6 +15,8 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
+- fix: name the channel, and the channels that exist, when one asked for by `--channel` or `-Channel` has nothing published, rather than stopping on `curl`'s bare `404` or PowerShell's raw web exception.
+  A channel that was named is never swapped for another one, which is what auto-detection does when it finds no completions for the local Quarto's minor; `--dry-run` now refuses the same channels a real run would, where it used to print a plan for one that could never be installed.
 - fix: stop zsh offering `-J`, `-M`, `-default-`, and the completion matcher itself as candidates beside a flag's or positional's values, such as the providers of `quarto publish`.
   `_arguments` hands an action the compadd options it built for that argument before the values, and they were read as values; a matcher only showed up where a `matcher-list` style is set, which is any Oh My Zsh.
 
