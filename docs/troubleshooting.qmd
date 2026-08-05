@@ -75,8 +75,13 @@ An error there means bash was started with `--norc` or without `bash-completion`
 ## The completions are out of date
 
 They are generated from a released Quarto, so a flag added after that release is not there yet.
-The installer already checks this each time it runs: if the `quarto` on your `PATH` and the completions it is about to install disagree by major or minor version, it says so, adding `--channel prerelease` to the message when your Quarto is newer than a `stable` install.
+The installer checks this each time it runs, comparing the `quarto` on your `PATH` against the completions it is about to install: it says so when they disagree by major or minor version, adding `--channel prerelease` to the message when your Quarto is newer than a `stable` install.
+Nothing checks again after that, so an upgrade of Quarto is not noticed on its own: re-run the installer after upgrading, the same way you first installed.
 To check an install done earlier, or without running the installer again, ask where the file is:
+
+::: {.panel-tabset}
+
+### macOS and Linux
 
 ```bash
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --dry-run
@@ -88,21 +93,53 @@ Then read the version out of the path it reported:
 grep -m1 Quarto <path>
 ```
 
+### Windows
+
+The piped form cannot take arguments in PowerShell, so save the script first, then pass `-DryRun` when you run it:
+
+```powershell
+irm https://m.canouil.dev/quarto-completions/install.ps1 -OutFile install.ps1
+./install.ps1 -DryRun
+```
+
+Then read the version out of the path it reported:
+
+```powershell
+Select-String -Pattern Quarto -Path <path> | Select-Object -First 1
+```
+
+:::
+
 Every script carries that line in its header.
 The path is worth asking for rather than assuming: where the file goes depends on what else the machine has installed, so it differs between shells and between machines.
 If you run a Quarto prerelease, install the matching channel:
+
+::: {.panel-tabset}
+
+### macOS and Linux
 
 ```bash
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --channel prerelease
 ```
 
-If the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports, the installer picks `--channel dev` on its own, with no flag needed.
+### Windows
+
+```powershell
+$env:QUARTO_COMPLETIONS_CHANNEL = 'prerelease'
+powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
+Remove-Item Env:\QUARTO_COMPLETIONS_CHANNEL
+```
+
+:::
+
+If the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports, the installer picks the `dev` channel on its own, with no option or environment variable needed.
 That channel also completes the commands Quarto hides from `quarto --help`, such as `dev-call`; see [Channels](shells.qmd#channels).
 
 ## Tab still shows the old commands after installing
 
-The installer maintains one shell per run, the one `$SHELL` names.
+This is about the macOS and Linux installer, which maintains one shell per run, the one `$SHELL` names.
 Running it from a bash terminal maintains bash and leaves zsh exactly as it was, so a shell you did not install for keeps whatever it had, however old.
+The Windows installer has no equivalent situation, since PowerShell is the only shell it serves.
 
 An install reports this when it finds it, naming the other shell's file and its version, so start by reading what the last run said.
 To check without installing anything, ask each shell in turn:

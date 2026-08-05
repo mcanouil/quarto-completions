@@ -73,6 +73,7 @@ The piped form cannot take arguments in PowerShell, so each one also reads an en
 Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory.
 Nothing needs root, and nothing is written with `sudo`.
 Re-running updates the file the last run wrote, wherever it is, rather than appending to it or starting a second copy somewhere else.
+Nothing checks for a stale install on its own, so re-run after upgrading Quarto: the installer reports any version disagreement it finds; see [The completions are out of date](troubleshooting.qmd#the-completions-are-out-of-date).
 
 Each file is checked against the SHA-256 published in `manifest.json` before it is written, and the installer stops if they disagree.
 That guards against a truncated or corrupted download.

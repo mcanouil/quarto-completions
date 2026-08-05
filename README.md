@@ -27,6 +27,7 @@ Everything is written under your home directory, apart from zsh on a machine wit
 Each file is checked against the SHA-256 published in the channel's `manifest.json` before it is written, and any shell configuration edit is kept inside a managed block that re-running replaces.
 Add `--dry-run` to see the paths first, `--uninstall` to remove that shell's install, or `--help` for the full list; repeat with `--shell` for each shell you installed.
 If the `quarto` on your `PATH` does not match the completions being installed, the installer says so.
+That check only runs when the installer does, so re-run it after upgrading Quarto; see [Troubleshooting](https://m.canouil.dev/quarto-completions/troubleshooting.html#the-completions-are-out-of-date).
 
 ## How it works
 
