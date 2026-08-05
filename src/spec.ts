@@ -77,11 +77,30 @@ export function majorMinor(version: string): string | undefined {
   return /^(\d+\.\d+)/.exec(version)?.[1];
 }
 
+/**
+ * The upstream artefact the introspected binary was built from.
+ *
+ * A released channel names a tag, which is the version with a `v` in front of
+ * it. The `dev` channel cannot: every source build reports 99.9.9, so the only
+ * thing that says which surface it walked is the `quarto-dev/quarto-cli`
+ * commit it was built from, which the build passes to the generator.
+ */
+export interface Source {
+  /** Release tag, e.g. `v1.10.18`; released channels only. */
+  tag?: string;
+  /** Branch a source build was built from, e.g. `main`; `dev` only. */
+  branch?: string;
+  /** Commit that build was at, e.g. `e3f1c0ab…`; `dev` only. */
+  commit?: string;
+}
+
 export interface Spec {
   /** Version reported by the binary that was introspected. */
   quartoVersion: string;
   /** Release channel the binary came from. */
   channel: Channel;
+  /** Upstream artefact behind that binary; absent when nothing named one. */
+  source?: Source;
   root: CommandSpec;
 }
 

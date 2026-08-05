@@ -40,7 +40,13 @@ quarto run src/generate.ts --check            # fail if the committed output is 
 quarto run src/generate.ts --channel pre-release
 quarto run src/generate.ts --channel dev --quarto /path/to/a/99.9.9/build/quarto
 quarto run src/generate.ts --channel 1.9 --quarto /path/to/a/1.9.x/build/quarto
+quarto run src/generate.ts --channel dev --quarto /path/to/a/99.9.9/build/quarto \
+  --source-branch main --source-commit "$(git -C /path/to/quarto-cli rev-parse HEAD)"
 ```
+
+`--source-branch` and `--source-commit` name the `quarto-dev/quarto-cli` build behind a `dev` run, which is the one channel whose version says nothing: every source build reports `99.9.9`.
+Both are written to `spec.json` and `manifest.json` and stamped into each script's header, so `--check` on `dev` needs the same two flags to compare against what was committed.
+A released channel takes neither: its tag is its version with a `v` in front of it, and the generator writes that itself.
 
 Each channel also publishes `spec.json`, the enriched command surface the emitters read, alongside `manifest.json` and the four scripts.
 Generated scripts, the installers, and the documentation website all live under `docs/`, which is what GitHub Pages publishes.

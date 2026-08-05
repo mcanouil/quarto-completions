@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 
 - feat: publish the release and pre-release lines under their own minor as well, so `1.10` and `1.11` sit beside `release` and `pre-release` and every Quarto minor from `1.9` onwards has a channel that stays on one line.
   `release` and `pre-release` are rolling aliases and change what they hold the moment Quarto ships a minor; a pinned install or a hand-written URL can now name the line instead.
+- feat: record what each channel was built from, as a `source` object in `spec.json` and `manifest.json` and as one line in every script's header: the release tag on a released channel, and the `quarto-dev/quarto-cli` branch and commit on `dev`.
+  A source build reports `99.9.9`, so until now nothing on an installed dev completion said which commit its command surface came from.
 - feat: attach the completions to every release, as `quarto-completions-<version>.tar.gz` and `.zip`, each holding one directory per channel with its manifest.
   The installers are unchanged: they still read the published site, so the archives are for installing offline or pinning a version by hand.
 
