@@ -7,7 +7,7 @@ authors:
     given-names: "Mickaël"
     orcid: "https://orcid.org/0000-0002-3396-4549"
 date-released: "2026-08-05"
-version: 2026.08.04
+version: 2026.08.04-2
 url: "https://m.canouil.dev/quarto-completions"
 repository-code: "https://github.com/mcanouil/quarto-completions"
 license: MIT
