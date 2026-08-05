@@ -83,6 +83,22 @@ function Assert-Count {
   else { Test-Fail $Label "expected $Expected occurrences of '$Needle', found $actual" }
 }
 
+# One line, with the colouring stripped, for an assertion on an error message
+# rather than on a log line.
+#
+# PowerShell's error view wraps a long message across several lines, each
+# continuation prefixed with '|', and where it wraps depends on the width of
+# the console and on the length of the paths in the message. A phrase from the
+# middle of a message is therefore not a contiguous string in the raw output:
+# on a Windows runner, whose temporary paths are long, 'no closing' arrived
+# split across two lines.
+function Get-FlatOutput {
+  param([string]$Output)
+
+  $plain = $Output -replace "$([char]27)\[[0-9;]*m", ''
+  ($plain -replace '(\r?\n)\s*\|\s*', ' ') -replace '\s+', ' '
+}
+
 function Invoke-Installer {
   param([string]$BaseUrl, [string[]]$Arguments = @(), [switch]$SkipChannelPin)
 
@@ -256,6 +272,21 @@ try {
   Assert-FileMissing 'script removed' $completionPath
   Assert-Count 'managed block removed' $profilePath '>>> quarto completions >>>' 0
 
+  # Where PowerShell breaks a message is not reproducible on demand: it follows
+  # the console width and the length of the paths in the message. Pinned here
+  # against the shape a Windows runner produced, so the normalisation the four
+  # assertions below rely on is itself covered wherever the suite runs.
+  $wrapped = @(
+    '     | The quarto completions block in C:\Temp\Profile\profile.ps1 has no',
+    "     | closing '# <<< quarto completions <<<' line; repair or remove the block, then re-run"
+  ) -join "`r`n"
+  if ((Get-FlatOutput $wrapped) -match 'no closing') {
+    Test-Pass 'a wrapped error message reads as one line'
+  }
+  else {
+    Test-Fail 'a wrapped error message reads as one line' (Get-FlatOutput $wrapped)
+  }
+
   # A block whose closing marker is gone, which is what a hand edit, a merge
   # conflict, or a half-written file leaves behind. The scan that drops the
   # block never leaves the block on such a file, so everything below the
@@ -270,7 +301,7 @@ try {
   }
 
   Write-UnterminatedProfile
-  $output = Invoke-Installer -BaseUrl $baseUrl
+  $output = Get-FlatOutput (Invoke-Installer -BaseUrl $baseUrl)
   if ($LASTEXITCODE -ne 0 -and $output -match 'no closing') {
     Test-Pass 'an unterminated block fails the install'
   }
@@ -280,7 +311,7 @@ try {
   Assert-Count 'install left the content below the block alone' $profilePath 'keep-me' 1
 
   Write-UnterminatedProfile
-  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall')
+  $output = Get-FlatOutput (Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall'))
   if ($LASTEXITCODE -ne 0 -and $output -match 'no closing') {
     Test-Pass 'an unterminated block fails the uninstall'
   }
@@ -293,7 +324,7 @@ try {
   # clean the runs above refuse. It has to report the problem instead, and end
   # the way they do. Mirrors the same scenario in tests/install.sh.
   Write-UnterminatedProfile
-  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-DryRun')
+  $output = Get-FlatOutput (Invoke-Installer -BaseUrl $baseUrl -Arguments @('-DryRun'))
   if ($LASTEXITCODE -ne 0 -and $output -match 'no closing' -and $output -notmatch 'Would update') {
     Test-Pass 'an unterminated block fails a dry-run install'
   }
@@ -303,7 +334,7 @@ try {
   Assert-Count 'the dry-run install left the content below the block alone' $profilePath 'keep-me' 1
 
   Write-UnterminatedProfile
-  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall', '-DryRun')
+  $output = Get-FlatOutput (Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall', '-DryRun'))
   if ($LASTEXITCODE -ne 0 -and $output -match 'no closing' -and $output -notmatch 'Would clean') {
     Test-Pass 'an unterminated block fails a dry-run uninstall'
   }
