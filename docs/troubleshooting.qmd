@@ -82,7 +82,7 @@ If your Quarto is *behind* the current release, the mismatch is not a reason to 
 With no `--channel` given, the installer already matches your Quarto's own minor when it is published, so the fix is usually to re-run the installer with nothing more than that; see [Channels](shells.qmd#channels).
 To check an install done earlier, or without running the installer again, ask where the file is:
 
-::: {.panel-tabset}
+::: {.panel-tabset group="os"}
 
 ### macOS and Linux
 
@@ -117,7 +117,7 @@ Every script carries that line in its header.
 The path is worth asking for rather than assuming: where the file goes depends on what else the machine has installed, so it differs between shells and between machines.
 If you run a Quarto pre-release, install the matching channel:
 
-::: {.panel-tabset}
+::: {.panel-tabset group="os"}
 
 ### macOS and Linux
 
@@ -171,6 +171,21 @@ Hidden commands such as `inspect` and `dev-call` are on the `dev` channel only, 
 
 Only Quarto's built-in formats are completed.
 A format contributed by an installed extension would have to be read from disk on every keystroke, which is the cost these completions exist to avoid.
+
+## No completions published for that channel
+
+The published channels are `release`, `pre-release`, `dev`, and every Quarto minor from `1.9` onwards.
+Naming anything else, `--channel 1.0` on an older Quarto for instance, stops the installer:
+
+```default
+error: no completions published for channel '1.0'
+(https://m.canouil.dev/quarto-completions/completions/1.0/manifest.json);
+published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards.
+```
+
+A channel you name is never quietly swapped for another one, on `--dry-run` or on a real run.
+Leave `--channel` off instead, and the installer matches your Quarto's own minor when that is published, falling back to `release` and saying so when it is not.
+The completions are then generated from a newer Quarto than yours, which it also tells you; see [The completions are out of date](#the-completions-are-out-of-date).
 
 ## Checksum mismatch
 

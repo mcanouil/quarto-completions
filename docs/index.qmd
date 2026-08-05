@@ -15,7 +15,7 @@ The scripts are generated ahead of time and contain every candidate, so nothing 
 
 ## Install
 
-::: {.panel-tabset}
+::: {.panel-tabset group="os"}
 
 ### macOS and Linux
 
@@ -84,7 +84,7 @@ It is not a guard against a compromised host, which could serve a matching scrip
 
 ## Uninstall
 
-::: {.panel-tabset}
+::: {.panel-tabset group="os"}
 
 ### macOS and Linux
 
