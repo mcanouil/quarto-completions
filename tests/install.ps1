@@ -380,8 +380,8 @@ try {
   Assert-FilePresent 'dev channel: script installed' $completionPath
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev', '-Uninstall') | Out-Null
 
-  # -Channel 1.9 fetches an archived minor, published alongside release,
-  # pre-release, and dev: generated from that line's newest patch.
+  # -Channel 1.9 fetches a minor of its own, published alongside release,
+  # pre-release, and dev: one line, named, where the two aliases roll.
   $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', '1.9')
   if ($LASTEXITCODE -eq 0) { Test-Pass 'a version channel install succeeds' }
   else { Test-Fail 'a version channel install succeeds' $output }
@@ -426,7 +426,7 @@ try {
   else { Test-Fail 'advisory: no quarto on PATH says nothing' $output }
 
   # With no -Channel named, a local Quarto whose own minor is published (1.9,
-  # backfilled alongside release) is installed instead of release.
+  # a line below release) is installed instead of release.
   Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '1.9.2'
   $output = Get-FlatOutput (Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @() -SkipChannelPin)
   if ($output -match [regex]::Escape('(1.9 channel)') -and $output -notmatch 'installing the release channel instead') {
@@ -436,8 +436,8 @@ try {
     Test-Fail 'auto-detect: a published local minor is installed' $output
   }
 
-  # A local minor with nothing published (1.5 is older than every backfilled
-  # archive) falls back to release, and says so.
+  # A local minor with nothing published (1.5 is older than every published
+  # minor) falls back to release, and says so.
   Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '1.5.0'
   $output = Get-FlatOutput (Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @() -SkipChannelPin)
   if ($output -match 'No published completions for Quarto 1.5; installing the release channel instead' -and
