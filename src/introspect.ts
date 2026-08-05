@@ -24,7 +24,8 @@
  * continues the entry above it, which is how Cliffy wraps long descriptions.
  */
 
-import type { ArgSpec, CommandSpec, OptionSpec, Spec, ValueKind } from "./spec.ts";
+import { isVersionChannel, majorMinor } from "./spec.ts";
+import type { ArgSpec, Channel, CommandSpec, OptionSpec, Spec, ValueKind } from "./spec.ts";
 
 /** Commands that exist but are not worth completing. */
 const kSkippedCommands = new Set(["help"]);
@@ -32,9 +33,10 @@ const kSkippedCommands = new Set(["help"]);
 /**
  * Commands Cliffy marks `.hidden()`, which keeps them out of their parent's
  * `--help` output and out of ordinary recursion, even though each still
- * answers `--help` itself. Only surfaced on the `dev` channel: a release
- * binary hides them exactly as it hides `dev-call`, so completing them for
- * `stable` or `prerelease` would offer commands their users cannot see.
+ * answers `--help` itself. Only surfaced on the `dev` channel: a released
+ * binary hides them exactly as it hides `dev-call`, so completing them on
+ * `release`, `pre-release`, or a version channel would offer commands their
+ * users cannot see.
  */
 const kHiddenCommands: string[][] = [
   ["capabilities"],
@@ -57,7 +59,7 @@ const kHiddenCommands: string[][] = [
 ];
 
 /** Names hidden directly below `path`, on the `dev` channel only. */
-export function hiddenChildrenFor(path: string[], channel: Spec["channel"]): string[] {
+export function hiddenChildrenFor(path: string[], channel: Channel): string[] {
   if (channel !== "dev") {
     return [];
   }
@@ -93,9 +95,12 @@ export const kDevVersion = "99.9.9";
  * Fails fast when the channel and the binary's version disagree, before the
  * tree walk that would otherwise spend one cold Quarto start per command only
  * to fail confusingly partway through: `dev` seeds commands that do not exist
- * outside a source build, and `stable`/`prerelease` must never seed them.
+ * outside a source build, and no other channel must ever seed them. A version
+ * channel such as `1.9` is checked the same way, against the binary's own
+ * major and minor, so archiving against the wrong tarball fails immediately
+ * rather than publishing a mismatched surface.
  */
-export function assertChannelMatchesVersion(channel: Spec["channel"], quartoVersion: string): void {
+export function assertChannelMatchesVersion(channel: Channel, quartoVersion: string): void {
   const isDevBuild = quartoVersion === kDevVersion;
   if (channel === "dev" && !isDevBuild) {
     throw new Error(
@@ -105,6 +110,11 @@ export function assertChannelMatchesVersion(channel: Spec["channel"], quartoVers
   if (channel !== "dev" && isDevBuild) {
     throw new Error(
       `Quarto ${kDevVersion} is a source build; generate it with --channel dev, not '${channel}'`,
+    );
+  }
+  if (isVersionChannel(channel) && majorMinor(quartoVersion) !== channel) {
+    throw new Error(
+      `--channel ${channel} needs a Quarto ${channel}.x build, got ${quartoVersion}`,
     );
   }
 }
@@ -118,7 +128,7 @@ const kConcurrency = 6;
 export interface IntrospectOptions {
   /** Path to the `quarto` binary to introspect. */
   quarto: string;
-  channel: Spec["channel"];
+  channel: Channel;
 }
 
 export async function introspect(options: IntrospectOptions): Promise<Spec> {
@@ -219,7 +229,7 @@ async function introspectCommand(
   path: string[],
   help: string,
   permits: Semaphore,
-  channel: Spec["channel"],
+  channel: Channel,
 ): Promise<CommandSpec> {
   const { command: parsed, children } = parseHelp(help, path);
 
@@ -434,12 +444,41 @@ function parseUsage(help: string, path: string[]): ArgSpec[] {
   });
 }
 
+/**
+ * The environment a spawned `quarto` gets: the current process's own, minus
+ * every `QUARTO_*` variable.
+ *
+ * Quarto's launcher script exports these (`QUARTO_BIN_PATH`, `QUARTO_DENO`,
+ * `QUARTO_SHARE_PATH`, `QUARTO_ROOT`, ...) to tell its own `quarto.js` where
+ * it and its resources live, and it only computes each one when the variable
+ * is not already set. `generate.ts --quarto <path>` is exactly this process
+ * running inside its own such launcher, so those variables are already set
+ * to its paths; left in a spawned child's environment unfiltered, an
+ * archived binary being introspected would skip computing its own and reuse
+ * the running Quarto's `quarto.js`, `deno`, and `share/` instead, so `--help`
+ * silently answers for the wrong version. Filtering them out here is what
+ * makes archiving a different Quarto than the one running the generator (see
+ * `scripts/archive-minor.sh`) work at all; inheriting the rest keeps `PATH`,
+ * `HOME`, and everything else the launcher and `deno` still need.
+ */
+function childEnv(): Record<string, string> {
+  const env = Deno.env.toObject();
+  for (const key of Object.keys(env)) {
+    if (key.startsWith("QUARTO")) {
+      delete env[key];
+    }
+  }
+  env.NO_COLOR = "1";
+  return env;
+}
+
 async function run(quarto: string, args: string[]): Promise<string> {
   const command = new Deno.Command(quarto, {
     args,
     stdout: "piped",
     stderr: "piped",
-    env: { NO_COLOR: "1" },
+    clearEnv: true,
+    env: childEnv(),
   });
   const { code, stdout, stderr } = await command.output();
   if (code !== 0) {
