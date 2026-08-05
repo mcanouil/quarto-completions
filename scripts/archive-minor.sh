@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 #
-# Archives a superseded Quarto minor's completions at its newest shipped
+# Regenerates a Quarto minor's completions from that line's newest shipped
 # patch.
 #
 #     scripts/archive-minor.sh <major.minor> [--out <dir>]
 #
-# One script backs three uses: the one-off backfill of old minors, archiving
-# the previous line the moment a new one is promoted to release, and the
-# weekly refresh of the most recently archived minor against a late patch.
+# For the lines no longer being generated from an installed binary. The
+# release and pre-release minors are written by their own channel's run, with
+# generate.ts --mirror; this covers the one line below release, which the
+# Generate workflow refreshes weekly so a late patch such as 1.9.38 still
+# reaches the site, and the one-off backfill of older minors.
 # Idempotent: run again on a line with no new patch, it regenerates the same
 # bytes, which the Generate workflow's git-status gate then sees as no change.
 #

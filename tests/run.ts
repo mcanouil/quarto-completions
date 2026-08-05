@@ -18,7 +18,7 @@ import {
   parseHelp,
 } from "../src/introspect.ts";
 import { enrich } from "../src/enrich.ts";
-import { parseArgs, render } from "../src/generate.ts";
+import { mirrorChannel, parseArgs, render } from "../src/generate.ts";
 import { emitBash } from "../src/emit/bash.ts";
 import { emitFish } from "../src/emit/fish.ts";
 import { emitPwsh } from "../src/emit/pwsh.ts";
@@ -214,18 +214,75 @@ const tests: Record<string, () => void> = {
   "a complete argument list still parses"() {
     assertEquals(
       parseArgs(["--quarto", "/tmp/quarto", "--channel", "dev", "--out", "elsewhere", "--check"]),
-      { quarto: "/tmp/quarto", channel: "dev", out: "elsewhere", check: true },
+      { quarto: "/tmp/quarto", channel: "dev", out: "elsewhere", check: true, mirror: false },
     );
     assertEquals(parseArgs([]), {
       quarto: "quarto",
       channel: "release",
       out: "docs/completions",
       check: false,
+      mirror: false,
     });
   },
 
   "a version channel is a valid --channel"() {
     assertEquals(parseArgs(["--channel", "1.9"]).channel, "1.9");
+  },
+
+  "--mirror is accepted beside the two moving channels"() {
+    assert(parseArgs(["--channel", "release", "--mirror"]).mirror);
+    assert(parseArgs(["--channel", "pre-release", "--mirror"]).mirror);
+  },
+
+  "--mirror is refused for a channel that has no minor to mirror"() {
+    // Checked after the whole argument list is read, so the order the two
+    // flags are written in cannot decide whether the pair is caught.
+    for (const args of [["--channel", "dev", "--mirror"], ["--mirror", "--channel", "dev"]]) {
+      let message = "";
+      try {
+        parseArgs(args);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      assertIncludes(message, "--mirror", `${args.join(" ")} was not refused`);
+      assertIncludes(message, "dev", `${args.join(" ")} was not refused by channel`);
+    }
+  },
+
+  "--mirror is refused for a version channel, which would mirror itself"() {
+    let message = "";
+    try {
+      parseArgs(["--channel", "1.9", "--mirror"]);
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, "--mirror");
+    assertIncludes(message, "1.9");
+  },
+
+  "a mirror is written to the minor its Quarto reports"() {
+    assertEquals(mirrorChannel(fixtureSpec()), "1.10");
+  },
+
+  "a mirror of a version that has no minor is refused by version"() {
+    let message = "";
+    try {
+      mirrorChannel({ ...fixtureSpec(), quartoVersion: "unreleased" });
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, "unreleased");
+  },
+
+  "a mirrored spec stamps the minor rather than the channel it came from"() {
+    // install.sh reads this line back off disk to name the channel a shell is
+    // holding, so a mirror has to say the minor a user could ask for again.
+    const mirrored = { ...fixtureSpec(), channel: mirrorChannel(fixtureSpec()) };
+    for (const [name, output] of Object.entries(render(mirrored))) {
+      assertIncludes(output, "1.10", `${name} does not name the mirrored channel`);
+    }
+    assertIncludes(emitBash(enrich(mirrored)), "(1.10 channel)");
+    assertExcludes(emitBash(enrich(mirrored)), "(release channel)");
   },
 
   "a channel that is not release, pre-release, dev, or a bare major.minor is refused"() {

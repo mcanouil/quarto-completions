@@ -53,10 +53,13 @@ export interface CommandSpec {
 }
 
 /**
- * A channel is `release` or `pre-release`, both of which move as Quarto ships;
- * `dev`, generated from a 99.9.9 source build; or a Quarto minor such as `1.9`,
- * an archive frozen at that line's newest patch once a later minor supersedes
- * it.
+ * A channel is `release` or `pre-release`, rolling aliases that name whichever
+ * lines Quarto ships today; `dev`, generated from a 99.9.9 source build; or a
+ * Quarto minor such as `1.9`, which names one line and stays there. Every
+ * minor from 1.9 onwards is published, the release and pre-release ones
+ * included: those are written from the same run as their alias, and a line
+ * below release is regenerated from its newest patch until release moves two
+ * minors past it, after which it is frozen.
  */
 export type Channel = "release" | "pre-release" | "dev" | `${number}.${number}`;
 

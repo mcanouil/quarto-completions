@@ -107,66 +107,69 @@ jobs:
           app-key: ${{ secrets.APP_KEY }}
           gh-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # Read before the release below overwrites the manifest, so there is
-      # something to compare the new release against. Empty on a first run,
-      # or one where the file does not parse; either way nothing is archived.
-      - name: Record the previous release's minor
-        id: previous-release
-        run: |
-          set -euo pipefail
-          version="$(jq -r '.quartoVersion // empty' docs/completions/release/manifest.json 2>/dev/null || true)"
-          minor="$(printf '%s' "${version}" | grep -oE '^[0-9]+\.[0-9]+' || true)"
-          echo "minor=${minor}" >> "${GITHUB_OUTPUT}"
-
       - name: Setup Quarto (release)
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: release
 
+      # --mirror writes this surface twice: once as 'release', which names
+      # whichever line Quarto ships today and moves without warning, and once
+      # as the minor the binary reports, which stays where it is for anyone
+      # pinning it. One introspection covers both.
       - name: Generate release completions
-        run: quarto run src/generate.ts --channel release
-
-      # A minor bump means the line just left is no longer published anywhere
-      # once this run's release completions overwrite it, so it is archived
-      # under its own channel before that becomes true for good. Ordinary
-      # patch releases leave the minor unchanged and archive nothing.
-      - name: Archive the superseded release, if the minor moved
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          previous="${{ steps.previous-release.outputs.minor }}"
-          current="$(jq -r '.quartoVersion' docs/completions/release/manifest.json | grep -oE '^[0-9]+\.[0-9]+')"
-          if [ -n "${previous}" ] && [ "${previous}" != "${current}" ]; then
-            echo "Release moved from ${previous}.x to ${current}.x; archiving ${previous}."
-            bash scripts/archive-minor.sh "${previous}"
-          else
-            echo "Release is still on the ${current}.x line; nothing to archive."
-          fi
-
-      # The most recently archived line can still ship a late patch, as 1.9.38
-      # did after 1.10 had already reached pre-release. Only the newest
-      # archive is worth the weekly check; older ones are frozen on purpose.
-      - name: Refresh the newest archived minor
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          newest="$(find docs/completions -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | grep -E '^[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
-          if [ -n "${newest}" ]; then
-            echo "Refreshing archived channel ${newest}."
-            bash scripts/archive-minor.sh "${newest}"
-          else
-            echo "No archived minor channel to refresh yet."
-          fi
+        run: quarto run src/generate.ts --channel release --mirror
 
       - name: Setup Quarto (pre-release)
         uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: pre-release
 
+      # Mirrored the same way, except when Quarto has both channels on one
+      # line: a pre-release patch of the current release (v1.10.17 was one,
+      # v1.10.18 was not) would otherwise overwrite that minor's directory
+      # with a surface nobody has shipped. The release wrote it a step ago
+      # and keeps it.
       - name: Generate pre-release completions
-        run: quarto run src/generate.ts --channel pre-release
+        run: |
+          set -euo pipefail
+          release_minor="$(jq -r '.quartoVersion' docs/completions/release/manifest.json | grep -oE '^[0-9]+\.[0-9]+')"
+          pre_minor="$(quarto --version | head -n 1 | grep -oE '^[0-9]+\.[0-9]+')"
+          if [ "${pre_minor}" = "${release_minor}" ]; then
+            echo "Pre-release is still on the ${release_minor}.x line; the release owns that channel."
+            quarto run src/generate.ts --channel pre-release
+          else
+            quarto run src/generate.ts --channel pre-release --mirror
+          fi
+
+      # Three lines are kept current: the release minor and the pre-release
+      # minor, both rewritten by the mirrors above, and the one below release,
+      # which no mirror covers and which can still ship a late patch, as
+      # 1.9.38 did after 1.10 had already reached pre-release. Anything two
+      # minors below release drops out of the selection here and is frozen at
+      # the bytes it was last written with.
+      - name: Refresh the minor below release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          release_minor="$(jq -r '.quartoVersion' docs/completions/release/manifest.json | grep -oE '^[0-9]+\.[0-9]+')"
+          pre_minor="$(jq -r '.quartoVersion' docs/completions/pre-release/manifest.json | grep -oE '^[0-9]+\.[0-9]+')"
+          # The pre-release's own minor is excluded rather than left to fail:
+          # a line Quarto has not shipped has no non-prerelease tag for
+          # archive-minor.sh to resolve.
+          newest="$(
+            find docs/completions -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+              grep -E '^[0-9]+\.[0-9]+$' |
+              grep -vxF "${release_minor}" |
+              grep -vxF "${pre_minor}" |
+              sort -V | tail -n 1 || true
+          )"
+          if [ -n "${newest}" ]; then
+            echo "Refreshing channel ${newest}, the line below release ${release_minor}."
+            bash scripts/archive-minor.sh "${newest}"
+          else
+            echo "Nothing is published below release ${release_minor}; nothing to refresh."
+          fi
 
       - name: Remove the previous dev channel
         if: needs.build-dev-quarto.result == 'success'

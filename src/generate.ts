@@ -2,11 +2,17 @@
  * Generates the completion scripts.
  *
  *     quarto run src/generate.ts [--quarto <path>] [--channel release|pre-release|dev|<major.minor>]
- *                                [--out <dir>] [--check]
+ *                                [--out <dir>] [--mirror] [--check]
  *
  * `--check` writes nothing and exits non-zero when the committed output differs
  * from what the installed Quarto would produce, which is what CI runs to notice
  * that the CLI surface moved.
+ *
+ * `--mirror` writes the same surface a second time, under the minor the binary
+ * reports: `release` and `pre-release` name whichever lines Quarto ships today
+ * and move without warning, where `1.10` stays where it is. Only those two
+ * channels can be mirrored; a version channel is already its own minor, and a
+ * 99.9.9 source build has no released line to claim.
  *
  * The `dev` channel only ever comes from a 99.9.9 source build: that is the
  * version Quarto's own `kLocalDevelopment` constant reports, and it is the one
@@ -23,7 +29,7 @@ import { emitBash } from "./emit/bash.ts";
 import { emitFish } from "./emit/fish.ts";
 import { emitPwsh } from "./emit/pwsh.ts";
 import { emitZsh } from "./emit/zsh.ts";
-import { isVersionChannel } from "./spec.ts";
+import { isVersionChannel, majorMinor } from "./spec.ts";
 import type { Channel, Spec } from "./spec.ts";
 
 interface Options {
@@ -31,6 +37,7 @@ interface Options {
   channel: Channel;
   out: string;
   check: boolean;
+  mirror: boolean;
 }
 
 export function parseArgs(args: string[]): Options {
@@ -39,6 +46,7 @@ export function parseArgs(args: string[]): Options {
     channel: "release",
     out: "docs/completions",
     check: false,
+    mirror: false,
   };
   /**
    * The argument after `index`, or a failure naming the flag that wanted one.
@@ -74,11 +82,35 @@ export function parseArgs(args: string[]): Options {
       case "--check":
         options.check = true;
         break;
+      case "--mirror":
+        options.mirror = true;
+        break;
       default:
         throw new Error(`Unknown argument '${args[index]}'`);
     }
   }
+  // Checked here rather than in the case above, where '--mirror' written
+  // before '--channel' would be judged against the default channel and let a
+  // pair through that the same pair in the other order is refused for.
+  if (options.mirror && options.channel !== "release" && options.channel !== "pre-release") {
+    throw new Error(
+      `--mirror needs --channel release or pre-release, got '${options.channel}'`,
+    );
+  }
   return options;
+}
+
+/**
+ * The version channel a mirrored run also writes, e.g. `1.10` for Quarto
+ * 1.10.18: the same surface under the minor it came from, beside the moving
+ * channel that will point somewhere else once Quarto ships the next line.
+ */
+export function mirrorChannel(spec: Spec): `${number}.${number}` {
+  const minor = majorMinor(spec.quartoVersion);
+  if (minor === undefined || !isVersionChannel(minor)) {
+    throw new Error(`Cannot mirror Quarto '${spec.quartoVersion}': it names no major.minor`);
+  }
+  return minor;
 }
 
 /** Files written for a channel, keyed by their name on disk. */
@@ -127,39 +159,51 @@ async function sha256(content: string): Promise<string> {
 async function main(): Promise<void> {
   const options = parseArgs(Deno.args);
   const spec = await introspect({ quarto: options.quarto, channel: options.channel });
-  const files = render(spec);
-  const directory = `${options.out}/${options.channel}`;
+  // One introspection, one or two channels: the mirror is the same surface
+  // written under the minor it came from, so the binary is never walked twice
+  // to say the same thing in a different directory.
+  const specs = options.mirror ? [spec, { ...spec, channel: mirrorChannel(spec) }] : [spec];
+  const mirror = options.mirror ? " --mirror" : "";
 
   if (options.check) {
     const differences: string[] = [];
-    for (const [name, content] of Object.entries(files)) {
-      const path = `${directory}/${name}`;
-      const existing = await Deno.readTextFile(path).catch(() => undefined);
-      if (existing !== content) {
-        differences.push(path);
+    for (const written of specs) {
+      for (const [name, content] of Object.entries(render(written))) {
+        const path = `${options.out}/${written.channel}/${name}`;
+        const existing = await Deno.readTextFile(path).catch(() => undefined);
+        if (existing !== content) {
+          differences.push(path);
+        }
       }
     }
     if (differences.length > 0) {
       console.error(
         `Completions are out of date for Quarto ${spec.quartoVersion}:\n  ${
           differences.join("\n  ")
-        }\nRun: quarto run src/generate.ts --channel ${options.channel}`,
+        }\nRun: quarto run src/generate.ts --channel ${options.channel}${mirror}`,
       );
       Deno.exit(1);
     }
-    console.log(`Completions match Quarto ${spec.quartoVersion} (${options.channel}).`);
+    console.log(
+      `Completions match Quarto ${spec.quartoVersion} (${
+        specs.map((written) => written.channel).join(", ")
+      }).`,
+    );
     return;
   }
 
-  files["manifest.json"] = await manifest(spec, files);
-
-  await Deno.mkdir(directory, { recursive: true });
-  for (const [name, content] of Object.entries(files)) {
-    await Deno.writeTextFile(`${directory}/${name}`, content);
+  for (const written of specs) {
+    const files = render(written);
+    files["manifest.json"] = await manifest(written, files);
+    const directory = `${options.out}/${written.channel}`;
+    await Deno.mkdir(directory, { recursive: true });
+    for (const [name, content] of Object.entries(files)) {
+      await Deno.writeTextFile(`${directory}/${name}`, content);
+    }
+    console.log(
+      `Wrote ${Object.keys(files).length} files to ${directory} for Quarto ${written.quartoVersion}.`,
+    );
   }
-  console.log(
-    `Wrote ${Object.keys(files).length} files to ${directory} for Quarto ${spec.quartoVersion}.`,
-  );
 }
 
 if (import.meta.main) {

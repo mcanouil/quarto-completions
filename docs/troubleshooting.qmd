@@ -78,7 +78,7 @@ They are generated from a released Quarto, so a flag added after that release is
 The installer checks this each time it runs, comparing the `quarto` on your `PATH` against the completions it is about to install: it says so when they disagree by major or minor version, adding `--channel pre-release` to the message when your Quarto is newer than a `release` install.
 Nothing checks again after that, so an upgrade of Quarto is not noticed on its own: re-run the installer after upgrading, the same way you first installed.
 
-If your Quarto is *behind* the current release, the mismatch is not a reason to live with stale completions: every Quarto minor from `1.9` onwards has its own archived channel, generated from that line's newest patch.
+If your Quarto is *behind* the current release, the mismatch is not a reason to live with stale completions: every Quarto minor from `1.9` onwards has its own channel, generated from that line's newest patch.
 With no `--channel` given, the installer already matches your Quarto's own minor when it is published, so the fix is usually to re-run the installer with nothing more than that; see [Channels](shells.qmd#channels).
 To check an install done earlier, or without running the installer again, ask where the file is:
 

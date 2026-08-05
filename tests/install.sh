@@ -588,8 +588,8 @@ fi
 expect_file "dev channel: script installed" \
   "${DEV_HOME}/.config/fish/completions/quarto.fish"
 
-# --channel 1.9 fetches an archived minor, published alongside release,
-# pre-release, and dev: generated from that line's newest patch.
+# --channel 1.9 fetches a minor of its own, published alongside release,
+# pre-release, and dev: one line, named, where the two aliases roll.
 VERSION_HOME="$(scenario_home version-channel)"
 if scenario_run "${VERSION_HOME}" --shell fish --channel 1.9 >/dev/null; then
   pass "a version channel install succeeds"
@@ -710,7 +710,7 @@ autodetect_run() {
 }
 
 # With no --channel named, a local Quarto whose own minor is published (1.9,
-# backfilled alongside release) is installed instead of release.
+# a line below release) is installed instead of release.
 MINORMATCH_HOME="$(scenario_home minor-match)"
 set_quarto_shim_version "1.9.2"
 minormatch_output="$(autodetect_run "${MINORMATCH_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
@@ -718,8 +718,8 @@ expect_contains "auto-detect: a published local minor is installed" "${minormatc
 expect_missing "auto-detect: no fallback note for a published minor" \
   "${minormatch_output}" "installing the release channel instead"
 
-# A local minor with nothing published (1.5 is older than every backfilled
-# archive) falls back to release, and says so.
+# A local minor with nothing published (1.5 is older than every published
+# minor) falls back to release, and says so.
 NOMINOR_HOME="$(scenario_home minor-fallback)"
 set_quarto_shim_version "1.5.0"
 nominor_output="$(autodetect_run "${NOMINOR_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
