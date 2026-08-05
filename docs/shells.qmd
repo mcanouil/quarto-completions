@@ -146,7 +146,7 @@ Every script is published for four kinds of channel:
 - `release`, generated from the current Quarto release.
 - `pre-release`, generated from the current Quarto pre-release.
 - `dev`, generated from a Quarto source build at `quarto-dev/quarto-cli`'s `main`.
-- One directory per released Quarto minor, from `1.6` onwards, e.g. `1.9`: an archive generated from that line's newest patch, published once a later minor replaces it as `release`.
+- One directory per released Quarto minor, from `1.9` onwards: an archive generated from that line's newest patch, published once a later minor replaces it as `release`.
 
 Swap `release` for `pre-release`, `dev`, or a minor such as `1.9` in any URL above, or pass `--channel pre-release`, `--channel dev`, or `--channel 1.9` to the installer.
 With no `--channel` given, the installer matches the `quarto` on `PATH` to its own minor when that is published, and falls back to `release` otherwise; it selects `dev` instead, with no flag needed, when that `quarto` reports version `99.9.9`, which is what a source build reports and a release never does.

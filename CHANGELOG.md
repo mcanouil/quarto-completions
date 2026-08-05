@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Bug Fixes
+
+- fix: drop the `1.6`, `1.7`, and `1.8` archived channels; per-minor archives now start at `1.9`.
+  The generator's parser and `src/overlay.ts`'s hardcoded value sets are only exercised against recent Quarto releases; the further back an archived minor goes, the less confidence there is that an old `--help` layout is read correctly, so the floor is pulled in until that is verified further back.
+
 ## 2026.08.05-2 (2026-08-05)
 
 ### Install
