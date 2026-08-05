@@ -55,3 +55,34 @@ jobs:
           echo "" >> notes.md
           gh release view "${TAG}" --json body --jq .body >> notes.md
           gh release edit "${TAG}" --notes-file notes.md
+
+  # The completions themselves, so a release can be installed offline or
+  # pinned by hand. The installers are unaffected: they always read the
+  # published site, never a release asset. Two archives of one tree rather
+  # than a file per channel, since every channel holds a file named _quarto.
+  upload-completions:
+    needs: release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Attach the completions to the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          TAG="$(gh api "repos/${{ github.repository }}/releases/latest" --jq .tag_name)"
+          # The checkout above is of the branch this ran from, which is behind
+          # the tag by the version bump the reusable workflow just committed.
+          git fetch --depth 1 origin "refs/tags/${TAG}:refs/tags/${TAG}"
+          git checkout "${TAG}" -- docs/completions
+          tar -czf "quarto-completions-${TAG}.tar.gz" -C docs completions
+          (cd docs && zip -qr "../quarto-completions-${TAG}.zip" completions)
+          # --clobber, so re-running this job over a release is not fatal.
+          gh release upload "${TAG}" \
+            "quarto-completions-${TAG}.tar.gz" \
+            "quarto-completions-${TAG}.zip" \
+            --clobber

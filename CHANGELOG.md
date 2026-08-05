@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### New Features
+
+- feat: attach the completions to every release, as `quarto-completions-<version>.tar.gz` and `.zip`, each holding one directory per channel with its manifest.
+  The installers are unchanged: they still read the published site, so the archives are for installing offline or pinning a version by hand.
+
 ### Bug Fixes
 
 - fix: stop zsh offering `-J`, `-M`, `-default-`, and the completion matcher itself as candidates beside a flag's or positional's values, such as the providers of `quarto publish`.
