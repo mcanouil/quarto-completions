@@ -11,7 +11,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Resolved before anything changes directory: the bash harness completes from a
 # fixture directory, so a relative path would no longer point anywhere.
-COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/stable}" && pwd)"
+COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/release}" && pwd)"
 
 # shellcheck source=tests/lib.sh
 . "${ROOT}/tests/lib.sh"

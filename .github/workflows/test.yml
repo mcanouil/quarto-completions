@@ -68,11 +68,25 @@ jobs:
       # checked by the Generate workflow, which opens a pull request when they
       # do not. Asserting it here would fail every unrelated pull request on the
       # day Quarto ships a release.
+      #
+      # Every directory under docs/completions is a channel, and the archived
+      # minors grow over time, so the loop discovers them rather than naming
+      # each one. Only the first gets the full check, per tests/syntax.sh's own
+      # comment: the installer and test lints do not read the completions
+      # directory, so repeating them per channel would only cost another cold
+      # PowerShell start.
       - name: Syntax and lint
         run: |
-          bash tests/syntax.sh docs/completions/stable
-          bash tests/syntax.sh docs/completions/prerelease --scripts-only
-          bash tests/syntax.sh docs/completions/dev --scripts-only
+          set -euo pipefail
+          first=1
+          for directory in docs/completions/*/; do
+            if [ "${first}" = "1" ]; then
+              bash tests/syntax.sh "${directory}"
+              first=0
+            else
+              bash tests/syntax.sh "${directory}" --scripts-only
+            fi
+          done
 
       # This sources the generated scripts in real bash, zsh, fish, and
       # PowerShell, and the dev channel among them is generated from
@@ -84,7 +98,7 @@ jobs:
       # is discarded after the job.
       - name: Functional completions
         run: |
-          bash tests/completions.sh docs/completions/stable
+          bash tests/completions.sh docs/completions/release
           bash tests/completions.sh docs/completions/dev
 
       - name: Render the site

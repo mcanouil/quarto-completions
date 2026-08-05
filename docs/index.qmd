@@ -62,7 +62,7 @@ The piped form cannot take arguments in PowerShell, so each one also reads an en
 | Option | Environment variable | Effect |
 | --- | --- | --- |
 | `--shell` | `QUARTO_COMPLETIONS_SHELL` | Which shell to install for, on macOS and Linux. |
-| `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `stable` (default), `prerelease`, or `dev`. Chosen automatically as `dev` when the `quarto` on `PATH` reports version `99.9.9`. |
+| `--channel` | `QUARTO_COMPLETIONS_CHANNEL` | `release` (default), `pre-release`, `dev`, or a Quarto minor such as `1.9`. With none given, the installer matches your Quarto's own minor when it is published, falling back to `release`; chosen automatically as `dev` when the `quarto` on `PATH` reports version `99.9.9`. |
 | `--dry-run` | | Report every path that would change, then exit. |
 | `--uninstall` | `QUARTO_COMPLETIONS_UNINSTALL=1` | Remove the script and the managed block. |
 | `--base-url` | `QUARTO_COMPLETIONS_BASE_URL` | Where to fetch from, which is this site unless you are testing a copy of it. |
@@ -107,5 +107,5 @@ It outlives the run that needed it, and the piped form takes no arguments that c
 Formats and shortcodes supplied by installed extensions are not completed.
 Reading them would mean running Quarto on every keystroke, which is the cost this project exists to remove.
 
-Commands Quarto hides from `quarto --help`, such as `dev-call`, are left out of the `stable` and `prerelease` channels on purpose: they do not appear in that help output either.
+Commands Quarto hides from `quarto --help`, such as `dev-call`, are left out of the `release`, `pre-release`, and minor channels on purpose: they do not appear in that help output either.
 They are completed on a `dev` channel instead; see [Channels](shells.qmd#channels).

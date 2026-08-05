@@ -103,7 +103,7 @@ function Invoke-Installer {
   param([string]$BaseUrl, [string[]]$Arguments = @(), [switch]$SkipChannelPin)
 
   $env:QUARTO_COMPLETIONS_PROFILE = $profilePath
-  # Pinned to 'stable' unconditionally, matching tests/install.sh's pin for
+  # Pinned to 'release' unconditionally, matching tests/install.sh's pin for
   # bash, unless the caller already named a channel on the command line, or
   # passes -SkipChannelPin because it is itself exercising
   # QUARTO_COMPLETIONS_CHANNEL and needs the ambient environment to reach the
@@ -112,7 +112,7 @@ function Invoke-Installer {
   # the suite from depending on whatever channel a developer's shell happens
   # to have exported, or on whatever quarto happens to be on PATH.
   if (-not $SkipChannelPin -and $Arguments -notcontains '-Channel') {
-    $Arguments = @('-Channel', 'stable') + $Arguments
+    $Arguments = @('-Channel', 'release') + $Arguments
   }
   & pwsh -NoProfile -File $installer -BaseUrl $BaseUrl @Arguments 2>&1 | Out-String
 }
@@ -140,7 +140,7 @@ function Write-QuartoShimVersion {
 # suite), or with that real one stripped out entirely when $QuartoPath is
 # empty, standing in for a machine with none.
 function Invoke-InstallerWithQuarto {
-  param([string]$BaseUrl, [string]$QuartoPath, [string[]]$Arguments = @())
+  param([string]$BaseUrl, [string]$QuartoPath, [string[]]$Arguments = @(), [switch]$SkipChannelPin)
 
   $separator = [System.IO.Path]::PathSeparator
   $original = $env:PATH
@@ -156,7 +156,7 @@ function Invoke-InstallerWithQuarto {
             Where-Object { $_ -ne $realDirectory }) -join $separator
       }
     }
-    Invoke-Installer -BaseUrl $BaseUrl -Arguments $Arguments
+    Invoke-Installer -BaseUrl $BaseUrl -Arguments $Arguments -SkipChannelPin:$SkipChannelPin
   }
   finally {
     $env:PATH = $original
@@ -185,7 +185,7 @@ function Start-Site {
     -RedirectStandardOutput "$log.out" -RedirectStandardError "$log.err"
   foreach ($attempt in 1..60) {
     try {
-      Invoke-RestMethod -Uri "http://127.0.0.1:$On/completions/stable/manifest.json" -UseBasicParsing | Out-Null
+      Invoke-RestMethod -Uri "http://127.0.0.1:$On/completions/release/manifest.json" -UseBasicParsing | Out-Null
       return $server
     }
     catch {
@@ -236,7 +236,7 @@ try {
   $env:QUARTO_COMPLETIONS_CHANNEL = 'nonsense'
   try {
     $output = Invoke-Installer -BaseUrl $baseUrl -SkipChannelPin
-    if ($LASTEXITCODE -ne 0 -and $output -match "'stable', 'prerelease', or 'dev'") {
+    if ($LASTEXITCODE -ne 0 -and $output -match "'release', 'pre-release', 'dev'") {
       Test-Pass 'an unknown channel from the environment is refused'
     }
     else {
@@ -250,13 +250,13 @@ try {
   # A download that no longer matches the manifest is refused.
   $tampered = Join-Path $scratch 'tampered'
   Copy-Item -Recurse -LiteralPath $Site -Destination $tampered
-  Add-Content -LiteralPath (Join-Path $tampered 'completions/stable/quarto.ps1') -Value '# tampered'
+  Add-Content -LiteralPath (Join-Path $tampered 'completions/release/quarto.ps1') -Value '# tampered'
   $tamperedServer = Start-Site -Directory $tampered -On ($Port + 1)
   try {
-    # -Channel stable is explicit here: this asserts on the file tampered
+    # -Channel release is explicit here: this asserts on the file tampered
     # above, and the default channel would otherwise follow whatever quarto
     # happens to be on the machine running the suite.
-    $output = Invoke-Installer -BaseUrl "http://127.0.0.1:$($Port + 1)" -Arguments @('-Channel', 'stable')
+    $output = Invoke-Installer -BaseUrl "http://127.0.0.1:$($Port + 1)" -Arguments @('-Channel', 'release')
     if ($LASTEXITCODE -ne 0 -and $output -match 'Checksum mismatch') {
       Test-Pass 'a checksum mismatch is refused'
     }
@@ -360,7 +360,7 @@ try {
   $before = (Get-FileHash -LiteralPath $untouchedProfile -Algorithm SHA256).Hash
   $env:QUARTO_COMPLETIONS_PROFILE = $untouchedProfile
   try {
-    & pwsh -NoProfile -File $installer -BaseUrl $baseUrl -Channel stable -Uninstall 2>&1 | Out-String | Out-Null
+    & pwsh -NoProfile -File $installer -BaseUrl $baseUrl -Channel release -Uninstall 2>&1 | Out-String | Out-Null
   }
   finally {
     $env:QUARTO_COMPLETIONS_PROFILE = $profilePath
@@ -369,8 +369,8 @@ try {
   if ($before -eq $after) { Test-Pass 'a profile with no block is left byte for byte alone' }
   else { Test-Fail 'a profile with no block is left byte for byte alone' 'the profile was rewritten' }
 
-  # -Channel dev fetches from the dev channel published alongside stable and
-  # prerelease: generated from a 99.9.9 quarto-cli source build, and the only
+  # -Channel dev fetches from the dev channel published alongside release and
+  # pre-release: generated from a 99.9.9 quarto-cli source build, and the only
   # one that carries the hidden commands (dev-call and the rest). The channel
   # only changes which URL is fetched, not where the script is installed, so
   # this lands at the same $completionPath as every install above.
@@ -380,6 +380,20 @@ try {
   Assert-FilePresent 'dev channel: script installed' $completionPath
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', 'dev', '-Uninstall') | Out-Null
 
+  # -Channel 1.9 fetches an archived minor, published alongside release,
+  # pre-release, and dev: generated from that line's newest patch.
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', '1.9')
+  if ($LASTEXITCODE -eq 0) { Test-Pass 'a version channel install succeeds' }
+  else { Test-Fail 'a version channel install succeeds' $output }
+  Assert-FilePresent 'version channel: script installed' $completionPath
+  Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', '1.9', '-Uninstall') | Out-Null
+
+  # A channel naming anything but a bare major.minor is refused the same way
+  # an unrecognised word is.
+  $output = Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Channel', '1.9.3')
+  if ($LASTEXITCODE -ne 0) { Test-Pass 'a three-part version channel is refused' }
+  else { Test-Fail 'a three-part version channel is refused' $output }
+
   # The version advisory compares the manifest's Quarto version against
   # whatever quarto reports on PATH. Mirrors the shim-based cases in
   # tests/install.sh; the older-version and patch-only-difference cases are
@@ -387,29 +401,52 @@ try {
   $quartoShimDirectory = Join-Path $scratch 'quarto-shim'
   New-Item -ItemType Directory -Path $quartoShimDirectory -Force | Out-Null
 
-  $stableManifest = Get-Content -Raw (Join-Path $Site 'completions/stable/manifest.json') | ConvertFrom-Json
-  $stableParts = $stableManifest.quartoVersion -split '\.'
-  $stableMajor = [int]$stableParts[0]
-  $stableMinor = [int]$stableParts[1]
+  $releaseManifest = Get-Content -Raw (Join-Path $Site 'completions/release/manifest.json') | ConvertFrom-Json
+  $releaseParts = $releaseManifest.quartoVersion -split '\.'
+  $releaseMajor = [int]$releaseParts[0]
+  $releaseMinor = [int]$releaseParts[1]
 
-  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$stableMinor.0"
-  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$releaseMajor.$releaseMinor.0"
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'release')
   if ($output -notmatch 'than these completions') { Test-Pass 'advisory: a matching major.minor says nothing' }
   else { Test-Fail 'advisory: a matching major.minor says nothing' $output }
 
-  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$stableMajor.$($stableMinor + 1).0"
-  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
-  if ($output -match [regex]::Escape('-Channel prerelease')) { Test-Pass 'advisory: a newer Quarto names -Channel prerelease' }
-  else { Test-Fail 'advisory: a newer Quarto names -Channel prerelease' $output }
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version "$releaseMajor.$($releaseMinor + 1).0"
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'release')
+  if ($output -match [regex]::Escape('-Channel pre-release')) { Test-Pass 'advisory: a newer Quarto names -Channel pre-release' }
+  else { Test-Fail 'advisory: a newer Quarto names -Channel pre-release' $output }
 
   Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '99.9.9'
-  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'stable')
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @('-Channel', 'release')
   if ($output -notmatch 'than these completions') { Test-Pass 'advisory: the dev sentinel says nothing' }
   else { Test-Fail 'advisory: the dev sentinel says nothing' $output }
 
-  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath '' -Arguments @('-Channel', 'stable')
+  $output = Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath '' -Arguments @('-Channel', 'release')
   if ($output -notmatch 'than these completions') { Test-Pass 'advisory: no quarto on PATH says nothing' }
   else { Test-Fail 'advisory: no quarto on PATH says nothing' $output }
+
+  # With no -Channel named, a local Quarto whose own minor is published (1.9,
+  # backfilled alongside release) is installed instead of release.
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '1.9.2'
+  $output = Get-FlatOutput (Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @() -SkipChannelPin)
+  if ($output -match [regex]::Escape('(1.9 channel)') -and $output -notmatch 'installing the release channel instead') {
+    Test-Pass 'auto-detect: a published local minor is installed'
+  }
+  else {
+    Test-Fail 'auto-detect: a published local minor is installed' $output
+  }
+
+  # A local minor with nothing published (1.5 is older than every backfilled
+  # archive) falls back to release, and says so.
+  Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '1.5.0'
+  $output = Get-FlatOutput (Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @() -SkipChannelPin)
+  if ($output -match 'No published completions for Quarto 1.5; installing the release channel instead' -and
+    $output -match [regex]::Escape('(release channel)')) {
+    Test-Pass 'auto-detect: an unpublished local minor falls back to release'
+  }
+  else {
+    Test-Fail 'auto-detect: an unpublished local minor falls back to release' $output
+  }
 
   Invoke-Installer -BaseUrl $baseUrl -Arguments @('-Uninstall') | Out-Null
 }

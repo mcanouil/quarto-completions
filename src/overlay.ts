@@ -251,7 +251,7 @@ export const overlay: Record<string, CommandOverride> = {
   },
   // Everything below is hidden from `quarto --help` and only ever appears on
   // the `dev` channel; see `kHiddenCommands` in `src/introspect.ts`. Inert on
-  // `stable` and `prerelease`, where none of these commands is in the tree.
+  // every other channel, where none of these commands is in the tree.
   "inspect": {
     args: {
       path: { kind: "file" },

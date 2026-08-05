@@ -37,8 +37,9 @@ The generator runs on Quarto's own embedded runtime, so a Quarto installation is
 ```bash
 quarto run src/generate.ts                    # regenerate docs/completions/
 quarto run src/generate.ts --check            # fail if the committed output is stale
-quarto run src/generate.ts --channel prerelease
+quarto run src/generate.ts --channel pre-release
 quarto run src/generate.ts --channel dev --quarto /path/to/a/99.9.9/build/quarto
+quarto run src/generate.ts --channel 1.9 --quarto /path/to/a/1.9.x/build/quarto
 ```
 
 Each channel also publishes `spec.json`, the enriched command surface the emitters read, alongside `manifest.json` and the four scripts.
@@ -61,7 +62,8 @@ The full matrix runs on Linux, macOS, and Windows in CI.
 ## Limitations
 
 - Formats and shortcodes contributed by installed extensions are not completed: reading them would mean running Quarto on every keystroke.
-- Commands Quarto hides from `quarto --help`, such as `dev-call`, are excluded from the `stable` and `prerelease` channels for the same reason they are excluded from that help output. They are completed on a third `dev` channel instead, generated from a Quarto source build and selected automatically when the `quarto` on `PATH` reports version `99.9.9`. See [Channels](https://m.canouil.dev/quarto-completions/shells.html#channels).
+- Commands Quarto hides from `quarto --help`, such as `dev-call`, are excluded from the `release`, `pre-release`, and per-minor channels for the same reason they are excluded from that help output. They are completed on a separate `dev` channel instead, generated from a Quarto source build and selected automatically when the `quarto` on `PATH` reports version `99.9.9`. See [Channels](https://m.canouil.dev/quarto-completions/shells.html#channels).
+- An archived per-minor channel reads flags, commands, and arguments from that old Quarto's own `--help`, but a handful of value sets `src/overlay.ts` cannot read that way, such as `--to`'s output formats, come from the current Quarto instead, so an archive can occasionally offer a value its own Quarto does not accept.
 
 ## Licence
 

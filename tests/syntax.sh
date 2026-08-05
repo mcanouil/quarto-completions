@@ -13,7 +13,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/stable}" && pwd)"
+COMPLETIONS="$(cd "${1:-${ROOT}/docs/completions/release}" && pwd)"
 SCRIPTS_ONLY=0
 [ "${2:-}" = "--scripts-only" ] && SCRIPTS_ONLY=1
 
@@ -56,6 +56,8 @@ if [ "${SCRIPTS_ONLY}" = "0" ]; then
     "${ROOT}/tests/install.sh" \
     "${ROOT}/tests/lib.sh" \
     "${ROOT}/tests/syntax.sh"
+  check "scripts pass shellcheck" shellcheck shellcheck "${ROOT}/scripts/archive-minor.sh"
+  check "scripts are formatted" shfmt shfmt -d -i 2 -ci "${ROOT}/scripts/archive-minor.sh"
   # -Path takes one string, so the scripts are piped rather than passed as a list.
   check "PowerShell scripts pass PSScriptAnalyzer" pwsh pwsh -NoProfile -Command \
     "@('${PS_ROOT}/docs/install.ps1', '${PS_ROOT}/tests/install.ps1') | ForEach-Object { Invoke-ScriptAnalyzer -Path \$_ -EnableExit -Severity Error,Warning }"

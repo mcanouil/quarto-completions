@@ -1,7 +1,7 @@
 /**
  * Generates the completion scripts.
  *
- *     quarto run src/generate.ts [--quarto <path>] [--channel stable|prerelease|dev]
+ *     quarto run src/generate.ts [--quarto <path>] [--channel release|pre-release|dev|<major.minor>]
  *                                [--out <dir>] [--check]
  *
  * `--check` writes nothing and exits non-zero when the committed output differs
@@ -23,11 +23,12 @@ import { emitBash } from "./emit/bash.ts";
 import { emitFish } from "./emit/fish.ts";
 import { emitPwsh } from "./emit/pwsh.ts";
 import { emitZsh } from "./emit/zsh.ts";
-import type { Spec } from "./spec.ts";
+import { isVersionChannel } from "./spec.ts";
+import type { Channel, Spec } from "./spec.ts";
 
 interface Options {
   quarto: string;
-  channel: Spec["channel"];
+  channel: Channel;
   out: string;
   check: boolean;
 }
@@ -35,7 +36,7 @@ interface Options {
 export function parseArgs(args: string[]): Options {
   const options: Options = {
     quarto: "quarto",
-    channel: "stable",
+    channel: "release",
     out: "docs/completions",
     check: false,
   };
@@ -59,8 +60,10 @@ export function parseArgs(args: string[]): Options {
         break;
       case "--channel": {
         const channel = value(++index);
-        if (channel !== "stable" && channel !== "prerelease" && channel !== "dev") {
-          throw new Error(`--channel must be stable, prerelease, or dev, got '${channel}'`);
+        if (channel !== "release" && channel !== "pre-release" && channel !== "dev" && !isVersionChannel(channel)) {
+          throw new Error(
+            `--channel must be release, pre-release, dev, or a Quarto minor such as '1.9', got '${channel}'`,
+          );
         }
         options.channel = channel;
         break;

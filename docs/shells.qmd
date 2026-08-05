@@ -32,7 +32,7 @@ curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash
 
 | What | Where |
 | --- | --- |
-| Script | [`completions/stable/quarto.bash`](completions/stable/quarto.bash) |
+| Script | [`completions/release/quarto.bash`](completions/release/quarto.bash) |
 | Installed to | `$XDG_DATA_HOME/bash-completion/completions/quarto` when that directory exists, otherwise `$XDG_DATA_HOME/quarto-completions/quarto.bash` |
 | Configuration | None in the first case, a `source` line in `~/.bashrc` in the second |
 
@@ -47,7 +47,7 @@ Manual install:
 
 ```bash
 mkdir -p ~/.local/share/quarto-completions
-curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.bash \
+curl -fsSL https://m.canouil.dev/quarto-completions/completions/release/quarto.bash \
   -o ~/.local/share/quarto-completions/quarto.bash
 echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/quarto-completions/quarto.bash' >> ~/.bashrc
 ```
@@ -58,7 +58,7 @@ echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/q
 
 | What | Where |
 | --- | --- |
-| Script | [`completions/stable/_quarto`](completions/stable/_quarto) |
+| Script | [`completions/release/_quarto`](completions/release/_quarto) |
 | Installed to | The first that applies: `$ZSH_CUSTOM/completions/_quarto` under Oh My Zsh, `$HOMEBREW_PREFIX/share/zsh/site-functions/_quarto` under Homebrew, otherwise `~/.zfunc/_quarto` |
 | Configuration | None in the first two cases, an `fpath` line in `~/.zshrc` followed by `compinit` in the third |
 
@@ -86,7 +86,7 @@ Manual install:
 
 ```zsh
 mkdir -p ~/.zfunc
-curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/_quarto \
+curl -fsSL https://m.canouil.dev/quarto-completions/completions/release/_quarto \
   -o ~/.zfunc/_quarto
 ```
 
@@ -98,7 +98,7 @@ Under Oh My Zsh, write it to `~/.oh-my-zsh/custom/completions/_quarto` instead, 
 
 | What | Where |
 | --- | --- |
-| Script | [`completions/stable/quarto.fish`](completions/stable/quarto.fish) |
+| Script | [`completions/release/quarto.fish`](completions/release/quarto.fish) |
 | Installed to | `$XDG_CONFIG_HOME/fish/completions/quarto.fish` |
 | Configuration | None |
 
@@ -110,7 +110,7 @@ Manual install:
 
 ```fish
 mkdir -p ~/.config/fish/completions
-curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.fish \
+curl -fsSL https://m.canouil.dev/quarto-completions/completions/release/quarto.fish \
   -o ~/.config/fish/completions/quarto.fish
 ```
 
@@ -120,7 +120,7 @@ curl -fsSL https://m.canouil.dev/quarto-completions/completions/stable/quarto.fi
 
 | What | Where |
 | --- | --- |
-| Script | [`completions/stable/quarto.ps1`](completions/stable/quarto.ps1) |
+| Script | [`completions/release/quarto.ps1`](completions/release/quarto.ps1) |
 | Installed to | `Completions/quarto.ps1` beside `$PROFILE.CurrentUserAllHosts` |
 | Configuration | A dot-source line in `$PROFILE.CurrentUserAllHosts` |
 
@@ -134,24 +134,29 @@ Manual install:
 $directory = Join-Path (Split-Path -Parent $PROFILE.CurrentUserAllHosts) 'Completions'
 New-Item -ItemType Directory -Path $directory -Force | Out-Null
 Invoke-WebRequest `
-  -Uri https://m.canouil.dev/quarto-completions/completions/stable/quarto.ps1 `
+  -Uri https://m.canouil.dev/quarto-completions/completions/release/quarto.ps1 `
   -OutFile (Join-Path $directory 'quarto.ps1')
 Add-Content -Path $PROFILE.CurrentUserAllHosts -Value ". `"$directory\quarto.ps1`""
 ```
 
 ## Channels
 
-Every script is published for three channels:
+Every script is published for four kinds of channel:
 
-- `stable`, generated from the current Quarto release.
-- `prerelease`, generated from the current Quarto prerelease.
+- `release`, generated from the current Quarto release.
+- `pre-release`, generated from the current Quarto pre-release.
 - `dev`, generated from a Quarto source build at `quarto-dev/quarto-cli`'s `main`.
+- One directory per released Quarto minor, from `1.6` onwards, e.g. `1.9`: an archive generated from that line's newest patch, published once a later minor replaces it as `release`.
 
-Swap `stable` for `prerelease` or `dev` in any URL above, or pass `--channel prerelease` or `--channel dev` to the installer.
-The installer also selects `dev` on its own, with no flag needed, when the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports and a release never does.
+Swap `release` for `pre-release`, `dev`, or a minor such as `1.9` in any URL above, or pass `--channel pre-release`, `--channel dev`, or `--channel 1.9` to the installer.
+With no `--channel` given, the installer matches the `quarto` on `PATH` to its own minor when that is published, and falls back to `release` otherwise; it selects `dev` instead, with no flag needed, when that `quarto` reports version `99.9.9`, which is what a source build reports and a release never does.
 
 The `dev` channel additionally completes the commands Quarto hides from its own `--help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`.
 Several of those exist on release builds too, just hidden from view, so installing `--channel dev` deliberately on a release Quarto is a reasonable choice; its surface then tracks `quarto-cli`'s `main` rather than the release you run.
+
+A minor channel is generated the same way as `release`, just against an older Quarto: flags, commands, and arguments come from that binary's own `--help`, so they are exactly what it has.
+The one exception is a handful of value sets `src/overlay.ts` cannot read from `--help` at all, such as `--to`'s output formats and `publish`'s providers: those come from the current Quarto, so an archived channel can occasionally offer a value its own Quarto does not accept.
+The most recently archived minor is refreshed weekly against a late patch; older ones are frozen once archived.
 
 Each channel also publishes a `spec.json`, the enriched command surface the four scripts are emitted from, for anything that would rather read the commands, flags, and values as data than parse a completion script.
 No shell loads it, and the installers never fetch it.
