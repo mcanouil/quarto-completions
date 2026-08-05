@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Install
+
+macOS and Linux:
+
+```bash
+curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash
+```
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
+```
+
 ### New Features
 
 - feat: publish an archived channel for every Quarto minor from `1.6` onward, generated from that line's newest patch.
