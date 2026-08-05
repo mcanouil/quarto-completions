@@ -36,6 +36,9 @@ powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completi
 
 Start a new shell afterwards, and the completions are live.
 
+To install offline, or to pin a version, every [release](https://github.com/mcanouil/quarto-completions/releases) carries the completions as a `.tar.gz` and a `.zip`, one directory per channel.
+The installers themselves always read the latest published files, never a release asset.
+
 ## What it completes
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="What it completes"}
