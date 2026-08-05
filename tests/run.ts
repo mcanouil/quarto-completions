@@ -11,6 +11,7 @@
 import { assert, assertEquals, assertExcludes, assertIncludes } from "./assert.ts";
 import {
   assertChannelMatchesVersion,
+  childEnv,
   firstSentence,
   hiddenChildrenFor,
   kDevVersion,
@@ -563,6 +564,23 @@ const tests: Record<string, () => void> = {
     }
     assertIncludes(message, kDevVersion);
     assertIncludes(message, "1.9");
+  },
+
+  "a spawned quarto's environment strips every QUARTO_* variable"() {
+    // The bug this guards: a generator running inside its own quarto launcher
+    // already has QUARTO_BIN_PATH, QUARTO_DENO, QUARTO_SHARE_PATH, and
+    // QUARTO_ROOT set to its own paths. Left in a spawned child's environment,
+    // an archived binary being introspected skips computing its own and
+    // silently answers --help for the wrong version instead.
+    const env = childEnv({
+      QUARTO_BIN_PATH: "/opt/quarto-1.10.18/bin",
+      QUARTO_DENO: "/opt/quarto-1.10.18/bin/tools/x86_64/deno",
+      QUARTO_SHARE_PATH: "/opt/quarto-1.10.18/share",
+      QUARTO_ROOT: "/opt/quarto-1.10.18",
+      PATH: "/usr/bin:/bin",
+      HOME: "/home/runner",
+    });
+    assertEquals(env, { PATH: "/usr/bin:/bin", HOME: "/home/runner", NO_COLOR: "1" });
   },
 
   "a seeded description is cut to its first sentence"() {

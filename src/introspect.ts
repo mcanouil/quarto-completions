@@ -461,8 +461,8 @@ function parseUsage(help: string, path: string[]): ArgSpec[] {
  * `scripts/archive-minor.sh`) work at all; inheriting the rest keeps `PATH`,
  * `HOME`, and everything else the launcher and `deno` still need.
  */
-function childEnv(): Record<string, string> {
-  const env = Deno.env.toObject();
+export function childEnv(source: Record<string, string> = Deno.env.toObject()): Record<string, string> {
+  const env = { ...source };
   for (const key of Object.keys(env)) {
     if (key.startsWith("QUARTO")) {
       delete env[key];

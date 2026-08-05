@@ -30,6 +30,10 @@ Resolves the newest non-prerelease patch of the given Quarto minor,
 downloads and verifies its Linux tarball, and regenerates that channel's
 completions from it, using the Quarto already on PATH to run the generator.
 
+Only the linux-amd64 tarball is fetched, so this needs a Linux x86_64
+host, or a container of one on any other machine (e.g. `docker run
+--platform linux/amd64 ...`).
+
 Requires: gh (authenticated), curl, sha256sum or shasum, tar, quarto.
 EOF
 }
@@ -60,6 +64,16 @@ while [ $# -gt 0 ]; do
 done
 
 [[ "${MINOR}" =~ ^[0-9]+\.[0-9]+$ ]] || fail "expected a Quarto minor such as '1.9', got '${MINOR:-none}' (try --help)"
+
+# Only a linux-amd64 tarball is ever fetched below. Checked before anything
+# is downloaded, or a mismatch here surfaces as the extracted binary failing
+# to exec near the end of the run, which says nothing about the real cause.
+[ "$(uname -s)" = "Linux" ] || fail "needs a Linux host (got '$(uname -s)'); run this inside a linux/amd64 container instead"
+case "$(uname -m)" in
+  x86_64 | amd64) ;;
+  *) fail "needs an x86_64 host (got '$(uname -m)'); run this inside a linux/amd64 container instead" ;;
+esac
+
 command -v gh >/dev/null 2>&1 || fail "gh is required"
 command -v curl >/dev/null 2>&1 || fail "curl is required"
 command -v quarto >/dev/null 2>&1 || fail "quarto is required to run the generator"

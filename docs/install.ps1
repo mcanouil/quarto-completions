@@ -109,9 +109,10 @@ function Script:Get-VersionMajorMinor {
 function Script:Test-ChannelPublished {
   param([Parameter(Mandatory)][string]$Channel)
 
+  # A plain GET, not -Method Head: matches docs/install.sh's own probe, which
+  # avoids HEAD since not every static host handles it the same as a GET.
   try {
-    Invoke-WebRequest -Uri "$($script:BaseUrl)/completions/$Channel/manifest.json" -Method Head -UseBasicParsing |
-      Out-Null
+    Invoke-WebRequest -Uri "$($script:BaseUrl)/completions/$Channel/manifest.json" -UseBasicParsing | Out-Null
     return $true
   }
   catch {
