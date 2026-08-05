@@ -231,6 +231,93 @@ version_advice() {
   fi
 }
 
+# The one line naming a command that will actually load what was just
+# installed, and the note bash needs when nothing on this machine would read
+# the rc file the managed block went into.
+#
+# `exec <shell>`, never `exec <shell> -l`. A login bash reads ~/.bash_profile,
+# ~/.bash_login, or ~/.profile, and never falls back to the ~/.bashrc written
+# above, so `-l` was advice that loaded nothing at all. zsh reads ~/.zshrc for
+# every interactive shell and fish autoloads its own directory, so a login
+# shell buys those two nothing either.
+#
+# Only the first of the three files that exists is inspected, because that is
+# the only one a login bash reads: a .profile that sources .bashrc is dead
+# code under a .bash_profile that does not. The grep is for any mention of
+# bashrc rather than an exact source line, so a profile that reaches it
+# through its own phrasing is not nagged; one that reaches it through a file
+# of its own is, and that spurious note costs a line where the missed one
+# cost the completions. Nothing is written either way: the profile's contents
+# are the user's, and creating one would be a path outside those --dry-run
+# promises.
+reload_advice() {
+  local profile
+  log "Start a new shell, or run: exec ${TARGET_SHELL}"
+
+  [ "${TARGET_SHELL}" = "bash" ] || return 0
+  [ -n "${RC_FILE}" ] || return 0
+
+  for profile in "${HOME}/.bash_profile" "${HOME}/.bash_login" "${HOME}/.profile"; do
+    [ -f "${profile}" ] || continue
+    if ! grep -q "bashrc" "${profile}" 2>/dev/null; then
+      log "Your ~${profile#"${HOME}"} does not mention ~/.bashrc, so a login bash, which is what a macOS terminal opens, will not read ${RC_FILE}."
+      log "Add to it: [ -r ~/.bashrc ] && . ~/.bashrc"
+    fi
+    return 0
+  done
+
+  log "You have no ~/.bash_profile, so a login bash, which is what a macOS terminal opens, will not read ${RC_FILE}."
+  log "Create one containing: [ -r ~/.bashrc ] && . ~/.bashrc"
+}
+
+# The stamp every generated script carries, as "<version> <channel>", or
+# nothing when the file has none.
+#
+# Read out of the first few lines, which is the one place the header is
+# written. Scanning the whole script would also match anything a future
+# emitter happened to put in a description.
+#
+# An unreadable file is answered with silence rather than an error. This runs
+# on the last line of an install that has already succeeded, and a completion
+# left in a prefix by another user is not reason enough to fail it, exactly as
+# the sweep in remove_stale reports what it cannot delete and carries on.
+installed_stamp() {
+  # $1: the completion file
+  [ -r "$1" ] || return 0
+  sed -n '1,5{s/^# Quarto \([^ ][^ ]*\) (\([a-z][a-z]*\) channel)\.$/\1 \2/p;}' "$1" 2>/dev/null
+}
+
+# One line per other shell whose completions came from a different Quarto or a
+# different channel than the one just installed.
+#
+# An install maintains the single shell $SHELL named, so the shell the user
+# actually types in can sit on an old channel indefinitely with a successful
+# install on screen and nothing connecting the two.
+#
+# A file carrying no stamp is left alone: this installer did not write it, and
+# reporting someone's hand-written completion as stale on every run would be
+# worse than saying nothing.
+other_shell_advice() {
+  # $1: the manifest version just installed
+  local shell location stamp
+  for shell in bash zsh fish; do
+    [ "${shell}" != "${TARGET_SHELL}" ] || continue
+    while IFS= read -r location; do
+      [ -n "${location}" ] || continue
+      [ -f "${location}" ] || continue
+      stamp="$(installed_stamp "${location}")"
+      [ -n "${stamp}" ] || continue
+      [ "${stamp}" != "$1 ${CHANNEL}" ] || continue
+      log ""
+      log "${shell} also has completions at ${location} (Quarto ${stamp%% *}, ${stamp##* } channel)."
+      log "Run again with --shell ${shell} to update them."
+      break
+    done <<EOF
+$(known_targets_for "${shell}")
+EOF
+  done
+}
+
 script_name_for() {
   case "$1" in
     bash) echo "quarto.bash" ;;
@@ -686,7 +773,8 @@ do_install() {
   log ""
   log "Quarto ${manifest} completions for ${TARGET_SHELL} (${CHANNEL} channel)."
   version_advice "${manifest}" "${LOCAL_QUARTO_VERSION}" "${CHANNEL}"
-  log "Start a new shell, or run: exec ${TARGET_SHELL} -l"
+  reload_advice
+  other_shell_advice "${manifest}"
 }
 
 # Everything an uninstall would touch: the scripts, and the rc file when it

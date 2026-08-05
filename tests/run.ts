@@ -223,6 +223,18 @@ const tests: Record<string, () => void> = {
     });
   },
 
+  "every script stamps its Quarto version and channel in one parsable line"() {
+    // install.sh reads this line out of the scripts already on disk to tell a
+    // user which of their shells is holding a stale completion, so its shape
+    // is an interface rather than a comment. Rewording it silently turns that
+    // advice off.
+    const spec = enrich(fixtureSpec());
+    const stamp = "# Quarto 1.10.18 (stable channel).";
+    for (const output of [emitBash(spec), emitZsh(spec), emitFish(spec), emitPwsh(spec)]) {
+      assertIncludes(output, `\n${stamp}\n`);
+    }
+  },
+
   "bash registers a completion function"() {
     const output = emitBash(enrich(fixtureSpec()));
     assertIncludes(output, "complete -o bashdefault -o default -F _quarto quarto");
