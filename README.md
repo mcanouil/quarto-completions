@@ -64,4 +64,9 @@ The full matrix runs on Linux, macOS, and Windows in CI.
 
 ## Licence
 
-MIT. See [LICENSE](LICENSE).
+This project is licensed under the MIT License.
+See the [LICENSE](LICENSE) file for details.
+
+## Disclaimer
+
+This extension is not affiliated with or endorsed by [Quarto](https://quarto.org) or its maintainers.
