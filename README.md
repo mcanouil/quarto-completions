@@ -21,9 +21,11 @@ Windows:
 powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
 ```
 
-The shell is detected from `$SHELL`; pass `--shell bash|zsh|fish` to override it.
-Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory; nothing needs root.
-Add `--dry-run` to see the paths first, or `--uninstall` to remove that shell's install; repeat with `--shell` for each shell you installed.
+The macOS and Linux installer detects the shell from `$SHELL`; pass `--shell bash|zsh|fish` to override it.
+The Windows installer takes no such option, since PowerShell is the only shell it serves.
+Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory; nothing needs root, and nothing is written with `sudo`.
+Each file is checked against the SHA-256 published in the channel's `manifest.json` before it is written, and any shell configuration edit is kept inside a managed block that re-running replaces.
+Add `--dry-run` to see the paths first, `--uninstall` to remove that shell's install, or `--help` for the full list; repeat with `--shell` for each shell you installed.
 If the `quarto` on your `PATH` does not match the completions being installed, the installer says so.
 
 ## How it works
@@ -38,6 +40,7 @@ quarto run src/generate.ts --channel prerelease
 quarto run src/generate.ts --channel dev --quarto /path/to/a/99.9.9/build/quarto
 ```
 
+Each channel also publishes `spec.json`, the enriched command surface the emitters read, alongside `manifest.json` and the four scripts.
 Generated scripts, the installers, and the documentation website all live under `docs/`, which is what GitHub Pages publishes.
 
 ## Tests

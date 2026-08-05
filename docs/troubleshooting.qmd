@@ -23,9 +23,10 @@ curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --dr
 ## zsh completes filenames instead of commands
 
 zsh only loads a completion function once `compinit` has run, and only from a directory that was on `fpath` at that point.
-The managed block is appended to `~/.zshrc`, so it runs after any `compinit` you call yourself, and it calls `compinit -i` of its own to pick up what it has just added.
+Where the file lands in `~/.zfunc`, the managed block is appended to `~/.zshrc`, so it runs after any `compinit` you call yourself, and it calls `compinit -i` of its own to pick up what it has just added.
+Under Oh My Zsh and under Homebrew there is no managed block, because the directory the file goes to is already on `fpath`.
 
-Under Oh My Zsh there is no managed block at all: the file goes to `$ZSH_CUSTOM/completions`, which Oh My Zsh puts on `fpath` before running `compinit`.
+Under Oh My Zsh the file goes to `$ZSH_CUSTOM/completions`, which Oh My Zsh puts on `fpath` before running `compinit`.
 Confirm the file is where that expects:
 
 ```zsh
