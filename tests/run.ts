@@ -341,6 +341,33 @@ const tests: Record<string, () => void> = {
     }
   },
 
+  "a --source-branch that names no branch is refused"() {
+    // An empty value reaches the stamp as '@<commit>', which reads as a branch
+    // whose name was lost rather than as a build nobody named a branch for.
+    let message = "";
+    try {
+      parseArgs(["--channel", "dev", "--source-branch", "", "--source-commit", kCommit]);
+    } catch (error) {
+      message = (error as Error).message;
+    }
+    assertIncludes(message, "--source-branch");
+  },
+
+  "a --source-branch carrying anything but a branch name is refused"() {
+    // The header is the one place a caller's own words reach a generated
+    // script, and only its first line is commented: a newline in this value
+    // would put the rest into bash, zsh, fish, and PowerShell as code.
+    for (const branch of ["main\nrm -rf /", "ma in", "main\ttip", "-main"]) {
+      let message = "";
+      try {
+        parseArgs(["--channel", "dev", "--source-branch", branch]);
+      } catch (error) {
+        message = (error as Error).message;
+      }
+      assertIncludes(message, "--source-branch", `--source-branch '${branch}' was not refused`);
+    }
+  },
+
   "a released channel is sourced from the tag its own version names"() {
     assertEquals(sourceFor(fixtureSpec(), parseArgs([])), { tag: "v1.10.18" });
   },

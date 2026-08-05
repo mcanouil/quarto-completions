@@ -96,9 +96,20 @@ export function parseArgs(args: string[]): Options {
       case "--mirror":
         options.mirror = true;
         break;
-      case "--source-branch":
-        options.branch = value(++index);
+      case "--source-branch": {
+        const branch = value(++index);
+        // The header is the one place a caller's own words reach a generated
+        // script, and only the first line of it is commented: a newline here
+        // would put the rest into bash, zsh, fish, and PowerShell as code.
+        // Held to the shape of a branch name, which also refuses an empty
+        // value, reaching the stamp as '@<commit>', and a mistyped flag read
+        // as the name it was meant to precede.
+        if (!/^[A-Za-z0-9][A-Za-z0-9._/-]*$/.test(branch)) {
+          throw new Error(`--source-branch must be a branch name, got '${branch}'`);
+        }
+        options.branch = branch;
         break;
+      }
       case "--source-commit": {
         const commit = value(++index);
         // Checked on the way in: a stamp reading 'main@HEAD' or naming a tag
