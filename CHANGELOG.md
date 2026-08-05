@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 2026.08.05 (2026-08-05)
+
 ### New Features
 
 - feat: complete Quarto CLI commands and flags in bash, zsh, fish, and PowerShell.
