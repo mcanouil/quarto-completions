@@ -94,6 +94,11 @@ filters:
   - code-window
   - gitlink
 
+# `{{< channels >}}` on the Shells page, reading `completions/` at render time.
+# The leading underscore keeps Quarto from treating the file as project input.
+shortcodes:
+  - _channels.lua
+
 extensions:
   atelier:
     # Quarto keeps the `website` block out of the metadata it hands to Lua
