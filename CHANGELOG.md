@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 2026.08.06 (2026-08-06)
+
 ### New Features
 
 - feat: publish the release and pre-release lines under their own minor as well, so `1.10` and `1.11` sit beside `release` and `pre-release` and every Quarto minor from `1.9` onwards has a channel that stays on one line.
