@@ -47,18 +47,18 @@ website:
   # that already open in a new tab.
   page-footer:
     left: |
-      Powered by [{{< iconify simple-icons:quarto aria-hidden=true >}} Quarto](https://quarto.org){target="_blank" rel="noopener noreferrer"}.
+      Powered by [{{< iconify simple-icons:quarto aria-hidden='true' >}} Quarto](https://quarto.org){target="_blank" rel="noopener noreferrer"}.
     center: |
-      &copy; []{#current-year} [Mickaël CANOUIL](https://mickael.canouil.fr){target="_blank" rel="noopener noreferrer"}. [{{< iconify octicon:heart-fill-16 aria-hidden=true >}} Sponsor](https://github.com/sponsors/mcanouil?o=esb){target="_blank" rel="noopener noreferrer"}.
+      &copy; []{#current-year} [Mickaël CANOUIL](https://mickael.canouil.fr){target="_blank" rel="noopener noreferrer"}. [{{< iconify octicon:heart-fill-16 aria-hidden='true' >}} Sponsor](https://github.com/sponsors/mcanouil?o=esb){target="_blank" rel="noopener noreferrer"}.
     right: |
       Licence: [MIT](https://github.com/mcanouil/quarto-completions?tab=MIT-1-ov-file#readme){target="_blank" rel="noopener noreferrer"}.
   navbar:
     left:
-      - text: "{{< iconify octicon:download-16 aria-hidden=true >}} Install"
+      - text: "{{< iconify octicon:download-16 aria-hidden='true' >}} Install"
         href: index.qmd
-      - text: "{{< iconify octicon:terminal-16 aria-hidden=true >}} Shells"
+      - text: "{{< iconify octicon:terminal-16 aria-hidden='true' >}} Shells"
         href: shells.qmd
-      - text: "{{< iconify octicon:question-16 aria-hidden=true >}} Troubleshooting"
+      - text: "{{< iconify octicon:question-16 aria-hidden='true' >}} Troubleshooting"
         href: troubleshooting.qmd
     right:
       - href: "#gitlink-widget"
