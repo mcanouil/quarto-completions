@@ -2,6 +2,10 @@ name: Pages
 
 on:
   pull_request:
+    # The reusable workflow skips a draft, and the default activity types fire
+    # nothing when a pull request leaves draft, so `ready_for_review` is what
+    # runs the render once the draft is lifted.
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "docs/**"
       - ".github/workflows/pages.yml"
@@ -24,7 +28,7 @@ permissions:
 
 jobs:
   pages:
-    uses: mcanouil/quarto-workflows/.github/workflows/pages.yml@v1
+    uses: mcanouil/quarto-workflows/.github/workflows/pages.yml@v2
     permissions:
       contents: read
       pages: write
