@@ -3,9 +3,21 @@ name: Test
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+    # The release workflow's `ci/bump-version` pull request touches these two
+    # files and nothing else, and neither is read by anything under test, so
+    # the matrix runs three times over a tree it has already passed on. Stated
+    # as paths rather than as an exemption for the app that opens it: what
+    # makes the run pointless is the contents of the diff, not its author, and
+    # a pull request that changes one of these alongside real work still runs.
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "CITATION.cff"
   push:
     branches:
       - main
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "CITATION.cff"
   workflow_dispatch:
 
 permissions:
@@ -56,15 +68,35 @@ jobs:
           echo "fb096c5d1ac6beabbdbaa2874d025badb03ee07929f0c9ff67563ce8c75398b1  /usr/local/bin/shfmt" | sha256sum --check
           chmod +x /usr/local/bin/shfmt
 
-      - name: Install fish and shell linters
+      # fish and nothing else: the linters below are Linux's job, and once the
+      # lint step is skipped on macOS nothing on that runner would call them.
+      - name: Install fish
         if: runner.os == 'macOS'
-        run: brew install fish shellcheck shfmt
+        run: brew install fish
 
+      # macOS is in this matrix for two things no other runner offers: bash
+      # 3.2.57, where ubuntu and windows both ship bash 5.x, and a BSD
+      # userland. Both are reached through tests/completions.sh and
+      # tests/install.sh, which are the only steps below that behave
+      # differently there. Everything else is skipped on macOS rather than
+      # repeated: that runner is three to eight times slower per step than the
+      # other two, and a check ubuntu and windows have already made does not
+      # become a different check by being made a third time.
+      #
+      # Nothing left on the macOS runner loads a PowerShell module:
+      # Invoke-ScriptAnalyzer is called only from tests/syntax.sh, skipped
+      # there below, and tests/completions.sh drives its pwsh case with the
+      # preinstalled shell alone.
       - name: Install PSScriptAnalyzer
+        if: runner.os != 'macOS'
         shell: pwsh
         run: Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
 
+      # tests/run.ts imports the emitters and asserts on the strings they
+      # return; it starts no shell and reads nothing off the machine, so it
+      # cannot answer differently per runner.
       - name: Unit tests
+        if: runner.os != 'macOS'
         run: quarto run tests/run.ts
 
       # Whether the committed scripts still match the current Quarto release is
@@ -78,7 +110,16 @@ jobs:
       # comment: the installer and test lints do not read the completions
       # directory, so repeating them per channel would only cost another cold
       # PowerShell start.
+      #
+      # Skipped on macOS, where the part that would have been worth having is
+      # `bash -n` against a generated script under bash 3.2. The Functional
+      # completions step below does not merely parse those same scripts there,
+      # it sources them and calls the completion function, so a construct
+      # bash 3.2 cannot read still fails the macOS job, one step later than it
+      # would have here. The shellcheck and shfmt runs alongside it read the
+      # committed sources, which are the same bytes on every runner.
       - name: Syntax and lint
+        if: runner.os != 'macOS'
         run: |
           set -euo pipefail
           first=1
@@ -111,6 +152,12 @@ jobs:
         if: runner.os != 'Windows'
         run: bash tests/install.sh docs/_site
 
+      # windows covers the native case and ubuntu the non-Windows one, which
+      # is the pair tests/install.ps1 branches on. macOS would be a second
+      # non-Windows run of the same branch, and the slowest step in the matrix
+      # at that: PowerShell is the one surface here with no bash 3.2 or BSD
+      # dimension for macOS to bring to it.
       - name: Installer end to end (PowerShell)
+        if: runner.os != 'macOS'
         shell: pwsh
         run: pwsh -NoProfile -File tests/install.ps1 docs/_site
