@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 2026.08.07 (2026-08-07)
+
 ### Documentation
 
 - docs: rewrite the documentation, the readme, and the installer messages for shorter sentences and plainer wording.
