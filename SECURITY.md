@@ -11,10 +11,10 @@ Once a fix is published, you will be credited in the advisory unless you ask oth
 
 ## Scope
 
-This project publishes shell completion scripts and the installers that fetch them, so the interesting parts are:
+This project publishes shell completion scripts and the installers that download them, so the interesting parts are:
 
 - The installers, `docs/install.sh` and `docs/install.ps1`, including what they write and where.
-- The generated completion scripts under `docs/completions/`, in particular anything a shell would treat as code rather than as inert text.
+- The generated completion scripts under `docs/completions/`, in particular anything a shell treats as code rather than as inert text.
 - The generator under `src/`, which turns `quarto --help` output into those scripts.
 - The workflows under `.github/workflows/`, which build and publish them.
 
@@ -25,8 +25,9 @@ There are no maintained older releases to backport to.
 
 These are design limits rather than vulnerabilities, and reports of them will be closed as such:
 
-- The published checksum in `manifest.json` is served from the same site as the scripts it describes, so it detects a truncated or corrupted download, not a compromised host.
+- The published checksum in `manifest.json` is served from the same site as the scripts it describes. So it detects a truncated or corrupted download, not a compromised host.
   The trust boundary is the HTTPS connection to the site.
 - The `dev` channel is generated from `quarto-dev/quarto-cli`'s `main`, an unreviewed third-party branch.
-  Command names, flags, and values taken from its help output are escaped for each target shell before they are written, and that escaping is the control; a way past it is very much in scope.
-- Installing by piping a script from the network into a shell is the documented method, and carries the properties that method always carries.
+  Command names, flags, and values taken from its help output are escaped for each target shell before they are written.
+  That escaping is the control, and a way past it is in scope.
+- Installing by piping a script from the network into a shell is the documented method, and it carries the properties that method always carries.

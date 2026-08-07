@@ -48,12 +48,12 @@ Options:
   --shell <bash|zsh|fish>   Shell to install for (default: detected from $SHELL).
   --channel <release|pre-release|dev|<major.minor>>
                             Quarto release channel (default: the local
-                            Quarto's own minor, e.g. 1.9, when that is
-                            published; otherwise release; dev when the quarto
-                            on PATH reports version 99.9.9).
+                            Quarto's own minor, for example 1.9, when that
+                            is published, otherwise release). Uses dev when
+                            the quarto on PATH reports version 99.9.9.
   --uninstall               Remove the completions and the managed block.
-  --dry-run                 Report every path that would change, then exit.
-  --base-url <url>          Where to fetch from (default: the published site).
+  --dry-run                 Report every path that changes, then exit.
+  --base-url <url>          Where to download from (default: the published site).
   -h, --help                Show this help.
 
 Environment equivalents, for the piped `curl | bash` form:
@@ -170,7 +170,7 @@ resolve_channel() {
       CHANNEL="${minor}"
     else
       if [ -n "${LOCAL_QUARTO_VERSION}" ] && [ -n "${minor:-}" ]; then
-        log "No published completions for Quarto ${minor}; installing the release channel instead."
+        log "No published completions for Quarto ${minor}. Installing the release channel instead."
       fi
       CHANNEL="release"
     fi
@@ -197,7 +197,7 @@ detect_shell() {
   case "${TARGET_SHELL}" in
     bash | zsh | fish) ;;
     *)
-      fail "could not detect a supported shell (got '${TARGET_SHELL:-none}'); pass --shell bash|zsh|fish"
+      fail "could not detect a supported shell (got '${TARGET_SHELL:-none}'). Pass --shell bash|zsh|fish"
       ;;
   esac
 }
@@ -267,10 +267,10 @@ version_advice() {
     if [ "$3" = "release" ]; then
       log "Your Quarto is $2, newer than these completions. Run again with --channel pre-release if you are on a Quarto pre-release."
     else
-      log "Your Quarto is $2, newer than these completions; flags added since then are not completed yet."
+      log "Your Quarto is $2, newer than these completions. Flags added since then are not completed yet."
     fi
   else
-    log "Your Quarto is $2, older than these completions; some completions may name flags your Quarto does not have."
+    log "Your Quarto is $2, older than these completions. Some completions can name flags your Quarto does not have."
   fi
 }
 
@@ -303,13 +303,13 @@ reload_advice() {
   for profile in "${HOME}/.bash_profile" "${HOME}/.bash_login" "${HOME}/.profile"; do
     [ -f "${profile}" ] || continue
     if ! grep -q "bashrc" "${profile}" 2>/dev/null; then
-      log "Your ~${profile#"${HOME}"} does not mention ~/.bashrc, so a login bash, which is what a macOS terminal opens, will not read ${RC_FILE}."
+      log "Your ~${profile#"${HOME}"} does not mention ~/.bashrc. A login bash, which is what a macOS terminal opens, will not read ${RC_FILE}."
       log "Add to it: [ -r ~/.bashrc ] && . ~/.bashrc"
     fi
     return 0
   done
 
-  log "You have no ~/.bash_profile, so a login bash, which is what a macOS terminal opens, will not read ${RC_FILE}."
+  log "You have no ~/.bash_profile. A login bash, which is what a macOS terminal opens, will not read ${RC_FILE}."
   log "Create one containing: [ -r ~/.bashrc ] && . ~/.bashrc"
 }
 
@@ -667,8 +667,8 @@ remove_stale() {
     if rm -f "${location}" 2>/dev/null; then
       log "Removed ${location}"
     else
-      log "Could not remove ${location}: no permission. Remove it yourself, or"
-      log "it may be found before the one that is kept up to date."
+      log "Could not remove ${location}: no permission."
+      log "Remove it yourself. It can shadow the copy that is kept up to date."
     fi
   done <<EOF
 $(stale_locations "$1")
@@ -697,7 +697,7 @@ rc_block_unterminated() {
 # The one message for a block this cannot rewrite, shared by the run that stops
 # on it and by --dry-run, which has to promise the same thing.
 unterminated_message() {
-  printf "the quarto completions block in %s has no closing '%s' line; repair or remove the block, then re-run" \
+  printf "the quarto completions block in %s has no closing '%s' line. Repair or remove the block, then re-run" \
     "$1" "${BLOCK_END}"
 }
 
@@ -711,7 +711,7 @@ unterminated_message() {
 # which for anything before 1.9 was never published.
 unpublished_channel_message() {
   # $1: manifest url
-  printf "no completions published for channel '%s' (%s); published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards" \
+  printf "no completions published for channel '%s' (%s). Published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards" \
     "${CHANNEL}" "$1"
 }
 

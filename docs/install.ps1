@@ -3,8 +3,9 @@
   Installs Quarto CLI shell completions for PowerShell.
 
 .DESCRIPTION
-  Downloads the generated completion script, verifies its SHA-256 against the
-  published manifest, writes it under the current user's profile directory, and
+  Downloads the generated completion script, and checks its SHA-256 against
+  the published manifest.
+  Writes the script under the current user's profile directory, and
   dot-sources it from the profile inside a managed block that re-running
   replaces rather than duplicates.
 
@@ -152,7 +153,7 @@ if (-not $script:Channel) {
     }
     else {
       if ($minor) {
-        Script:Write-Log "No published completions for Quarto $minor; installing the release channel instead."
+        Script:Write-Log "No published completions for Quarto $minor. Installing the release channel instead."
       }
       $script:Channel = 'release'
     }
@@ -198,7 +199,7 @@ function Script:Test-UnterminatedBlock {
 function Script:Get-UnterminatedBlockMessage {
   param([Parameter(Mandatory)][string]$Path)
 
-  "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line; repair or remove the block, then re-run"
+  "The quarto completions block in $Path has no closing '$($script:BlockEnd)' line. Repair or remove the block, then re-run"
 }
 
 # The one message for a channel that has nothing published at BaseUrl, shared
@@ -212,7 +213,7 @@ function Script:Get-UnterminatedBlockMessage {
 function Script:Get-UnpublishedChannelMessage {
   param([Parameter(Mandatory)][string]$Url)
 
-  "No completions published for channel '$($script:Channel)' ($Url); published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards"
+  "No completions published for channel '$($script:Channel)' ($Url). Published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards"
 }
 
 function Script:Remove-ManagedBlock {
@@ -283,11 +284,11 @@ function Script:Write-VersionAdvice {
       Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions. Run again with -Channel pre-release if you are on a Quarto pre-release."
     }
     else {
-      Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions; flags added since then are not completed yet."
+      Script:Write-Log "Your Quarto is $LocalVersion, newer than these completions. Flags added since then are not completed yet."
     }
   }
   else {
-    Script:Write-Log "Your Quarto is $LocalVersion, older than these completions; some completions may name flags your Quarto does not have."
+    Script:Write-Log "Your Quarto is $LocalVersion, older than these completions. Some completions can name flags your Quarto does not have."
   }
 }
 

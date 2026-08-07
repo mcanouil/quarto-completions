@@ -13,31 +13,35 @@ exec "$SHELL"
 ```
 
 Note the absence of `-l`.
-Under bash the completions are loaded from `~/.bashrc`, and a login bash reads `~/.bash_profile`, `~/.bash_login`, or `~/.profile` instead, never falling back to `~/.bashrc`.
-On macOS none of those exist by default and the terminal opens login shells, so completions installed for bash are absent from every new window until the first of those files sources `~/.bashrc`.
-Only the first one bash finds is read, so a `~/.profile` that sources `~/.bashrc` does nothing under a `~/.bash_profile` that does not.
-Create `~/.bash_profile`, or add to the one you have:
+Under bash, the completions are loaded from `~/.bashrc`.
+A login bash reads `~/.bash_profile`, `~/.bash_login`, or `~/.profile` instead, and never falls back to `~/.bashrc`.
+On macOS, none of those files exist by default, and the terminal opens login shells.
+So completions installed for bash are absent from every new window, until the first of those files sources `~/.bashrc`.
+Bash reads only the first one of those files it finds.
+So a `~/.profile` that sources `~/.bashrc` does nothing, under a `~/.bash_profile` that does not source it.
+Create `~/.bash_profile`, or add this line to the one you have:
 
 ```bash
 [ -r ~/.bashrc ] && . ~/.bashrc
 ```
 
-If that does not help, confirm the file is where the installer put it:
+If that does not help, check that the file is where the installer put it:
 
 ```bash
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --dry-run
 ```
 
-`--dry-run` prints every path the installer would touch, without touching any of them.
+`--dry-run` prints every path a normal run changes, and touches nothing itself.
 
 ## zsh completes filenames instead of commands
 
 zsh only loads a completion function once `compinit` has run, and only from a directory that was on `fpath` at that point.
-Where the file lands in `~/.zfunc`, the managed block is appended to `~/.zshrc`, so it runs after any `compinit` you call yourself, and it calls `compinit -i` of its own to pick up what it has just added.
+Where the file lands in `~/.zfunc`, the managed block is appended to `~/.zshrc`.
+So it runs after any `compinit` you call yourself, and it calls its own `compinit -i` to pick up what it has just added.
 Under Oh My Zsh and under Homebrew there is no managed block, because the directory the file goes to is already on `fpath`.
 
 Under Oh My Zsh the file goes to `$ZSH_CUSTOM/completions`, which Oh My Zsh puts on `fpath` before running `compinit`.
-Confirm the file is where that expects:
+Check that the file is where that expects:
 
 ```zsh
 ls ~/.oh-my-zsh/custom/completions/_quarto
@@ -45,7 +49,7 @@ ls ~/.oh-my-zsh/custom/completions/_quarto
 
 Otherwise, check that the block is still the last word on the subject.
 If something later in `~/.zshrc` calls `compinit -C`, or replaces `fpath` outright, it undoes the block.
-Move the block below it, or delete the block and put this above your own `compinit`:
+Move the block below it, or remove the block and put this above your own `compinit`:
 
 ```zsh
 fpath=("$HOME/.zfunc" $fpath)
@@ -61,8 +65,9 @@ exec zsh -l
 ## bash offers every file, not just documents
 
 Filtering to `.qmd`, `.ipynb`, `.md`, `.Rmd`, and `.markdown` needs the `extglob` shell option.
-The script enables it around the one call that needs it, so this should not happen.
-It will, however, fall back to offering every file if `compgen` is not available, which is the case in a shell built without programmable completion.
+The script enables it around the one call that needs it, so this does not normally happen.
+If `compgen` is not available, the script falls back to offering every file.
+This is the case in a shell built without programmable completion.
 
 Check that programmable completion is present:
 
@@ -75,11 +80,15 @@ An error there means bash was started with `--norc` or without `bash-completion`
 ## The completions are out of date
 
 They are generated from a released Quarto, so a flag added after that release is not there yet.
-The installer checks this each time it runs, comparing the `quarto` on your `PATH` against the completions it is about to install: it says so when they disagree by major or minor version, adding `--channel pre-release` to the message when your Quarto is newer than a `release` install.
-Nothing checks again after that, so an upgrade of Quarto is not noticed on its own: re-run the installer after upgrading, the same way you first installed.
+The installer compares the `quarto` on your `PATH` against the completions it is about to install, each time it runs.
+It reports a difference by major or minor version, and adds `--channel pre-release` to the message when your Quarto is newer than a `release` install.
+Nothing checks again after that, so an upgrade of Quarto is not noticed on its own.
+Re-run the installer after upgrading, the same way you first installed.
 
-If your Quarto is *behind* the current release, the mismatch is not a reason to live with stale completions: every Quarto minor from `1.9` onwards has its own channel, generated from that line's newest patch.
-With no `--channel` given, the installer already matches your Quarto's own minor when it is published, so the fix is usually to re-run the installer with nothing more than that; see [Channels](shells.qmd#channels).
+If your Quarto is *behind* the current release, the mismatch is not a reason to live with stale completions.
+Every Quarto minor from `1.9` onwards has its own channel, generated from that line's newest patch.
+With no `--channel` given, the installer already matches your Quarto's own minor when it is published.
+So the fix is usually to re-run the installer with nothing more than that. See [Channels](shells.qmd#channels).
 To check an install done earlier, or without running the installer again, ask where the file is:
 
 ::: {.panel-tabset group="os"}
@@ -114,7 +123,8 @@ Select-String -Pattern Quarto -Path <path> | Select-Object -First 1
 :::
 
 Every script carries that line in its header.
-The path is worth asking for rather than assuming: where the file goes depends on what else the machine has installed, so it differs between shells and between machines.
+Ask for the path rather than assume it, because where the file goes depends on what else the machine has installed.
+So the path differs between shells and between machines.
 If you run a Quarto pre-release, install the matching channel:
 
 ::: {.panel-tabset group="os"}
@@ -136,12 +146,13 @@ Remove-Item Env:\QUARTO_COMPLETIONS_CHANNEL
 :::
 
 If the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports, the installer picks the `dev` channel on its own, with no option or environment variable needed.
-That channel also completes the commands Quarto hides from `quarto --help`, such as `dev-call`; see [Channels](shells.qmd#channels).
+That channel also completes the commands Quarto hides from `quarto --help`, such as `dev-call`. See [Channels](shells.qmd#channels).
 
 ## Tab still shows the old commands after installing
 
 This is about the macOS and Linux installer, which maintains one shell per run, the one `$SHELL` names.
-Running it from a bash terminal maintains bash and leaves zsh exactly as it was, so a shell you did not install for keeps whatever it had, however old.
+Running it from a bash terminal maintains bash, and leaves zsh exactly as it was.
+So a shell you did not install for keeps whatever it had, however old.
 The Windows installer has no equivalent situation, since PowerShell is the only shell it serves.
 
 An install reports this when it finds it, naming the other shell's file and its version, so start by reading what the last run said.
@@ -165,12 +176,14 @@ Install for it by name:
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --shell zsh
 ```
 
-Hidden commands such as `inspect` and `dev-call` are on the `dev` channel only, so a `release` file lacking them is correct rather than stale; see [Channels](shells.qmd#channels).
+Hidden commands such as `inspect` and `dev-call` are on the `dev` channel only.
+So a `release` file lacking them is correct rather than stale. See [Channels](shells.qmd#channels).
 
 ## Extension formats are missing from `--to`
 
 Only Quarto's built-in formats are completed.
-A format contributed by an installed extension would have to be read from disk on every keystroke, which is the cost these completions exist to avoid.
+A format contributed by an installed extension needs to be read from disk on every keystroke.
+That is the cost these completions exist to avoid.
 
 ## No completions published for that channel
 
@@ -179,22 +192,22 @@ Naming anything else, `--channel 1.0` on an older Quarto for instance, stops the
 
 ```default
 error: no completions published for channel '1.0'
-(https://m.canouil.dev/quarto-completions/completions/1.0/manifest.json);
-published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards
+(https://m.canouil.dev/quarto-completions/completions/1.0/manifest.json).
+Published channels are release, pre-release, dev, and Quarto minors from 1.9 onwards
 ```
 
 A channel you name is never quietly swapped for another one, on `--dry-run` or on a real run.
-Leave `--channel` off instead, and the installer matches your Quarto's own minor when that is published, falling back to `release` and saying so when it is not.
-The completions are then generated from a newer Quarto than yours, which it also tells you; see [The completions are out of date](#the-completions-are-out-of-date).
+Leave `--channel` off instead. The installer then matches your Quarto's own minor when that is published, and falls back to `release`, saying so when it is not.
+The completions are then generated from a newer Quarto than yours, and the installer also tells you that. See [The completions are out of date](#the-completions-are-out-of-date).
 
 ## Checksum mismatch
 
-The installer verifies each file against `manifest.json` before writing it, and stops if they disagree.
+The installer checks each file against `manifest.json` before writing it, and stops if they disagree.
 That normally means the download was truncated.
 Run it again.
 
 On Windows PowerShell 5.1, a connection error rather than a mismatch usually means TLS 1.2 was not negotiated.
-The installer enables it, so this should only appear on a Windows build old enough to lack it entirely.
+The installer enables TLS 1.2, so this error only appears on a Windows build old enough to lack it entirely.
 
 If it keeps failing, report it with the two hashes the error printed: <https://github.com/mcanouil/quarto-completions/issues>.
 
@@ -208,11 +221,13 @@ The installer keeps everything it adds to your shell configuration between two m
 ```
 
 A hand edit, a merge conflict, or a half-written file can leave the opening marker with no matching closing one.
-The installer removes the block by cutting from one marker to the other, so on a file in that state it would take every line you keep below the opening marker with it.
-It stops instead, and changes nothing, on install, on uninstall, and on `--dry-run` alike.
+The installer removes the block by cutting from one marker to the other.
+On a file in that state, this takes every line below the opening marker with it.
+So the installer stops instead, and changes nothing, on install, on uninstall, and on `--dry-run` alike.
 
-Open the file it named, `~/.bashrc` or `~/.zshrc` on macOS and Linux, and your PowerShell profile on Windows, then either add the closing line back below the block or delete the block outright, markers included.
-Re-run the installer afterwards; it writes a fresh block of its own.
+Open the file it named: `~/.bashrc` or `~/.zshrc` on macOS and Linux, and your PowerShell profile on Windows.
+Then add the closing line back below the block, or remove the block outright, markers included.
+Re-run the installer afterwards. It writes a fresh block of its own.
 
 ## Removing everything
 
@@ -220,5 +235,6 @@ Re-run the installer afterwards; it writes a fresh block of its own.
 curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash -s -- --uninstall
 ```
 
-That deletes the completion file and the managed block from your shell's configuration, and leaves the rest of your configuration untouched.
-One run covers one shell, the one detected from `$SHELL`; if you installed for several, repeat with `--shell bash|zsh|fish`.
+That removes the completion file and the managed block from your shell's configuration, and leaves the rest of your configuration untouched.
+One run covers one shell, the one detected from `$SHELL`.
+If you installed for several shells, repeat with `--shell bash|zsh|fish`.

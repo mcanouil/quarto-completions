@@ -21,17 +21,23 @@ Windows:
 powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"
 ```
 
-The macOS and Linux installer detects the shell from `$SHELL`; pass `--shell bash|zsh|fish` to override it.
-The Windows installer takes no such option, since PowerShell is the only shell it serves.
-Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory; nothing needs root, and nothing is written with `sudo`.
-Each file is checked against the SHA-256 published in the channel's `manifest.json` before it is written, and any shell configuration edit is kept inside a managed block that re-running replaces.
-Add `--dry-run` to see the paths first, `--uninstall` to remove that shell's install, or `--help` for the full list; repeat with `--shell` for each shell you installed.
+The macOS and Linux installer detects the shell from `$SHELL`.
+Pass `--shell bash|zsh|fish` to override it.
+The Windows installer takes no such option, because PowerShell is the only shell it serves.
+Everything is written under your home directory, apart from zsh on a machine with Homebrew, where the file goes in the prefix's own completions directory.
+Nothing needs root, and nothing is written with `sudo`.
+Each file is checked against the SHA-256 published in the channel's `manifest.json` before it is written.
+Any shell configuration edit is kept inside a managed block that re-running replaces.
+Add `--dry-run` to see the paths first, `--uninstall` to remove that shell's install, or `--help` for the full list.
+Repeat with `--shell` for each shell you installed.
 If the `quarto` on your `PATH` does not match the completions being installed, the installer says so.
-That check only runs when the installer does, so re-run it after upgrading Quarto; see [Troubleshooting](https://m.canouil.dev/quarto-completions/troubleshooting.html#the-completions-are-out-of-date).
+That check only runs when the installer does, so re-run it after upgrading Quarto.
+See [Troubleshooting](https://m.canouil.dev/quarto-completions/troubleshooting.html#the-completions-are-out-of-date).
 
 ## How it works
 
-`src/generate.ts` runs `quarto <command> --help` over the whole command tree, parses the result into a spec, enriches it with the value semantics that help output cannot express (`src/overlay.ts`), and emits one script per shell.
+`src/generate.ts` runs `quarto <command> --help` over the whole command tree.
+It parses the result into a spec, adds the value semantics that help output cannot express (`src/overlay.ts`), and emits one script per shell.
 The generator runs on Quarto's own embedded runtime, so a Quarto installation is its only dependency:
 
 ```bash
@@ -44,12 +50,16 @@ quarto run src/generate.ts --channel dev --quarto /path/to/a/99.9.9/build/quarto
   --source-branch main --source-commit "$(git -C /path/to/quarto-cli rev-parse HEAD)"
 ```
 
-`--source-branch` and `--source-commit` name the `quarto-dev/quarto-cli` build behind a `dev` run, which is the one channel whose version says nothing: every source build reports `99.9.9`.
-Both are written to `spec.json` and `manifest.json` and stamped into each script's header, so `--check` on `dev` needs the same two flags to compare against what was committed.
-A released channel takes neither: its tag is its version with a `v` in front of it, and the generator writes that itself.
+`--source-branch` and `--source-commit` name the `quarto-dev/quarto-cli` build behind a `dev` run.
+This is the one channel whose version says nothing, because every source build reports `99.9.9`.
+Both flags are written to `spec.json` and `manifest.json`, and stamped into each script's header.
+So `--check` on `dev` needs the same two flags to compare against what was committed.
+A released channel takes neither flag.
+Its tag is its version with a `v` in front of it, and the generator writes that itself.
 
 Each channel also publishes `spec.json`, the enriched command surface the emitters read, alongside `manifest.json` and the four scripts.
-Generated scripts, the installers, and the documentation website all live under `docs/`, which is what GitHub Pages publishes.
+Generated scripts, the installers, and the documentation website all live under `docs/`.
+GitHub Pages publishes that directory.
 
 ## Tests
 
@@ -67,9 +77,9 @@ The full matrix runs on Linux, macOS, and Windows in CI.
 
 ## Limitations
 
-- Formats and shortcodes contributed by installed extensions are not completed: reading them would mean running Quarto on every keystroke.
-- Commands Quarto hides from `quarto --help`, such as `dev-call`, are excluded from the `release`, `pre-release`, and per-minor channels for the same reason they are excluded from that help output. They are completed on a separate `dev` channel instead, generated from a Quarto source build and selected automatically when the `quarto` on `PATH` reports version `99.9.9`. See [Channels](https://m.canouil.dev/quarto-completions/shells.html#channels).
-- A per-minor channel reads flags, commands, and arguments from that line's own `--help`, but a handful of value sets `src/overlay.ts` cannot read that way, such as `--to`'s output formats, come from the current Quarto instead, so an older minor can occasionally offer a value its own Quarto does not accept.
+- Formats and shortcodes contributed by installed extensions are not completed. Reading them needs Quarto to run on every keystroke.
+- Commands Quarto hides from `quarto --help`, such as `dev-call`, are excluded from the `release`, `pre-release`, and per-minor channels. That help output excludes them for the same reason. They are completed on a separate `dev` channel instead, generated from a Quarto source build. The installer selects that channel on its own, when the `quarto` on `PATH` reports version `99.9.9`. See [Channels](https://m.canouil.dev/quarto-completions/shells.html#channels).
+- A per-minor channel reads flags, commands, and arguments from that line's own `--help`. A handful of value sets, such as `--to`'s output formats, come from the current Quarto instead, because `src/overlay.ts` cannot read them from `--help`. So an older minor can occasionally offer a value its own Quarto does not accept.
 
 ## Licence
 

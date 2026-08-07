@@ -4,12 +4,17 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Documentation
+
+- docs: rewrite the documentation, the readme, and the installer messages for shorter sentences and plainer wording.
+
 ## 2026.08.06 (2026-08-06)
 
 ### New Features
 
 - feat: publish the release and pre-release lines under their own minor as well, so `1.10` and `1.11` sit beside `release` and `pre-release` and every Quarto minor from `1.9` onwards has a channel that stays on one line.
-  `release` and `pre-release` are rolling aliases and change what they hold the moment Quarto ships a minor; a pinned install or a hand-written URL can now name the line instead.
+  `release` and `pre-release` are rolling aliases and change what they hold the moment Quarto ships a minor.
+  A pinned install or a hand-written URL can now name the line instead.
 - feat: record what each channel was built from, as a `source` object in `spec.json` and `manifest.json` and as one line in every script's header: the release tag on a released channel, and the `quarto-dev/quarto-cli` branch and commit on `dev`.
   A source build reports `99.9.9`, so until now nothing on an installed dev completion said which commit its command surface came from.
 - feat: attach the completions to every release, as `quarto-completions-<version>.tar.gz` and `.zip`, each holding one directory per channel with its manifest.
@@ -18,9 +23,12 @@ All notable changes to this project will be documented in this file.
 ### Bug Fixes
 
 - fix: name the channel, and the channels that exist, when one asked for by `--channel` or `-Channel` has nothing published, rather than stopping on `curl`'s bare `404` or PowerShell's raw web exception.
-  A channel that was named is never swapped for another one, which is what auto-detection does when it finds no completions for the local Quarto's minor; `--dry-run` now refuses the same channels a real run would, where it used to print a plan for one that could never be installed.
+  A channel that was named is never swapped for another one.
+  Auto-detection does that instead, when it finds no completions for the local Quarto's minor.
+  `--dry-run` now refuses the same channels a real run refuses, where it used to print a plan for one that can never be installed.
 - fix: stop zsh offering `-J`, `-M`, `-default-`, and the completion matcher itself as candidates beside a flag's or positional's values, such as the providers of `quarto publish`.
-  `_arguments` hands an action the compadd options it built for that argument before the values, and they were read as values; a matcher only showed up where a `matcher-list` style is set, which is any Oh My Zsh.
+  `_arguments` hands an action the compadd options it built for that argument before the values, and they were read as values.
+  A matcher only showed up where a `matcher-list` style is set, which is any Oh My Zsh.
 
 ## 2026.08.05 (2026-08-05)
 
@@ -34,25 +42,30 @@ All notable changes to this project will be documented in this file.
 - feat: publish a `release` and a `pre-release` channel, generated from the two Quarto release channels, each with a manifest carrying the Quarto version and a checksum per file.
   The names match the vocabulary `quarto-actions/setup` already uses.
 - feat: publish a `dev` channel, generated from a Quarto source build, completing the commands Quarto hides from `quarto --help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`.
-  Hidden commands cannot be found by walking help output, so they are seeded by path and introspected directly; both installers select this channel automatically when the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports and a release never does.
+  Hidden commands cannot be found by walking help output, so they are seeded by path and introspected directly.
+  Both installers select this channel automatically when the `quarto` on `PATH` reports version `99.9.9`, which is what a source build reports and a release never does.
 - feat: publish an archived channel for every Quarto minor from `1.9` onward, generated from that line's newest patch.
-  With no `--channel` given, the installer matches the local Quarto's own minor when it is published, falling back to `release`; the most recently archived minor is refreshed weekly against a late patch, and older ones are frozen.
+  With no `--channel` given, the installer matches the local Quarto's own minor when it is published, and falls back to `release` otherwise.
+  The most recently archived minor is refreshed weekly against a late patch, and older ones are frozen.
 - feat: install with one line, `curl -fsSL https://m.canouil.dev/quarto-completions/install.sh | bash` on macOS and Linux and `powershell -ExecutionPolicy ByPass -c "irm https://m.canouil.dev/quarto-completions/install.ps1 | iex"` on Windows.
-  Both write under the user's home directory, never call `sudo`, verify each file against the published SHA-256 before writing, and support `--dry-run`, `--uninstall`, and `--help`.
+  Both write under the user's home directory, never call `sudo`, check each file against the published SHA-256 before writing, and support `--dry-run`, `--uninstall`, and `--help`.
 - feat: write each shell's file where that shell will actually find it: `$XDG_DATA_HOME/bash-completion/completions` for bash where it exists, `$ZSH_CUSTOM/completions` under Oh My Zsh, Homebrew's `share/zsh/site-functions` where the prefix has one and it is writable, `~/.zfunc` otherwise, and fish's autoloaded completions directory.
   The first three need no configuration at all.
 - feat: keep every shell configuration edit inside a managed block that re-running replaces and `--uninstall` removes.
-  A block whose closing marker is missing is refused rather than rewritten, on install, on uninstall, and in `--dry-run` alike; an rc file that is a symlink stays a symlink, and a PowerShell profile carrying no block is left byte-identical.
+  A block whose closing marker is missing is refused rather than rewritten, on install, on uninstall, and in `--dry-run` alike.
+  An rc file that is a symlink stays a symlink, and a PowerShell profile carrying no block is left byte-identical.
 - feat: keep a later install where the first one landed, so installing Oh My Zsh, Homebrew, or `bash-completion` afterwards updates the copy already on disk rather than moving it.
   The other known locations are swept so nothing shadows it, and a stale copy that cannot be removed, such as one in a Homebrew prefix owned by another user, is reported rather than fatal.
 - feat: leave an unchanged script alone.
-  The published manifest is enough to tell that the installed file is already the one that would be written, so re-running over an unchanged release reports `Already current` and downloads nothing.
+  The published manifest is enough to tell that the installed file already matches what a normal run writes, so re-running over an unchanged release reports `Already current` and downloads nothing.
 - feat: warn when the `quarto` on `PATH` does not match the completions being installed.
-  Both installers compare major and minor versions only; a patch difference, the `dev` sentinel, or no `quarto` on `PATH` says nothing, and the install always succeeds.
+  Both installers compare major and minor versions only.
+  A patch difference, the `dev` sentinel, or no `quarto` on `PATH` says nothing, and the install always succeeds.
 - feat: end an install by naming a command that loads what was just written: `exec bash` rather than `exec bash -l`, because a login bash reads `~/.bash_profile`, `~/.bash_login`, or `~/.profile` and never falls back to the `~/.bashrc` the block goes in.
   Where none of those exists, the default on macOS, or the first one bash finds never mentions `.bashrc`, the install says so and gives the line that fixes it rather than writing anything itself.
 - feat: report the shells an install is not maintaining, since each run maintains only the shell `$SHELL` names.
-  The version and channel stamped in every generated script is read back from whatever is installed for the other shells, and a mismatch is named along with the command that updates it; a file carrying no stamp, or one that cannot be read, is left alone.
+  The version and channel stamped in every generated script is read back from whatever is installed for the other shells, and a mismatch is named along with the command that updates it.
+  A file carrying no stamp, or one that cannot be read, is left alone.
 - feat: generate the scripts by walking `quarto <command> --help` over the whole command tree, run with `quarto run src/generate.ts`.
   The generator uses Quarto's own embedded runtime, so an installed Quarto is its only dependency, and `--check` fails when the committed output is stale.
 

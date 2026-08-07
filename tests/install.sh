@@ -154,7 +154,7 @@ fi
 if shell_output="$(install_run --shell nonsense 2>&1)"; then
   fail "an unknown shell is refused" "installer exited zero: ${shell_output}"
 else
-  expect_contains "an unknown shell is refused" "${shell_output}" "pass --shell bash|zsh|fish"
+  expect_contains "an unknown shell is refused" "${shell_output}" "Pass --shell bash|zsh|fish"
 fi
 
 # Uninstalling never reaches a download, so a typo here used to exit zero after
@@ -164,7 +164,7 @@ if shell_output="$(install_run --shell nonsense --uninstall 2>&1)"; then
   fail "an unknown shell is refused on uninstall" "installer exited zero: ${shell_output}"
 else
   expect_contains "an unknown shell is refused on uninstall" \
-    "${shell_output}" "pass --shell bash|zsh|fish"
+    "${shell_output}" "Pass --shell bash|zsh|fish"
 fi
 
 # The environment equivalent, which is the only form the piped `curl | bash`
@@ -173,7 +173,7 @@ if shell_output="$(QUARTO_COMPLETIONS_SHELL=weird install_run 2>&1)"; then
   fail "an unknown shell from the environment is refused" "installer exited zero: ${shell_output}"
 else
   expect_contains "an unknown shell from the environment is refused" \
-    "${shell_output}" "pass --shell bash|zsh|fish"
+    "${shell_output}" "Pass --shell bash|zsh|fish"
 fi
 
 # A download that no longer matches the manifest is refused. Serve a copy of
@@ -751,7 +751,7 @@ NOMINOR_HOME="$(scenario_home minor-fallback)"
 set_quarto_shim_version "1.5.0"
 nominor_output="$(autodetect_run "${NOMINOR_HOME}" "${QUARTO_SHIM}:${PATH}" --shell fish)"
 expect_contains "auto-detect: an unpublished local minor falls back to release" \
-  "${nominor_output}" "No published completions for Quarto 1.5; installing the release channel instead."
+  "${nominor_output}" "No published completions for Quarto 1.5. Installing the release channel instead."
 expect_contains "auto-detect: the fallback still installs the release channel" \
   "${nominor_output}" "(release channel)"
 

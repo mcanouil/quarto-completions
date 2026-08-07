@@ -16,7 +16,8 @@ Re-running the installer replaces that block.
 ## An install already in place stays where it is
 
 Each table below says where a *first* install goes.
-Once a script is on disk, that is the file the installer updates, even when the machine has since gained Oh My Zsh, Homebrew, or bash-completion and a first install would now choose somewhere else.
+Once a script is on disk, that is the file the installer updates.
+This stays true even when the machine has since gained Oh My Zsh, Homebrew, or bash-completion, and a first install now chooses somewhere else.
 Copies in the other locations it knows about are removed on the way, so nothing is left behind to shadow the file that is kept.
 
 To move an install, remove it and install again:
@@ -65,22 +66,27 @@ echo '[ -r ~/.local/share/quarto-completions/quarto.bash ] && . ~/.local/share/q
 :::
 
 zsh loads completion functions from the directories on `fpath`, and only once `compinit` has run.
-zsh has no per-user directory of its own on that list, which is why the destination depends on what else is installed.
+zsh has no per-user directory of its own on that list. This is why the destination depends on what else is installed.
 
 Oh My Zsh already puts `$ZSH_CUSTOM/completions` on `fpath` and calls `compinit` itself, both while `~/.zshrc` is still sourcing it.
 Anything appended below that runs too late to matter, so the installer writes the file there and leaves your configuration alone.
 `$ZSH_CUSTOM` defaults to `~/.oh-my-zsh/custom`.
 
 Homebrew's own shell setup puts `$HOMEBREW_PREFIX/share/zsh/site-functions` on `fpath` for the same reason, so a file written there also needs no configuration.
-The installer uses it only when the directory already exists and you can write to it, and it never uses `sudo`.
+The installer uses that directory only when it already exists and you can write to it, and the installer never uses `sudo`.
 
 Otherwise the file goes to `~/.zfunc`, and the managed block adds that directory to `fpath` and calls `compinit -i`.
-It has to be `-i` rather than `-C`: `-C` omits the check for new completion functions and reuses the existing dump, and by the time the block runs your own `compinit` has usually written one, which would leave `_quarto` unseen.
-`-i` keeps that check and only suppresses the warning about insecure directories, which your own call has already reported if there was anything to report.
+It must be `-i` rather than `-C`.
+`-C` skips the check for new completion functions and reuses the existing dump.
+By the time the block runs, your own `compinit` has usually written that dump, and `_quarto` stays unseen inside it.
+`-i` keeps the check for new functions.
+It only suppresses the warning about insecure directories, and your own call has already reported that warning if there was anything to report.
 
-If your configuration already puts `~/.zfunc` on `fpath` before it runs `compinit`, you can delete the managed block: the file alone is enough.
+If your configuration already puts `~/.zfunc` on `fpath` before it runs `compinit`, you can remove the managed block.
+The file alone is enough.
 
-Alongside the three destinations above, the installer finds and cleans up `$XDG_DATA_HOME/zsh/site-functions/_quarto`, which is where an earlier version of this page told you to put the file.
+Alongside the three destinations above, the installer finds and removes `$XDG_DATA_HOME/zsh/site-functions/_quarto`.
+An earlier version of this page told you to put the file there.
 
 Manual install:
 
@@ -148,36 +154,45 @@ Every script is published for four kinds of channel:
 - `dev`, generated from a Quarto source build at `quarto-dev/quarto-cli`'s `main`.
 - One directory per Quarto minor, from `1.9` onwards, generated from that line's newest patch.
 
-`release` and `pre-release` are rolling aliases: they name whichever lines Quarto ships today, so what they hold changes under you the moment Quarto ships a new minor.
+`release` and `pre-release` are rolling aliases. They name whichever lines Quarto ships today, so what they hold changes under you the moment Quarto ships a new minor.
 A minor such as `1.10` names one line and stays there, which is what to write down when pinning.
 Both are published at once, so the current release is always available under its own number as well as under `release`.
 
 Swap `release` for `pre-release`, `dev`, or a minor such as `1.9` in any URL above, or pass `--channel pre-release`, `--channel dev`, or `--channel 1.9` to the installer.
-With no `--channel` given, the installer matches the `quarto` on `PATH` to its own minor when that is published, and falls back to `release` otherwise; it selects `dev` instead, with no flag needed, when that `quarto` reports version `99.9.9`, which is what a source build reports and a release never does.
+With no `--channel` given, the installer matches the `quarto` on `PATH` to its own minor when that is published, and falls back to `release` otherwise.
+It selects `dev` instead, with no flag needed, when that `quarto` reports version `99.9.9`. That is what a source build reports, and a release never reports it.
 
-The `dev` channel additionally completes the commands Quarto hides from its own `--help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`.
-Several of those exist on release builds too, just hidden from view, so installing `--channel dev` deliberately on a release Quarto is a reasonable choice; its surface then tracks `quarto-cli`'s `main` rather than the release you run.
-Because every source build reports version `99.9.9`, that version says nothing about how recent a dev channel is: the commit it was built from is what does, and it is recorded in `spec.json` and `manifest.json` and stamped into each script's header, so an installed dev completion can be traced back to a commit.
+The `dev` channel also completes the commands Quarto hides from its own `--help`: `dev-call` and its subcommands, `inspect`, `capabilities`, `create-project`, `editor-support`, `completions`, and every subcommand of `tools`.
+Several of those commands exist on release builds too, just hidden from view, so installing `--channel dev` deliberately on a release Quarto is a reasonable choice.
+Its surface then tracks `quarto-cli`'s `main` rather than the release you run.
+Because every source build reports version `99.9.9`, that version says nothing about how recent a dev channel is.
+The commit it was built from is what does. That commit is recorded in `spec.json` and `manifest.json`, and stamped into each script's header, so an installed dev completion can be traced back to a commit.
 
-A minor channel is generated the same way as `release`: flags, commands, and arguments come from that line's own binary, so they are exactly what it has.
-The one exception is a handful of value sets `src/overlay.ts` cannot read from `--help` at all, such as `--to`'s output formats and `publish`'s providers: those come from the current Quarto, so an older channel can occasionally offer a value its own Quarto does not accept.
+A minor channel is generated the same way as `release`.
+Flags, commands, and arguments come from that line's own binary, so they are exactly what it has.
+The one exception is a handful of value sets `src/overlay.ts` cannot read from `--help` at all, such as `--to`'s output formats and `publish`'s providers.
+Those come from the current Quarto instead, so an older channel can occasionally offer a value its own Quarto does not accept.
 
-Three lines are kept current, weekly: the release minor and the pre-release minor, written from the same run as the two aliases, and the one minor below release, regenerated against its newest patch so a late fix on a line Quarto has moved on from still reaches you.
+Three lines are kept current, weekly: the release minor and the pre-release minor, written from the same run as the two aliases, and the one minor below release.
+That one minor is regenerated against its newest patch, so a late fix on a line Quarto has moved on from still reaches you.
 Anything two minors below release is frozen at the bytes it was last published with.
 
-Each channel also publishes a `spec.json`, the enriched command surface the four scripts are emitted from, for anything that would rather read the commands, flags, and values as data than parse a completion script.
-No shell loads it, and the installers never fetch it.
+Each channel also publishes a `spec.json`, the enriched command surface the four scripts are emitted from.
+This is for anyone who wants to read the commands, flags, and values as data rather than parse a completion script.
+No shell loads it, and the installers never download it.
 
-Alongside it comes a `manifest.json`, carrying the Quarto version the scripts were generated from, a `source` object naming what that binary was built from, and a SHA-256 for each file, `spec.json` included.
-A released channel names its tag, such as `v1.10.18`; `dev` names the `quarto-dev/quarto-cli` branch and the commit its source build came from.
-The installers verify that checksum before writing anything, which catches a truncated or corrupted download.
-Since the manifest is served from the same site as the scripts, it is the HTTPS connection, not the checksum, that establishes where those bytes came from.
-The installer also compares that version against the `quarto` on `PATH`, by major and minor only, and prints one line when they disagree; a patch difference or a build that cannot be read says nothing, and the install always succeeds regardless.
+Alongside it comes a `manifest.json`.
+It carries the Quarto version the scripts were generated from, a `source` object naming what that binary was built from, and a SHA-256 for each file, `spec.json` included.
+A released channel names its tag, such as `v1.10.18`. `dev` names the `quarto-dev/quarto-cli` branch and the commit its source build came from.
+The installers check that checksum before writing anything, which catches a truncated or corrupted download.
+Because the manifest is served from the same site as the scripts, it is the HTTPS connection, not the checksum, that establishes where those bytes came from.
+The installer also compares that version against the `quarto` on `PATH`, by major and minor only, and prints one line when they disagree.
+A patch difference, or a build that cannot be read, says nothing, and the install always succeeds regardless.
 
 ### What each channel publishes
 
 One directory per channel, listed below with what it holds.
-Every link is a file you can fetch, at that same path under this site.
+Every link is a file you can download, at that same path under this site.
 
 ::: {.completions-shell tabindex="0" role="region" aria-label="published channel contents"}
 

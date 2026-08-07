@@ -278,7 +278,7 @@ try {
   # assertions below rely on is itself covered wherever the suite runs.
   $wrapped = @(
     '     | The quarto completions block in C:\Temp\Profile\profile.ps1 has no',
-    "     | closing '# <<< quarto completions <<<' line; repair or remove the block, then re-run"
+    "     | closing '# <<< quarto completions <<<' line. Repair or remove the block, then re-run"
   ) -join "`r`n"
   if ((Get-FlatOutput $wrapped) -match 'no closing') {
     Test-Pass 'a wrapped error message reads as one line'
@@ -463,7 +463,7 @@ try {
   # minor) falls back to release, and says so.
   Write-QuartoShimVersion -Directory $quartoShimDirectory -Version '1.5.0'
   $output = Get-FlatOutput (Invoke-InstallerWithQuarto -BaseUrl $baseUrl -QuartoPath $quartoShimDirectory -Arguments @() -SkipChannelPin)
-  if ($output -match 'No published completions for Quarto 1.5; installing the release channel instead' -and
+  if ($output -match 'No published completions for Quarto 1.5. Installing the release channel instead' -and
     $output -match [regex]::Escape('(release channel)')) {
     Test-Pass 'auto-detect: an unpublished local minor falls back to release'
   }
