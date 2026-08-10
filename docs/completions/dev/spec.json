@@ -1,6 +1,10 @@
 {
   "quartoVersion": "99.9.9",
   "channel": "dev",
+  "source": {
+    "branch": "main",
+    "commit": "f9dd09cd2aee9f107a6c3f497e9210d55ceeebca"
+  },
   "root": {
     "path": [],
     "description": "Quarto CLI",
