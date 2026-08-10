@@ -1,6 +1,9 @@
 {
   "quartoVersion": "1.9.38",
   "channel": "1.9",
+  "source": {
+    "tag": "v1.9.38"
+  },
   "root": {
     "path": [],
     "description": "Quarto CLI",
