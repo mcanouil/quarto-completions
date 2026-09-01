@@ -113,7 +113,7 @@ jobs:
 
       - name: Setup Git User
         id: setup-git-user
-        uses: mcanouil/quarto-workflows/.github/actions/setup-git-user@v1
+        uses: mcanouil/quarto-workflows/.github/actions/setup-git-user@v2
         with:
           gh-app-id: ${{ vars.APP_ID }}
           app-key: ${{ secrets.APP_KEY }}
