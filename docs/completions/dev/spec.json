@@ -3,7 +3,7 @@
   "channel": "dev",
   "source": {
     "branch": "main",
-    "commit": "fdf5a968509bc5903b328d9f99bc5d99bc53b149"
+    "commit": "8c87d79047c8378a1e643434891ff100daaa03bb"
   },
   "root": {
     "path": [],
@@ -2293,11 +2293,6 @@
                 "long": "--quiet",
                 "description": "Suppress console output.",
                 "kind": "none"
-              },
-              {
-                "long": "--profile",
-                "description": "Active project profile(s)",
-                "kind": "value"
               }
             ],
             "args": [],
