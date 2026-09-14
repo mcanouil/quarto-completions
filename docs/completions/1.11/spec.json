@@ -1,8 +1,8 @@
 {
-  "quartoVersion": "1.11.3",
+  "quartoVersion": "1.11.4",
   "channel": "1.11",
   "source": {
-    "tag": "v1.11.3"
+    "tag": "v1.11.4"
   },
   "root": {
     "path": [],
@@ -2119,11 +2119,6 @@
                 "long": "--quiet",
                 "description": "Suppress console output.",
                 "kind": "none"
-              },
-              {
-                "long": "--profile",
-                "description": "Active project profile(s)",
-                "kind": "value"
               }
             ],
             "args": [],
