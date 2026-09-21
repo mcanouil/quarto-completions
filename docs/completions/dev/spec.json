@@ -3,7 +3,7 @@
   "channel": "dev",
   "source": {
     "branch": "main",
-    "commit": "8c87d79047c8378a1e643434891ff100daaa03bb"
+    "commit": "97f222ff3934fa6291272cbf2d969405c636035b"
   },
   "root": {
     "path": [],
@@ -1726,6 +1726,40 @@
                 "long": "--help",
                 "description": "Show this help.",
                 "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
               }
             ],
             "args": [
@@ -1754,6 +1788,40 @@
                 "short": "-h",
                 "long": "--help",
                 "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
                 "kind": "none"
               }
             ],
@@ -1784,6 +1852,40 @@
                 "long": "--help",
                 "description": "Show this help.",
                 "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
               }
             ],
             "args": [
@@ -1812,6 +1914,40 @@
                 "short": "-h",
                 "long": "--help",
                 "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
                 "kind": "none"
               }
             ],
@@ -2819,6 +2955,40 @@
                 "long": "--json",
                 "description": "If set, output error messages in JSON format.",
                 "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
               }
             ],
             "args": [
@@ -2847,6 +3017,40 @@
                 "long": "--help",
                 "description": "Show this help.",
                 "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
               }
             ],
             "args": [],
@@ -2863,6 +3067,40 @@
                 "short": "-h",
                 "long": "--help",
                 "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
                 "kind": "none"
               }
             ],
@@ -2903,6 +3141,40 @@
                 "placeholder": "mode",
                 "description": "Diagram mode (default: full)",
                 "kind": "value"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
               }
             ],
             "args": [
@@ -2935,6 +3207,40 @@
                 "long": "--help",
                 "description": "Show this help.",
                 "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
+                "kind": "none"
               }
             ],
             "args": [
@@ -2963,6 +3269,40 @@
                 "short": "-h",
                 "long": "--help",
                 "description": "Show this help.",
+                "kind": "none"
+              },
+              {
+                "long": "--log",
+                "placeholder": "file",
+                "description": "Path to log file",
+                "kind": "file"
+              },
+              {
+                "long": "--log-level",
+                "placeholder": "level",
+                "description": "Log level (debug, info, warning, error, critical)",
+                "kind": "enum",
+                "values": [
+                  "debug",
+                  "info",
+                  "warning",
+                  "error",
+                  "critical"
+                ]
+              },
+              {
+                "long": "--log-format",
+                "placeholder": "format",
+                "description": "Log format (plain, json-stream)",
+                "kind": "enum",
+                "values": [
+                  "plain",
+                  "json-stream"
+                ]
+              },
+              {
+                "long": "--quiet",
+                "description": "Suppress console output.",
                 "kind": "none"
               },
               {
