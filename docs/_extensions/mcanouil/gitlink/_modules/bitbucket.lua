@@ -1,10 +1,10 @@
 --- MC Bitbucket - Bitbucket-specific functionality for gitlink extension
---- @module bitbucket
+--- @module "bitbucket"
 --- @license MIT
 --- @copyright 2026 Mickaël Canouil
 --- @author Mickaël Canouil
 
-local str = require("_modules/string")
+local str = require(quarto.utils.resolve_path('_vendor/quarto-lua-modules/string.lua'):gsub('%.lua$', ''))
 
 local bitbucket_module = {}
 
