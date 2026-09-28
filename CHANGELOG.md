@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Bug Fixes
 
-- fix: publish the completions as soon as a regeneration lands on `main`, so the installers pick up the weekly update without waiting for the next release.
+- fix: publish the completions as soon as a regeneration lands on `main`, so the installers pick up the weekly update without waiting for the next release. (#37)
 
 ## 2026.08.07 (2026-08-07)
 
