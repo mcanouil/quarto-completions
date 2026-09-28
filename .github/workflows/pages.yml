@@ -9,6 +9,15 @@ on:
     paths:
       - "docs/**"
       - ".github/workflows/pages.yml"
+  # The installers download from the published site, and a normal deploy
+  # renders the latest version tag. Without this trigger, the completions the
+  # Generate workflow merges each week would stay unreachable until the next
+  # release. This deploy renders `main`, so any page change merged since the
+  # last tag goes live with it.
+  push:
+    branches: [main]
+    paths:
+      - "docs/completions/**"
   workflow_dispatch:
     inputs:
       use-main-as-release:
@@ -34,5 +43,5 @@ jobs:
       pages: write
       id-token: write
     with:
-      use-main-as-release: ${{ inputs.use-main-as-release || false }}
+      use-main-as-release: ${{ github.event_name == 'push' || inputs.use-main-as-release || false }}
       quarto: ${{ inputs.quarto || 'release' }}
