@@ -3,14 +3,14 @@
   "channel": "dev",
   "source": {
     "branch": "main",
-    "commit": "4c7b5d25da9e3f4197289b29ec579a440d15f692"
+    "commit": "5b2316316ab5cdd91edd882614dff929eeaec33c"
   },
-  "generated": "2026-10-19",
+  "generated": "2026-10-26",
   "files": {
-    "quarto.bash": "fa282822c7854c001ab5b3661222b7316a64b5871f3f3734291899e295babe6a",
-    "_quarto": "b3b5840ba8af72c6edee2a18e83ab9dad1bf98f23f96ba603692596132b1289a",
-    "quarto.fish": "155ede9c1cce4509b098115d8099b6f33d86ab7428510991acfa6c4b7a310ff4",
-    "quarto.ps1": "5756761f368a2448c414c6e974e26f7c154e7e096b71d570e28c5a78485483cf",
-    "spec.json": "31574d70561b7dfefd86dbc6f7609cc9d7cc19a1e1f1e387b3009f79ae96db85"
+    "quarto.bash": "4bd63dccd0b06cbc73f7993c2bc5b96842a78a35dd9a707438f8104748529d55",
+    "_quarto": "c0fc03302797697499a43b30bc3f5630639e7a14628a117e46f52ba42bea2252",
+    "quarto.fish": "a2aa3e19aa7504f06fc6335fbb5b21de58da21baa466a863955549b04fdfdac7",
+    "quarto.ps1": "bf5be0989e3f4621b0976253e42adffb7052777f406f66fd36c1b60bfbc290c0",
+    "spec.json": "a84137d17905d74cefbc6eae690b3db7095e10bde220605e873cae5c9dd56e84"
   }
 }
