@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 2026.11.02 (2026-11-02)
+
 ### Bug Fixes
 
 - fix: publish the completions as soon as a regeneration lands on `main`, so the installers pick up the weekly update without waiting for the next release. (#37)
