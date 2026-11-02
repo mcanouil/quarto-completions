@@ -1,8 +1,8 @@
 {
-  "quartoVersion": "1.11.6",
+  "quartoVersion": "1.11.9",
   "channel": "pre-release",
   "source": {
-    "tag": "v1.11.6"
+    "tag": "v1.11.9"
   },
   "root": {
     "path": [],
