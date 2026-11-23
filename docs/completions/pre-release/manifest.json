@@ -1,15 +1,15 @@
 {
-  "quartoVersion": "1.12.2",
+  "quartoVersion": "1.12.3",
   "channel": "pre-release",
   "source": {
-    "tag": "v1.12.2"
+    "tag": "v1.12.3"
   },
-  "generated": "2026-11-16",
+  "generated": "2026-11-23",
   "files": {
-    "quarto.bash": "d6edf83db61a1bf3236816d60f9e970f2048088ba798de7ecf49b559cba291da",
-    "_quarto": "bf2eb98d34c0c86d5750ffdefcd33e95d045e93f5252037df038f2419925ed4b",
-    "quarto.fish": "dd0f6e331b351dd50c70819d7bad1c879b999c560c0a2c7a82016143e12eebaa",
-    "quarto.ps1": "8a9a0824dcf345a31c0a4ab4100d63826bf5c049f012f038dff2d11b03977a0f",
-    "spec.json": "eb82cac9d992ddb20ca2b2f5606571902b77514d11664e5ce2e6df66015dbb11"
+    "quarto.bash": "2d5dc4a4e396b04f710a029f9567edcf51c55eacce48c8343e8cc8d71a19676a",
+    "_quarto": "4401511c2882510fe5cc80863561e547847c1491520f7ad55ae2e7d410f0984e",
+    "quarto.fish": "cecb5c2b1895f67454a731ba24659c9c62f5db36a9f4de1296b99c28b8dec8fa",
+    "quarto.ps1": "0c0f66314017fbda77c8d4269ef4454733ef6db275396f001bf44ec12dd6c47b",
+    "spec.json": "138b2c375f7db947d5c42611569427968c6c933e932d4be9d0bd553dfc835bcd"
   }
 }
